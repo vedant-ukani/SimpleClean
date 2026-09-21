@@ -165,13 +165,17 @@ describe("Inventory QR labels", () => {
     expect(printedSvg).not.toContain(createdMachine.id);
 
     const token = app.get(QrLabelSigner).sign(created.body.label.id as string);
-    for (const body of [
-      { token },
-      { fallbackCode: created.body.label.fallbackCode },
+    for (const { cookies, body } of [
+      { cookies: owner.cookies, body: { token } },
+      {
+        cookies: warehouse.cookies,
+        body: { fallbackCode: created.body.label.fallbackCode },
+      },
+      { cookies: technician.cookies, body: { token } },
     ]) {
       await request(app.getHttpServer())
         .post("/inventory/qr-labels/resolve")
-        .set("Cookie", technician.cookies)
+        .set("Cookie", cookies)
         .send(body)
         .expect(201)
         .expect(({ body: responseBody }) => {
@@ -217,7 +221,10 @@ describe("Inventory QR labels", () => {
       .post(`/inventory/machines/${createdMachine.id}/qr-labels/reissue`)
       .set("Cookie", owner.cookies)
       .set("Idempotency-Key", reissueKey)
-      .send({ expectedVersion: created.body.label.version })
+      .send({
+        expectedLabelId: created.body.label.id,
+        expectedVersion: created.body.label.version,
+      })
       .expect(201);
     expect(reissued.body.label).toMatchObject({
       machineId: createdMachine.id,
@@ -229,14 +236,14 @@ describe("Inventory QR labels", () => {
       .post(`/inventory/machines/${createdMachine.id}/qr-labels/reissue`)
       .set("Cookie", owner.cookies)
       .set("Idempotency-Key", reissueKey)
-      .send({ expectedVersion: 1 })
+      .send({ expectedLabelId: created.body.label.id, expectedVersion: 1 })
       .expect(201)
       .expect(({ body }) => expect(body.label.id).toBe(reissued.body.label.id));
     await request(app.getHttpServer())
       .post(`/inventory/machines/${createdMachine.id}/qr-labels/reissue`)
       .set("Cookie", owner.cookies)
       .set("Idempotency-Key", randomUUID())
-      .send({ expectedVersion: 1 })
+      .send({ expectedLabelId: created.body.label.id, expectedVersion: 1 })
       .expect(409);
     await request(app.getHttpServer())
       .post("/inventory/qr-labels/resolve")
@@ -297,6 +304,7 @@ describe("Inventory QR labels", () => {
       [
         "created",
         "printed",
+        "resolved",
         "resolved",
         "resolved",
         "revoked",
@@ -414,5 +422,71 @@ describe("Inventory QR labels", () => {
         },
       ),
     ).rejects.toMatchObject({ status: 403 });
+  });
+
+  it("binds reissue to the exact active label across ABA and concurrent requests", async () => {
+    const app = await createApplication();
+    const owner = await user(app, "owner_admin");
+    const createdMachine = await machine(app, owner.cookies);
+
+    const first = await request(app.getHttpServer())
+      .post(`/inventory/machines/${createdMachine.id}/qr-labels`)
+      .set("Cookie", owner.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({})
+      .expect(201);
+    await request(app.getHttpServer())
+      .post(`/inventory/qr-labels/${first.body.label.id}/revoke`)
+      .set("Cookie", owner.cookies)
+      .send({ expectedVersion: first.body.label.version })
+      .expect(201);
+    const replacement = await request(app.getHttpServer())
+      .post(`/inventory/machines/${createdMachine.id}/qr-labels`)
+      .set("Cookie", owner.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({})
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post(`/inventory/machines/${createdMachine.id}/qr-labels/reissue`)
+      .set("Cookie", owner.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({
+        expectedLabelId: first.body.label.id,
+        expectedVersion: first.body.label.version,
+      })
+      .expect(409);
+
+    const concurrent = await Promise.all([
+      request(app.getHttpServer())
+        .post(`/inventory/machines/${createdMachine.id}/qr-labels/reissue`)
+        .set("Cookie", owner.cookies)
+        .set("Idempotency-Key", randomUUID())
+        .send({
+          expectedLabelId: replacement.body.label.id,
+          expectedVersion: replacement.body.label.version,
+        }),
+      request(app.getHttpServer())
+        .post(`/inventory/machines/${createdMachine.id}/qr-labels/reissue`)
+        .set("Cookie", owner.cookies)
+        .set("Idempotency-Key", randomUUID())
+        .send({
+          expectedLabelId: replacement.body.label.id,
+          expectedVersion: replacement.body.label.version,
+        }),
+    ]);
+    expect(concurrent.map(({ status }) => status).sort()).toEqual([201, 409]);
+
+    const connection = app.get<DatabaseConnection>(DATABASE_CONNECTION);
+    const active = resultRows<{ id: string }>(
+      await connection.database.execute(sql`
+        select id from inventory_qr_label
+        where machine_id = ${createdMachine.id} and state = 'active'
+      `),
+    );
+    expect(active).toHaveLength(1);
+    expect(active[0]?.id).toBe(
+      concurrent.find(({ status }) => status === 201)?.body.label.id,
+    );
   });
 });

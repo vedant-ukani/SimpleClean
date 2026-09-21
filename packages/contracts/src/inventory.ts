@@ -268,7 +268,10 @@ export const RelocateMachineRequestSchema = z.object({
 });
 
 export const CreateQrLabelRequestSchema = z.object({}).strict();
-export const ReissueQrLabelRequestSchema = VersionedRequestSchema;
+export const ReissueQrLabelRequestSchema = z.object({
+  expectedLabelId: InventoryIdSchema,
+  expectedVersion: VersionSchema,
+});
 export const RevokeQrLabelRequestSchema = VersionedRequestSchema;
 export const ResolveQrLabelRequestSchema = z.union([
   z.object({ token: QrTokenSchema }).strict(),

@@ -60,7 +60,7 @@ export function MachineQrPanel({
   async function reissue(label: QrLabel) {
     const { reissueQrLabel } = await import("../../../../lib/qr-client");
     await run(
-      () => reissueQrLabel(machineId, label.version),
+      () => reissueQrLabel(machineId, label.id, label.version),
       "QR label reissued. The previous label is revoked.",
     );
   }

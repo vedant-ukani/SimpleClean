@@ -173,7 +173,11 @@ describe("QR interaction UI", () => {
     );
     await user.click(screen.getByRole("button", { name: "Reissue" }));
     await waitFor(() =>
-      expect(qrMocks.reissueQrLabel).toHaveBeenCalledWith(machineId, 1),
+      expect(qrMocks.reissueQrLabel).toHaveBeenCalledWith(
+        machineId,
+        activeLabel.id,
+        1,
+      ),
     );
   });
 });

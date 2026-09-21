@@ -149,12 +149,13 @@ export async function revokeQrLabel(
 
 export async function reissueQrLabel(
   machineId: string,
+  expectedLabelId: string,
   expectedVersion: number,
 ): Promise<QrLabel> {
   return QrLabelResponseSchema.parse(
     await idempotentBrowserMutation(
       `/inventory/machines/${machineId}/qr-labels/reissue`,
-      { expectedVersion },
+      { expectedLabelId, expectedVersion },
     ),
   ).label;
 }

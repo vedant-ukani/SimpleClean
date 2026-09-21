@@ -121,6 +121,7 @@ export class QrLabelService {
         await this.repository.reissue(
           {
             machineId,
+            expectedLabelId: input.expectedLabelId,
             expectedVersion: input.expectedVersion,
             labelId: this.signer.createLabelId(),
             fallbackCode: this.signer.createFallbackCode(),

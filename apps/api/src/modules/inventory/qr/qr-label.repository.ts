@@ -178,6 +178,7 @@ export class QrLabelRepository {
   async reissue(
     input: {
       machineId: string;
+      expectedLabelId: string;
       expectedVersion: number;
       labelId: string;
       fallbackCode: string;
@@ -190,6 +191,7 @@ export class QrLabelRepository {
         "inventory.qr_label.reissue",
         {
           machineId: input.machineId,
+          expectedLabelId: input.expectedLabelId,
           expectedVersion: input.expectedVersion,
         },
         context,
@@ -214,7 +216,10 @@ export class QrLabelRepository {
         });
         return { status: "not_found" };
       }
-      if (current.version !== input.expectedVersion) {
+      if (
+        current.id !== input.expectedLabelId ||
+        current.version !== input.expectedVersion
+      ) {
         await this.idempotency.release(database, {
           recordId: reservation.recordId!,
         });
