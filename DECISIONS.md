@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-21 — Private file metadata, storage adapters, and one-time access
+
+Keep Machine/Load attachment metadata and relationships in PostgreSQL while storing bytes behind a provider-neutral Files module `StorageAdapter`. Use generated opaque object keys, byte-signature/media/size/checksum validation, and private local or S3-compatible storage. Issue only short-lived one-time grants whose SHA-256 hashes are persisted and whose use is bound to the issuing user, exact session, file, and operation.
+
+Consequences: filenames and storage providers cannot become authorization boundaries, storage keys are never public URLs, and current target permission is rechecked before every grant use. Because the database and object store cannot share one transaction, upload leases and optimistic versions coordinate readiness, failure, and cleanup; only verified objects become ready, late writers remove their bytes after a lost race, and ready objects are excluded from incomplete cleanup. Malware-provider selection, retention deletion, and automatic cleanup remain later decisions.
+
 ## 2026-09-21 — Provisional Machine identity and explicit verification claims
 
 Create every received or expected physical Machine with an immutable UUID and allow incomplete provisional plate facts. Preserve raw identity submissions separately from the normalized current view. Verifying manufacturer plus serial acquires one unique normalized identity claim; a duplicate attempt keeps both Machines and persists the attempted Machine as a linked conflict. Identity evidence, verification decisions, and relocations are immutable and attributable, while current operational records use optimistic versions.

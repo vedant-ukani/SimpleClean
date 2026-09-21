@@ -739,7 +739,8 @@ This map describes the canonical home for reusable product decisions. The applic
 | Machine identity matching | Inventory-owned normalization and unique manufacturer/serial claims; never controller, UI, or import-local matching |
 | Inventory/import behavior | Inventory API module; spreadsheet parsing remains behind the future Import module/interface |
 | QR behavior | Owning Inventory/Intake API module, not UI components |
-| File metadata and access policy | Owning Files API module; bytes behind a storage adapter |
+| File metadata and access policy | `apps/api/src/modules/files`; its exported service owns attachment policy and its `StorageAdapter` owns private bytes through local or S3-compatible implementations |
+| File contracts and permissions | `packages/contracts/src/files.ts` and the canonical policy in `packages/contracts/src/authorization.ts` |
 | Authentication and staff identity | `apps/api/src/modules/identity`; Better Auth owns credentials/sessions and the platform profile owns role/active state |
 | Authorization policy | `packages/contracts/src/authorization.ts` for role/permission decisions; enforced by the Identity module's global API guard |
 | Authenticated web API access | Same-origin `/api/*` proxy in `apps/web/next.config.ts`; validated clients in `apps/web/src/lib` |
@@ -765,6 +766,9 @@ This map describes the canonical home for reusable product decisions. The applic
 - Inventory, production, listing, sales, payment, and shipment states remain independent axes.
 - Domain changes and their outbox records commit atomically. Retried handlers use idempotency keys or provider event IDs.
 - Files are private by default. PostgreSQL holds metadata and relationships; object storage holds bytes; access uses short-lived grants.
+- File storage keys are generated IDs, never client filenames. Upload/download grants are stored only as hashes, bound to the exact user/session/file/operation, expire quickly, and are consumed once.
+- File readiness requires detected byte signature, size, media type, checksum, and stored-object metadata to agree. Upload leases plus optimistic versions prevent cleanup from racing an in-flight write.
+- File activity is immutable and privacy-safe. It records actors/actions/request IDs but never bytes, tokens, filenames, cookies, or request bodies.
 - Audit records are append-only, privacy-safe, attributable, and created by mutation paths rather than UI logging.
 - Migration imports always stage and preview before authoritative commit. Missing facts remain unknown and uncertain matches are not merged automatically.
 - QR payloads contain only opaque or signed lookup material. Authorization occurs after resolution.
