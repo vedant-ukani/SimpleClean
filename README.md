@@ -55,6 +55,12 @@ npm run auth:provision
 
 The command reads the password only from the environment, never from a command-line argument or source-controlled default. It creates or updates the requested pilot account through Better Auth and the Identity module. Remove the bootstrap password from `.env` after provisioning, communicate it out of band, and sign in at <http://localhost:3000/login>. Each worker uses an individual account; use the prominent switch-user/sign-out control before handing over a shared tablet.
 
+## Shared tablet PWA
+
+The staff web application is one responsive installable PWA; there is no separate native or shared-account tablet application. Open it in a modern browser over HTTPS (or localhost), sign in with the worker's individual account, and use the browser's **Install app** action when a home-screen icon is useful. Warehouse and Technician/Cleaner home screens expose only their permitted foundation destinations and clearly mark the future assigned-work area as a pilot placeholder.
+
+The PWA stores only versioned public application assets and a generic offline page. It never stores protected pages, API/session responses, attachments, imports, reports, QR labels, Loads, or Machines for offline use, and it never queues offline writes. When the connection is unavailable, reconnect before viewing or changing operational records. Successful switch-user/sign-out also clears this application's public cache version before the next person signs in.
+
 ## Verify
 
 Run the canonical checks from the repository root:
@@ -64,10 +70,11 @@ npm run lint
 npm run typecheck
 npm test
 npm run test:integration
+npm run test:browser
 npm run build
 ```
 
-The local integration suite creates disposable in-memory PGlite databases. CI also runs the database integration test against a PostgreSQL service through the normal wire driver.
+The local integration suite creates disposable in-memory PGlite databases. Browser tests start isolated API, storage, and web processes, provision disposable role users and records, and run both desktop and tablet Chromium projects without reading or writing the root inventory workbook. CI also runs the database integration test against a PostgreSQL service through the normal wire driver.
 
 ## Database modes
 

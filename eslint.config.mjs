@@ -10,6 +10,8 @@ export default tseslint.config(
       "**/dist/**",
       "**/.next/**",
       "**/coverage/**",
+      "**/test-results/**",
+      "**/playwright-report/**",
       ".codegraph/**",
       ".codex-build/**",
       ".codex-finalizer/**",

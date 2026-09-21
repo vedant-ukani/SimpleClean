@@ -13,6 +13,7 @@ import {
   getBrowserFiles,
   uploadFileContent,
 } from "../../lib/files-client";
+import { useOnlineStatus } from "./online-status";
 
 const stateLabel: Record<FileAttachment["state"], string> = {
   pending_upload: "Pending upload",
@@ -33,9 +34,14 @@ export function AttachmentsPanel({
   const [files, setFiles] = useState(initialFiles);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
 
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!online) {
+      setMessage("Reconnect before uploading an attachment.");
+      return;
+    }
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     const selected = form.get("file");
@@ -80,6 +86,10 @@ export function AttachmentsPanel({
   }
 
   async function download(fileId: string) {
+    if (!online) {
+      setMessage("Reconnect before opening this private attachment.");
+      return;
+    }
     setBusy(true);
     try {
       window.location.assign(await createFileDownloadUrl(fileId));
@@ -120,7 +130,7 @@ export function AttachmentsPanel({
               required
             />
           </label>
-          <button type="submit" disabled={busy}>
+          <button type="submit" disabled={busy || !online}>
             Upload attachment
           </button>
         </form>
@@ -141,7 +151,7 @@ export function AttachmentsPanel({
               <button
                 type="button"
                 className="secondary-button"
-                disabled={busy}
+                disabled={busy || !online}
                 onClick={() => void download(file.id)}
               >
                 Download

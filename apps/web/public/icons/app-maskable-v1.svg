@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Simply Clean Operations">
+  <rect width="512" height="512" fill="#176b55"/>
+  <circle cx="256" cy="256" r="128" fill="#f7f4eb"/>
+  <circle cx="256" cy="256" r="87" fill="#dff4e9" stroke="#15342d" stroke-width="18"/>
+  <path d="M198 187c19-20 42-30 69-30 29 0 54 11 73 34" fill="none" stroke="#176b55" stroke-width="21" stroke-linecap="round"/>
+  <path d="M188 321c21 24 47 35 78 35 28 0 53-11 73-33" fill="none" stroke="#176b55" stroke-width="21" stroke-linecap="round"/>
+  <circle cx="356" cy="146" r="25" fill="#79c9a6"/>
+</svg>

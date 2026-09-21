@@ -4,6 +4,7 @@ import type { AuditEntry, OutboxJob } from "@simply-clean/contracts";
 import { useState } from "react";
 
 import { retryOperationsJob } from "../../../../lib/operations-client";
+import { useOnlineStatus } from "../../online-status";
 
 export function OperationsReview({
   initialAudit,
@@ -12,8 +13,13 @@ export function OperationsReview({
   const [jobs, setJobs] = useState(initialJobs);
   const [message, setMessage] = useState<string>();
   const [busyId, setBusyId] = useState<string>();
+  const online = useOnlineStatus();
 
   async function retry(job: OutboxJob) {
+    if (!online) {
+      setMessage("Reconnect before retrying this work item.");
+      return;
+    }
     setBusyId(job.id);
     try {
       const updated = await retryOperationsJob(job.id, job.version);
@@ -84,7 +90,7 @@ export function OperationsReview({
               {job.state === "dead_letter" ? (
                 <button
                   type="button"
-                  disabled={busyId === job.id}
+                  disabled={busyId === job.id || !online}
                   onClick={() => void retry(job)}
                 >
                   Retry

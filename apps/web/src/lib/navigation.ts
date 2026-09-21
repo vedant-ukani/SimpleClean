@@ -8,6 +8,16 @@ export interface NavigationItem {
   label: string;
 }
 
+export interface DashboardItem extends NavigationItem {
+  description: string;
+}
+
+export const ROLE_LABELS: Record<ApplicationRole, string> = {
+  owner_admin: "Owner Admin",
+  warehouse: "Warehouse",
+  technician_cleaner: "Technician / Cleaner",
+};
+
 export function canManageUsers(role: ApplicationRole): boolean {
   return roleHasPermission(role, "identity.users.manage");
 }
@@ -67,4 +77,87 @@ export function navigationForRole(
     navigation.push({ href: "/locations", label: "Locations" });
   }
   return navigation;
+}
+
+export function dashboardForRole(
+  role: ApplicationRole,
+): readonly DashboardItem[] {
+  if (role === "owner_admin") {
+    return [
+      {
+        href: "/admin/imports",
+        label: "Imports",
+        description: "Review and commit inventory spreadsheet staging runs.",
+      },
+      {
+        href: "/loads",
+        label: "Loads",
+        description: "Review expected and received acquisition loads.",
+      },
+      {
+        href: "/machines",
+        label: "Machines",
+        description: "Search serialized equipment and identity evidence.",
+      },
+      {
+        href: "/admin/users",
+        label: "Team",
+        description: "Manage individual staff access and roles.",
+      },
+      {
+        href: "/admin/operations",
+        label: "Operations",
+        description: "Review audit history and background-job health.",
+      },
+      {
+        href: "/admin/files",
+        label: "Foundation review",
+        description: "Review incomplete private file uploads.",
+      },
+    ].filter((item) =>
+      navigationForRole(role).some((allowed) => allowed.href === item.href),
+    );
+  }
+
+  if (role === "warehouse") {
+    return [
+      {
+        href: "/loads",
+        label: "Expected Loads",
+        description: "Open incoming Loads that have not been received yet.",
+      },
+      {
+        href: "/machines",
+        label: "Machine Search",
+        description: "Find a Machine by ID or recorded equipment facts.",
+      },
+      {
+        href: "/scan",
+        label: "Scan",
+        description: "Resolve a printed QR label or fallback code.",
+      },
+      {
+        href: "/locations",
+        label: "Locations",
+        description: "Find the named positions used for equipment.",
+      },
+    ].filter((item) =>
+      navigationForRole(role).some((allowed) => allowed.href === item.href),
+    );
+  }
+
+  return [
+    {
+      href: "/machines",
+      label: "Machine Search",
+      description: "Find equipment and view its permitted record and files.",
+    },
+    {
+      href: "/scan",
+      label: "Scan",
+      description: "Resolve a printed QR label or fallback code.",
+    },
+  ].filter((item) =>
+    navigationForRole(role).some((allowed) => allowed.href === item.href),
+  );
 }

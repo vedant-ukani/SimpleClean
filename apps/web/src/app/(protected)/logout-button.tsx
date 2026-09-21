@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { authClient } from "../../lib/auth-client";
+import { clearPublicPwaCaches } from "../pwa-registration";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -20,6 +21,13 @@ export function LogoutButton() {
         setPending(false);
         return;
       }
+      await clearPublicPwaCaches(
+        "caches" in window ? window.caches : undefined,
+        "serviceWorker" in navigator ? navigator.serviceWorker : undefined,
+      ).catch(() => {
+        // Public assets contain no user data; failed cleanup must not undo a
+        // successful server-side sign-out.
+      });
       router.replace("/login");
       router.refresh();
     } catch {

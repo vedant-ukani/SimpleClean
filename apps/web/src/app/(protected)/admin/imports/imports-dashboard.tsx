@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { uploadInventoryImport } from "../../../../lib/imports-client";
+import { useOnlineStatus } from "../../online-status";
 
 function runStateLabel(state: ImportRun["state"]): string {
   return state.replaceAll("_", " ");
@@ -20,9 +21,14 @@ export function ImportsDashboard({
   const [runs, setRuns] = useState(initialRuns);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
 
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!online) {
+      setMessage("Reconnect before staging an inventory file.");
+      return;
+    }
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     const file = form.get("file");
@@ -88,7 +94,7 @@ export function ImportsDashboard({
                 required
               />
             </label>
-            <button type="submit" disabled={busy}>
+            <button type="submit" disabled={busy || !online}>
               {busy ? "Staging…" : "Stage for review"}
             </button>
           </form>

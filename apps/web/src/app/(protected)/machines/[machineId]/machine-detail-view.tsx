@@ -17,6 +17,7 @@ import {
 } from "../../../../lib/inventory-client";
 import { MachineIdentityStatus, recorded } from "../machine-labels";
 import { AttachmentsPanel } from "../../attachments-panel";
+import { useOnlineStatus } from "../../online-status";
 import { MachineQrPanel } from "./machine-qr-panel";
 
 export function MachineDetailView({
@@ -42,9 +43,22 @@ export function MachineDetailView({
 }>) {
   const [machine, setMachine] = useState(initialDetail.machine);
   const [message, setMessage] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
+
+  function beginOnlineMutation(message: string): boolean {
+    if (!online) {
+      setMessage(message);
+      return false;
+    }
+    setBusy(true);
+    return true;
+  }
 
   async function updateIdentity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!beginOnlineMutation("Reconnect before saving identity evidence."))
+      return;
     const form = new FormData(event.currentTarget);
     const nullable = (name: string) => String(form.get(name) ?? "") || null;
     try {
@@ -65,10 +79,14 @@ export function MachineDetailView({
       setMessage(
         "The Machine changed elsewhere or the input is invalid. Refresh and retry.",
       );
+    } finally {
+      setBusy(false);
     }
   }
 
   async function verify() {
+    if (!beginOnlineMutation("Reconnect before verifying Machine identity."))
+      return;
     try {
       setMachine(await verifyMachine(machine.id, machine.version));
       setMessage("Machine identity verified.");
@@ -86,11 +104,15 @@ export function MachineDetailView({
       setMessage(
         "Verification failed. Manufacturer and serial are required; refresh if the version changed.",
       );
+    } finally {
+      setBusy(false);
     }
   }
 
   async function relocate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!beginOnlineMutation("Reconnect before recording a relocation."))
+      return;
     const form = new FormData(event.currentTarget);
     try {
       setMachine(
@@ -104,6 +126,8 @@ export function MachineDetailView({
       setMessage(
         "Relocation failed. The Location may be inactive or the Machine changed; refresh and retry.",
       );
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -213,11 +237,14 @@ export function MachineDetailView({
                 <option value="other">Other</option>
               </select>
             </label>
-            <button type="submit">Save identity evidence</button>
+            <button type="submit" disabled={busy || !online}>
+              {busy ? "Saving…" : "Save identity evidence"}
+            </button>
             {canVerify ? (
               <button
                 type="button"
                 className="secondary-button"
+                disabled={busy || !online}
                 onClick={() => void verify()}
               >
                 Verify identity
@@ -249,7 +276,9 @@ export function MachineDetailView({
                   ))}
               </select>
             </label>
-            <button type="submit">Record relocation</button>
+            <button type="submit" disabled={busy || !online}>
+              {busy ? "Saving…" : "Record relocation"}
+            </button>
           </form>
         </section>
       ) : null}

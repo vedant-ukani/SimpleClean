@@ -5,6 +5,7 @@ import { getFiles } from "../../../../lib/files-client";
 import { getCurrentIdentity } from "../../../../lib/identity-client";
 import { getLoad } from "../../../../lib/inventory-client";
 import { canManageLoads } from "../../../../lib/navigation";
+import { readProtectedRouteData } from "../../../../lib/server-route-state";
 import { LoadDetailView } from "./load-detail-view";
 
 export default async function LoadDetailPage({
@@ -12,11 +13,13 @@ export default async function LoadDetailPage({
 }: Readonly<{ params: Promise<{ loadId: string }> }>) {
   const [{ loadId }, requestHeaders] = await Promise.all([params, headers()]);
   const cookie = requestHeaders.get("cookie") ?? undefined;
-  const [load, identity, files] = await Promise.all([
-    getLoad(loadId, fetch, process.env, cookie),
-    getCurrentIdentity(fetch, process.env, cookie),
-    getFiles({ type: "load", id: loadId }, fetch, process.env, cookie),
-  ]);
+  const [load, identity, files] = await readProtectedRouteData(
+    Promise.all([
+      getLoad(loadId, fetch, process.env, cookie),
+      getCurrentIdentity(fetch, process.env, cookie),
+      getFiles({ type: "load", id: loadId }, fetch, process.env, cookie),
+    ]),
+  );
   return (
     <main className="page-main">
       <div className="page-heading">

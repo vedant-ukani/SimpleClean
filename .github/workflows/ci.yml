@@ -34,6 +34,9 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:integration
+      - name: Install browser test runtime
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
       - name: Verify PostgreSQL wire driver
         run: npm run test:integration -w @simply-clean/database
         env:

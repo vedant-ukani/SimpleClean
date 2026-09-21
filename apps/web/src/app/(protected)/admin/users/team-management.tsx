@@ -9,6 +9,7 @@ import {
   createIdentityUser,
   revokeIdentitySessions,
 } from "../../../../lib/identity-client";
+import { useOnlineStatus } from "../../online-status";
 
 const roleLabels: Record<ApplicationRole, string> = {
   owner_admin: "Owner Admin",
@@ -21,6 +22,17 @@ export function TeamManagement({
 }: Readonly<{ initialUsers: IdentityUser[] }>) {
   const [users, setUsers] = useState(initialUsers);
   const [message, setMessage] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
+
+  function beginMutation(): boolean {
+    if (!online) {
+      setMessage("Reconnect before changing team access.");
+      return false;
+    }
+    setBusy(true);
+    return true;
+  }
 
   function replaceUser(updated: IdentityUser) {
     setUsers((current) =>
@@ -30,6 +42,7 @@ export function TeamManagement({
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!beginMutation()) return;
     setMessage(undefined);
     const form = new FormData(event.currentTarget);
     try {
@@ -44,10 +57,13 @@ export function TeamManagement({
       setMessage("User created. Share the initial password securely.");
     } catch {
       setMessage("The user could not be created. Check the details and retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
   async function changeRole(user: IdentityUser, role: ApplicationRole) {
+    if (!beginMutation()) return;
     try {
       replaceUser(
         await changeIdentityRole(user.id, {
@@ -58,10 +74,13 @@ export function TeamManagement({
       setMessage("Role updated. Existing sessions were revoked.");
     } catch {
       setMessage("The role could not be changed. Refresh and retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
   async function changeActive(user: IdentityUser) {
+    if (!beginMutation()) return;
     try {
       replaceUser(
         await changeIdentityActive(user.id, {
@@ -76,15 +95,20 @@ export function TeamManagement({
       );
     } catch {
       setMessage("The account state could not be changed. Refresh and retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
   async function revoke(user: IdentityUser) {
+    if (!beginMutation()) return;
     try {
       await revokeIdentitySessions(user.id);
       setMessage(`Sessions revoked for ${user.name}.`);
     } catch {
       setMessage("Sessions could not be revoked. Retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -115,7 +139,9 @@ export function TeamManagement({
               ))}
             </select>
           </label>
-          <button type="submit">Create user</button>
+          <button type="submit" disabled={busy || !online}>
+            {busy ? "Saving…" : "Create user"}
+          </button>
         </form>
       </section>
 
@@ -136,6 +162,7 @@ export function TeamManagement({
             <label>
               <span className="sr-only">Role for {user.name}</span>
               <select
+                disabled={busy || !online}
                 value={user.role}
                 onChange={(event) =>
                   void changeRole(user, event.target.value as ApplicationRole)
@@ -149,10 +176,18 @@ export function TeamManagement({
               </select>
             </label>
             <div className="row-actions">
-              <button type="button" onClick={() => void changeActive(user)}>
+              <button
+                type="button"
+                disabled={busy || !online}
+                onClick={() => void changeActive(user)}
+              >
                 {user.active ? "Deactivate" : "Activate"}
               </button>
-              <button type="button" onClick={() => void revoke(user)}>
+              <button
+                type="button"
+                disabled={busy || !online}
+                onClick={() => void revoke(user)}
+              >
                 Revoke sessions
               </button>
             </div>

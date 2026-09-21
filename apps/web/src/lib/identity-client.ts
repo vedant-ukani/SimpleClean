@@ -11,11 +11,20 @@ import {
   type IdentityUser,
 } from "@simply-clean/contracts";
 
+import { requestStatus } from "./request-status";
+
 export class IdentityRequestError extends Error {
   constructor(readonly status: number) {
     super(`Identity request failed with status ${status}`);
     this.name = "IdentityRequestError";
   }
+}
+
+export function identityRequiresSignIn(error: unknown): boolean {
+  const status = requestStatus(error);
+  return (
+    error instanceof IdentityRequestError && (status === 401 || status === 403)
+  );
 }
 
 async function requestJson(

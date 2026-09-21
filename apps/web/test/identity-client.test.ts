@@ -1,7 +1,11 @@
 import { createTestEnvironment } from "@simply-clean/test-support";
 import { describe, expect, it, vi } from "vitest";
 
-import { getCurrentIdentity } from "../src/lib/identity-client";
+import {
+  getCurrentIdentity,
+  IdentityRequestError,
+  identityRequiresSignIn,
+} from "../src/lib/identity-client";
 
 describe("identity client", () => {
   it("validates the current identity response", async () => {
@@ -56,5 +60,14 @@ describe("identity client", () => {
     await expect(
       getCurrentIdentity(fetcher, createTestEnvironment()),
     ).rejects.toThrow();
+  });
+
+  it("separates expired sessions from service unavailability", () => {
+    expect(identityRequiresSignIn(new IdentityRequestError(401))).toBe(true);
+    expect(identityRequiresSignIn(new IdentityRequestError(403))).toBe(true);
+    expect(identityRequiresSignIn(new IdentityRequestError(503))).toBe(false);
+    expect(identityRequiresSignIn(new TypeError("network unavailable"))).toBe(
+      false,
+    );
   });
 });

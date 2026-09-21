@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { MachineDetailView } from "../src/app/(protected)/machines/[machineId]/machine-detail-view";
 import { MachineIdentityStatus } from "../src/app/(protected)/machines/machine-labels";
+import { LoadsView } from "../src/app/(protected)/loads/loads-view";
 
 const timestamp = new Date().toISOString();
 const machine = {
@@ -29,6 +30,38 @@ const machine = {
 };
 
 describe("inventory UI", () => {
+  it("shows only unreceived Loads in the warehouse expected view", () => {
+    const baseLoad = {
+      id: "f13fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
+      displayName: "Still expected",
+      sourceName: null,
+      sourceReference: null,
+      expectedArrivalAt: null,
+      receivedAt: null,
+      version: 1,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    const markup = renderToStaticMarkup(
+      <LoadsView
+        initialLoads={[
+          baseLoad,
+          {
+            ...baseLoad,
+            id: "6a93d79e-f4ad-4ce8-9b7c-9ccb6e51c248",
+            displayName: "Already received",
+            receivedAt: timestamp,
+          },
+        ]}
+        canManage={false}
+        expectedOnly
+      />,
+    );
+    expect(markup).toContain("Expected Loads");
+    expect(markup).toContain("Still expected");
+    expect(markup).not.toContain("Already received");
+  });
+
   it("labels unknown facts and provisional identity explicitly", () => {
     const markup = renderToStaticMarkup(
       <MachineDetailView

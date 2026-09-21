@@ -6,8 +6,10 @@ import { TeamManagement } from "../src/app/(protected)/admin/users/team-manageme
 import {
   canManageQrLabels,
   canManageUsers,
+  dashboardForRole,
   navigationForRole,
 } from "../src/lib/navigation";
+import { isCurrentPath } from "../src/app/(protected)/active-navigation";
 
 describe("role-aware identity UI", () => {
   it("shows team management only to the Owner Admin", () => {
@@ -37,6 +39,33 @@ describe("role-aware identity UI", () => {
     expect(canManageQrLabels("owner_admin")).toBe(true);
     expect(canManageQrLabels("warehouse")).toBe(true);
     expect(canManageQrLabels("technician_cleaner")).toBe(false);
+  });
+
+  it("derives role dashboards from permitted foundation destinations", () => {
+    expect(dashboardForRole("owner_admin").map((item) => item.label)).toEqual([
+      "Imports",
+      "Loads",
+      "Machines",
+      "Team",
+      "Operations",
+      "Foundation review",
+    ]);
+    expect(dashboardForRole("warehouse").map((item) => item.label)).toEqual([
+      "Expected Loads",
+      "Machine Search",
+      "Scan",
+      "Locations",
+    ]);
+    expect(
+      dashboardForRole("technician_cleaner").map((item) => item.label),
+    ).toEqual(["Machine Search", "Scan"]);
+  });
+
+  it("marks only the current navigation destination", () => {
+    expect(isCurrentPath("/", "/")).toBe(true);
+    expect(isCurrentPath("/machines/record-1", "/machines")).toBe(true);
+    expect(isCurrentPath("/machines", "/")).toBe(false);
+    expect(isCurrentPath("/machine-tools", "/machines")).toBe(false);
   });
 
   it("renders login failures as an accessible alert", () => {

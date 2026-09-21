@@ -9,12 +9,15 @@ import {
   loginPathForScanToken,
   tokenFromFragment,
 } from "../../../lib/qr-client";
+import { requestStatus } from "../../../lib/request-status";
+import { useOnlineStatus } from "../online-status";
 
 type ScanState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "invalid" }
   | { status: "forbidden" }
+  | { status: "offline" }
   | { status: "error" }
   | { status: "success"; detail: MachineDetail };
 
@@ -23,6 +26,7 @@ type ScanResultProps =
   | { state: "loading" }
   | { state: "invalid" }
   | { state: "forbidden" }
+  | { state: "offline" }
   | { state: "error" }
   | { state: "success"; detail: MachineDetail };
 
@@ -49,6 +53,13 @@ export function ScanResult(props: Readonly<ScanResultProps>) {
     return (
       <p className="form-error" role="alert">
         Your account does not have permission to view this Machine.
+      </p>
+    );
+  }
+  if (props.state === "offline") {
+    return (
+      <p className="form-error" role="alert">
+        Reconnect before looking up this private Machine record.
       </p>
     );
   }
@@ -93,22 +104,10 @@ export function ScanResult(props: Readonly<ScanResultProps>) {
   );
 }
 
-function errorStatus(error: unknown): number | undefined {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    typeof error.status === "number"
-  ) {
-    return error.status;
-  }
-  return undefined;
-}
-
 export function scanFailureState(
   error: unknown,
 ): "invalid" | "forbidden" | "error" {
-  const status = errorStatus(error);
+  const status = requestStatus(error);
   if (status === 400 || status === 404) return "invalid";
   if (status === 401 || status === 403) return "forbidden";
   return "error";
@@ -120,19 +119,23 @@ export function ScanView({
   const [state, setState] = useState<ScanState>({ status: "idle" });
   const [fallbackCode, setFallbackCode] = useState("");
   const submittedFragment = useRef(false);
+  const online = useOnlineStatus();
 
   async function resolve(input: { token: string } | { fallbackCode: string }) {
+    if (!online) {
+      setState({ status: "offline" });
+      return;
+    }
     setState({ status: "loading" });
     try {
       const { resolveQrLabel } = await import("../../../lib/qr-client");
       setState({ status: "success", detail: await resolveQrLabel(input) });
     } catch (error) {
-      if (errorStatus(error) === 401 && "token" in input) {
-        const loginPath = loginPathForScanToken(input.token);
-        if (loginPath) {
-          navigateToLogin(loginPath);
-          return;
-        }
+      if (requestStatus(error) === 401) {
+        const loginPath =
+          "token" in input ? loginPathForScanToken(input.token) : "/login";
+        navigateToLogin(loginPath ?? "/login");
+        return;
       }
       setState({ status: scanFailureState(error) });
     }
@@ -191,7 +194,10 @@ export function ScanView({
             value={fallbackCode}
             onChange={(event) => setFallbackCode(event.currentTarget.value)}
           />
-          <button disabled={state.status === "loading"} type="submit">
+          <button
+            disabled={state.status === "loading" || !online}
+            type="submit"
+          >
             Look up Machine
           </button>
         </form>

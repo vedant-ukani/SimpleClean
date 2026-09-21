@@ -1,0 +1,415 @@
+import { expect, test, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+const accounts = {
+  owner: {
+    name: "Browser Owner",
+    email: "owner.browser@example.test",
+    password: "owner-browser-password",
+  },
+  warehouse: {
+    name: "Browser Warehouse",
+    email: "warehouse.browser@example.test",
+    password: "warehouse-browser-password",
+  },
+  technician: {
+    name: "Browser Technician",
+    email: "technician.browser@example.test",
+    password: "technician-browser-password",
+  },
+} as const;
+
+async function signIn(
+  page: Page,
+  account: (typeof accounts)[keyof typeof accounts],
+) {
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(account.email);
+  await page.getByLabel("Password").fill(account.password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(
+    page.getByText(account.name, { exact: true }).first(),
+  ).toBeVisible();
+}
+
+async function expectNoHorizontalOverflow(page: Page) {
+  const metrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    offenders: [...document.querySelectorAll<HTMLElement>("body *")]
+      .filter((element) => {
+        const box = element.getBoundingClientRect();
+        return (
+          box.right > innerWidth + 1 ||
+          box.left < -1 ||
+          element.scrollWidth > element.clientWidth + 1
+        );
+      })
+      .slice(0, 5)
+      .map((element) => ({
+        clientWidth: element.clientWidth,
+        className: element.className,
+        left: element.getBoundingClientRect().left,
+        right: element.getBoundingClientRect().right,
+        scrollWidth: element.scrollWidth,
+        tag: element.tagName,
+        text: element.textContent?.trim().slice(0, 80),
+      })),
+  }));
+  expect(metrics.scrollWidth, JSON.stringify(metrics)).toBeLessThanOrEqual(
+    metrics.clientWidth,
+  );
+}
+
+async function expectNoSeriousAccessibilityViolations(page: Page) {
+  const result = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  const blocking = result.violations
+    .filter(
+      (violation) =>
+        violation.impact === "serious" || violation.impact === "critical",
+    )
+    .map((violation) => ({
+      help: violation.help,
+      id: violation.id,
+      nodes: violation.nodes.map((node) => node.target),
+    }));
+  expect(blocking).toEqual([]);
+}
+
+test("warehouse follows the real load, machine, file, scan, and relocation boundaries", async ({
+  page,
+}) => {
+  await signIn(page, accounts.warehouse);
+  await expectNoSeriousAccessibilityViolations(page);
+
+  const warehouseDashboard = page.getByRole("region", { name: "Start work" });
+  for (const card of [
+    "Expected Loads",
+    "Machine Search",
+    "Scan",
+    "Locations",
+  ]) {
+    await expect(
+      warehouseDashboard.getByRole("link", {
+        name: new RegExp(`^${card}`),
+      }),
+    ).toBeVisible();
+  }
+  await expect(
+    page.getByText("Pilot placeholder", { exact: true }),
+  ).toBeVisible();
+
+  const primary = page.getByRole("navigation", { name: "Primary navigation" });
+  await expect(
+    primary.getByRole("link", { name: "Loads", exact: true }),
+  ).toBeVisible();
+  await expect(
+    primary.getByRole("link", { name: "Machines", exact: true }),
+  ).toBeVisible();
+  await expect(
+    primary.getByRole("link", { name: "Scan", exact: true }),
+  ).toBeVisible();
+  await expect(
+    primary.getByRole("link", { name: "Locations", exact: true }),
+  ).toBeVisible();
+  await expect(
+    primary.getByRole("link", { name: "Team", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    primary.getByRole("link", { name: "Imports", exact: true }),
+  ).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Loads", exact: true }).click();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Primary navigation" })
+      .getByRole("link", { name: "Loads", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    page.getByRole("heading", { name: "Acquisition Loads" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Browser Test Expected Load", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "View Load" }).click();
+  await expect(page.getByText("E2E-LOAD-001", { exact: true })).toBeVisible();
+
+  await page.getByRole("link", { name: "Machines", exact: true }).click();
+  await page
+    .getByLabel("Search by ID, manufacturer, model, serial, Load, or Location")
+    .fill("BROWSER-SERIAL-001");
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await expect(
+    page.getByText("Serial: BROWSER-SERIAL-001", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "View Machine" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Attachments" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("No attachments yet.", { exact: true }),
+  ).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+
+  const fallbackCode = (
+    await page.locator(".fallback-code").first().textContent()
+  )?.trim();
+  expect(fallbackCode).toBeTruthy();
+  await page.getByRole("link", { name: "Scan", exact: true }).click();
+  await page.getByLabel("Enter fallback code").fill("INVALID-CODE");
+  await page.getByRole("button", { name: "Look up Machine" }).click();
+  await expect(
+    page.getByText("This label is not valid or is no longer active.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await page.getByLabel("Enter fallback code").fill(fallbackCode ?? "");
+  await page.getByRole("button", { name: "Look up Machine" }).click();
+  await expect(page.getByText("Machine found", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Open Machine details" }).click();
+
+  await page
+    .getByLabel("Active destination")
+    .selectOption({ label: "E2E-STORAGE — Browser storage" });
+  await page.getByRole("button", { name: "Record relocation" }).click();
+  await expect(page.getByRole("status")).toContainText("Location updated");
+  await expect(
+    page.getByRole("definition").filter({ hasText: "E2E-STORAGE" }),
+  ).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("technician can read equipment and files but cannot cross management boundaries", async ({
+  page,
+}) => {
+  await signIn(page, accounts.technician);
+  await expectNoSeriousAccessibilityViolations(page);
+  const technicianDashboard = page.getByRole("region", { name: "Start work" });
+  await expect(
+    technicianDashboard.getByRole("link", { name: /^Machine Search/ }),
+  ).toBeVisible();
+  await expect(
+    technicianDashboard.getByRole("link", { name: /^Scan/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Pilot placeholder", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    technicianDashboard.getByRole("link", { name: /^Expected Loads/ }),
+  ).toHaveCount(0);
+  await expect(
+    technicianDashboard.getByRole("link", { name: /^Locations/ }),
+  ).toHaveCount(0);
+  const primary = page.getByRole("navigation", { name: "Primary navigation" });
+  await expect(
+    primary.getByRole("link", { name: "Machines", exact: true }),
+  ).toBeVisible();
+  await expect(
+    primary.getByRole("link", { name: "Scan", exact: true }),
+  ).toBeVisible();
+  await expect(
+    primary.getByRole("link", { name: "Locations", exact: true }),
+  ).toBeVisible();
+  await expect(
+    primary.getByRole("link", { name: "Loads", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    primary.getByRole("link", { name: "Imports", exact: true }),
+  ).toHaveCount(0);
+
+  const forbidden = await page.request.get("/api/inventory/loads");
+  expect(forbidden.status()).toBe(403);
+  const readableLocations = await page.request.get("/api/inventory/locations");
+  expect(readableLocations.status()).toBe(200);
+
+  await page.goto("/machines?query=BROWSER-SERIAL-001");
+  await page.getByRole("link", { name: "View Machine" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Attachments" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Record identity evidence" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Relocate Machine" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Reissue" })).toHaveCount(0);
+  await expectNoSeriousAccessibilityViolations(page);
+  await expectNoHorizontalOverflow(page);
+});
+
+test("owner reaches foundation administration and sign-out removes protected access", async ({
+  page,
+}) => {
+  await signIn(page, accounts.owner);
+  await expectNoSeriousAccessibilityViolations(page);
+  const ownerDashboard = page.getByRole("region", { name: "Start work" });
+  for (const card of [
+    "Imports",
+    "Loads",
+    "Machines",
+    "Team",
+    "Operations",
+    "Foundation review",
+  ]) {
+    await expect(
+      ownerDashboard.getByRole("link", { name: new RegExp(`^${card}`) }),
+    ).toBeVisible();
+  }
+  await expect(
+    page.getByText("Pilot placeholder", { exact: true }),
+  ).toHaveCount(0);
+  const primary = page.getByRole("navigation", { name: "Primary navigation" });
+  for (const destination of [
+    "Team",
+    "Operations",
+    "Imports",
+    "Loads",
+    "Machines",
+    "Scan",
+  ]) {
+    await expect(
+      primary.getByRole("link", { name: destination, exact: true }),
+    ).toBeVisible();
+  }
+
+  await primary.getByRole("link", { name: "Imports", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: /Inventory imports/i }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Switch user / sign out" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Staff sign in" }),
+  ).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/login/);
+  await expect(
+    page.getByText(accounts.owner.name, { exact: true }),
+  ).toHaveCount(0);
+});
+
+test("owner reviews and commits a synthetic inventory import across real boundaries", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "The cross-ticket commit journey runs once against the shared isolated fixture.",
+  );
+  await signIn(page, accounts.owner);
+  await page.getByRole("link", { name: "Imports", exact: true }).click();
+  await page
+    .getByLabel("Source Load")
+    .selectOption({ label: "Browser Test Expected Load" });
+  await page.getByLabel("Inventory file").setInputFiles({
+    name: "browser-foundation.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "Make,Model,Serial,Status\nDexter,T-900,E2E-IMPORT-001,In Inventory\n",
+      "utf8",
+    ),
+  });
+  await page.getByRole("button", { name: "Stage for review" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Import staged with 1 source rows",
+  );
+  await page.getByRole("link", { name: "Review", exact: true }).first().click();
+
+  await page.getByLabel("Approve source row 2").check();
+  await page.getByRole("button", { name: "Approve 1 selected" }).click();
+  await expect(page.getByRole("status")).toContainText("1 rows approved");
+  await page
+    .getByLabel("I confirm this exact approved selection may create Machines.")
+    .check();
+  await page
+    .getByRole("button", { name: "Create provisional Machines" })
+    .click();
+  await expect(page.getByRole("status")).toContainText(
+    "1 provisional Machines created",
+  );
+  await page
+    .getByRole("heading", { name: "Created Machines" })
+    .locator("..")
+    .getByRole("link", { name: "View Machine" })
+    .click();
+  await expect(page.getByText("E2E-IMPORT-001", { exact: true })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+
+  await page.getByRole("link", { name: "Operations", exact: true }).click();
+  await page.getByLabel("Action").fill("imports.run.committed");
+  await page.getByRole("button", { name: "Filter history" }).click();
+  await expect(
+    page.getByText("imports.run.committed", { exact: true }).first(),
+  ).toBeVisible();
+});
+
+test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts usable", async ({
+  page,
+}) => {
+  await signIn(page, accounts.warehouse);
+  await expect(page.getByRole("banner")).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Primary navigation" }),
+  ).toBeVisible();
+  await expect(page.getByRole("main")).toBeVisible();
+
+  await page.context().setOffline(true);
+  await expect(page.getByRole("status")).toContainText(
+    "Private records are not stored on this device",
+  );
+  const reconnectRefresh = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return (
+      url.origin === "http://localhost:3100" && url.searchParams.has("_rsc")
+    );
+  });
+  await page.context().setOffline(false);
+  await reconnectRefresh;
+  await expect(
+    page.getByText("Private records are not stored on this device"),
+  ).toHaveCount(0);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reducedMotion = await page.evaluate(() => {
+    const probe = document.createElement("div");
+    probe.className = "loading-skeleton";
+    document.body.append(probe);
+    const style = getComputedStyle(probe);
+    const result = {
+      requested: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      durationSeconds: Number.parseFloat(style.animationDuration),
+      iterations: style.animationIterationCount,
+    };
+    probe.remove();
+    return result;
+  });
+  expect(reducedMotion.requested).toBe(true);
+  expect(reducedMotion.durationSeconds).toBeLessThanOrEqual(0.000_01);
+  expect(reducedMotion.iterations).toBe("1");
+
+  await page.reload();
+  await expect(
+    page.getByText(accounts.warehouse.name, { exact: true }).first(),
+  ).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("link", { name: "Skip to main content" }),
+  ).toBeFocused();
+
+  await page.setViewportSize({ width: 320, height: 800 });
+  await expectNoHorizontalOverflow(page);
+  const menu = page.getByRole("button", { name: "Menu" });
+  await expect(menu).toBeVisible();
+  const menuBox = await menu.boundingBox();
+  expect(menuBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  await menu.click();
+  await expect(
+    page.getByRole("navigation", { name: "Primary navigation" }),
+  ).toBeVisible();
+  const signOutBox = await page
+    .getByRole("button", { name: "Switch user / sign out" })
+    .boundingBox();
+  expect(signOutBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+});

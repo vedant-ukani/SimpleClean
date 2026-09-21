@@ -46,6 +46,7 @@ select {
 }
 
 button {
+  min-height: 2.75rem;
   padding: 0.75rem 1rem;
   border: 0;
   border-radius: 0.75rem;
@@ -60,7 +61,7 @@ button:hover {
 }
 
 button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.65;
 }
 
@@ -99,6 +100,7 @@ h1,
 h2 {
   margin: 0;
   letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 h1 {
@@ -130,6 +132,7 @@ h2 {
 .auth-card,
 .panel,
 .hero-card {
+  min-width: 0;
   width: 100%;
   padding: clamp(1.5rem, 5vw, 2.75rem);
   border: 1px solid rgba(21, 52, 45, 0.1);
@@ -154,6 +157,7 @@ h2 {
 
 input,
 select {
+  min-height: 2.75rem;
   width: 100%;
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--line);
@@ -193,7 +197,33 @@ a:focus-visible {
   backdrop-filter: blur(1rem);
 }
 
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.7rem;
+  color: white;
+  background: var(--forest-dark);
+  font-weight: 800;
+  transform: translateY(-160%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.offline-banner {
+  padding: 0.75rem 1rem;
+  color: #472f00;
+  background: #fff0c7;
+  font-weight: 800;
+  text-align: center;
+}
+
 .brand-link {
+  min-height: 2.75rem;
   display: flex;
   gap: 0.75rem;
   align-items: center;
@@ -201,21 +231,34 @@ a:focus-visible {
   font-weight: 800;
 }
 
-.app-header nav {
+.navigation-region,
+.primary-navigation {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.app-header nav a {
+.navigation-link {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
   padding: 0.6rem 0.8rem;
   border-radius: 0.6rem;
   text-decoration: none;
   font-weight: 700;
 }
 
-.app-header nav a:hover {
+.navigation-link:hover,
+.navigation-link--active {
   background: var(--mint);
+}
+
+.navigation-link--active {
+  box-shadow: inset 0 -3px var(--forest);
+}
+
+.navigation-menu-button {
+  display: none;
 }
 
 .account-actions {
@@ -262,6 +305,94 @@ a:focus-visible {
   padding: clamp(3rem, 8vw, 7rem) 0;
 }
 
+.dashboard-section {
+  margin-top: 2rem;
+}
+
+.page-heading--compact {
+  margin-bottom: 1rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+}
+
+.dashboard-card {
+  min-height: 10rem;
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+
+.dashboard-card strong {
+  font-size: 1.15rem;
+}
+
+.dashboard-card span:not(.status) {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+a.dashboard-card:hover,
+a.dashboard-card:focus-visible {
+  border-color: var(--forest);
+  box-shadow: 0 0.65rem 1.5rem rgba(23, 107, 85, 0.1);
+}
+
+.dashboard-card--placeholder {
+  border-style: dashed;
+  background: #fffaf0;
+}
+
+.state-panel {
+  max-width: 42rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.state-panel .lede {
+  margin-top: 0;
+}
+
+.state-panel .button-link,
+.state-panel button {
+  width: fit-content;
+}
+
+.loading-skeleton {
+  border-radius: 1rem;
+  background: linear-gradient(90deg, #edf0ee 25%, #f8faf9 50%, #edf0ee 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.loading-skeleton--heading {
+  width: min(75%, 30rem);
+  height: 5rem;
+  margin-bottom: 2rem;
+}
+
+.loading-skeleton--panel {
+  width: 100%;
+  height: 18rem;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
 .page-main--wide {
   width: min(100% - 2rem, 74rem);
 }
@@ -299,6 +430,7 @@ a:focus-visible {
 
 .inventory-row > div:first-child,
 .history-row {
+  min-width: 0;
   display: grid;
   gap: 0.3rem;
 }
@@ -310,10 +442,19 @@ a:focus-visible {
 .machine-id,
 .empty-state {
   color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.inventory-row strong,
+.history-row strong {
+  overflow-wrap: anywhere;
 }
 
 .inventory-row > a,
 .button-link {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
   padding: 0.65rem 0.85rem;
   border-radius: 0.65rem;
   color: var(--forest);
@@ -371,7 +512,7 @@ a:focus-visible {
   width: fit-content;
   padding: 0.3rem 0.55rem;
   border-radius: 999px;
-  color: var(--muted);
+  color: var(--ink);
   background: #edf0ee;
   font-size: 0.78rem;
   font-weight: 800;
@@ -388,7 +529,7 @@ a:focus-visible {
 }
 
 .status--warning {
-  color: #715113;
+  color: #523700;
   background: #fff0c7;
 }
 
@@ -456,6 +597,9 @@ a:focus-visible {
 }
 
 .pagination a {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
   font-weight: 700;
 }
 
@@ -471,7 +615,16 @@ a:focus-visible {
 }
 
 .confirmation-control {
+  min-height: 2.75rem;
   justify-content: flex-start;
+}
+
+.checkbox-hit-target {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
 }
 
 .user-row {
@@ -613,15 +766,29 @@ a:focus-visible {
 @media (max-width: 850px) {
   .app-header {
     grid-template-columns: 1fr auto;
+    gap: 0.75rem;
   }
 
-  .app-header nav {
+  .navigation-region {
     grid-column: 1 / -1;
     grid-row: 2;
   }
 
+  .account-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .account-actions > span {
-    display: none;
+    text-align: left;
+  }
+
+  .logout-control {
+    max-width: none;
+  }
+
+  .logout-control button {
+    width: 100%;
   }
 
   .management-grid,
@@ -639,5 +806,67 @@ a:focus-visible {
 
   .qr-label-current .row-actions button {
     flex: 1 1 10rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-header {
+    grid-template-columns: 1fr;
+  }
+
+  .account-actions,
+  .navigation-region {
+    grid-column: 1;
+  }
+
+  .account-actions {
+    grid-row: 2;
+  }
+
+  .navigation-region {
+    grid-row: 3;
+    display: grid;
+  }
+
+  .navigation-menu-button {
+    display: block;
+    width: fit-content;
+    color: var(--forest);
+    background: var(--mint);
+  }
+
+  .primary-navigation {
+    display: none;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 0.8rem;
+    background: white;
+  }
+
+  .primary-navigation--open {
+    display: grid;
+  }
+
+  .page-main {
+    width: min(100% - 1rem, 64rem);
+    padding: 1.5rem 0 3rem;
+  }
+
+  .auth-card,
+  .panel,
+  .hero-card {
+    border-radius: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

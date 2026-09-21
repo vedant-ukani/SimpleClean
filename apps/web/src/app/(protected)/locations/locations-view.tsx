@@ -8,6 +8,7 @@ import {
   deactivateLocation,
   updateLocation,
 } from "../../../lib/inventory-client";
+import { useOnlineStatus } from "../online-status";
 
 export function LocationsView({
   initialLocations,
@@ -15,6 +16,8 @@ export function LocationsView({
 }: Readonly<{ initialLocations: InventoryLocation[]; canManage: boolean }>) {
   const [locations, setLocations] = useState(initialLocations);
   const [message, setMessage] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
 
   function replace(updated: InventoryLocation) {
     setLocations((current) =>
@@ -26,6 +29,11 @@ export function LocationsView({
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!online) {
+      setMessage("Reconnect before creating a Location.");
+      return;
+    }
+    setBusy(true);
     const form = new FormData(event.currentTarget);
     try {
       const location = await createLocation({
@@ -37,10 +45,17 @@ export function LocationsView({
       setMessage("Location created.");
     } catch {
       setMessage("The Location could not be created. Refresh and retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
   async function rename(location: InventoryLocation, name: string) {
+    if (!online) {
+      setMessage("Reconnect before renaming a Location.");
+      return;
+    }
+    setBusy(true);
     try {
       replace(
         await updateLocation(location.id, {
@@ -51,15 +66,24 @@ export function LocationsView({
       setMessage("Location updated.");
     } catch {
       setMessage("The Location changed elsewhere. Refresh before retrying.");
+    } finally {
+      setBusy(false);
     }
   }
 
   async function deactivate(location: InventoryLocation) {
+    if (!online) {
+      setMessage("Reconnect before deactivating a Location.");
+      return;
+    }
+    setBusy(true);
     try {
       replace(await deactivateLocation(location.id, location.version));
       setMessage("Location deactivated. Existing history was preserved.");
     } catch {
       setMessage("The Location could not be deactivated. Refresh and retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -77,7 +101,9 @@ export function LocationsView({
               Name
               <input name="name" required maxLength={160} />
             </label>
-            <button type="submit">Create Location</button>
+            <button type="submit" disabled={busy || !online}>
+              {busy ? "Saving…" : "Create Location"}
+            </button>
           </form>
         </section>
       ) : null}
@@ -103,6 +129,7 @@ export function LocationsView({
                 <button
                   type="button"
                   className="secondary-button"
+                  disabled={busy || !online}
                   onClick={() => {
                     const name = window.prompt("Location name", location.name);
                     if (name && name !== location.name)
@@ -111,7 +138,11 @@ export function LocationsView({
                 >
                   Rename
                 </button>
-                <button type="button" onClick={() => void deactivate(location)}>
+                <button
+                  type="button"
+                  disabled={busy || !online}
+                  onClick={() => void deactivate(location)}
+                >
                   Deactivate
                 </button>
               </div>

@@ -3,6 +3,8 @@
 import type { QrLabel } from "@simply-clean/contracts";
 import { useState } from "react";
 
+import { useOnlineStatus } from "../../online-status";
+
 export function MachineQrPanel({
   machineId,
   initialLabels,
@@ -15,6 +17,7 @@ export function MachineQrPanel({
   const [labels, setLabels] = useState(initialLabels);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>();
+  const online = useOnlineStatus();
   const activeLabel = labels.find((label) => label.state === "active");
   const history = labels.filter((label) => label.state === "revoked");
 
@@ -29,6 +32,10 @@ export function MachineQrPanel({
     successMessage: string,
     refresh = true,
   ) {
+    if (!online) {
+      setMessage("Reconnect before changing or downloading a QR label.");
+      return;
+    }
     setBusy(true);
     setMessage(undefined);
     try {
@@ -82,7 +89,11 @@ export function MachineQrPanel({
           <h2>QR label</h2>
         </div>
         {!activeLabel && canManage ? (
-          <button disabled={busy} type="button" onClick={() => void create()}>
+          <button
+            disabled={busy || !online}
+            type="button"
+            onClick={() => void create()}
+          >
             Create label
           </button>
         ) : null}
@@ -107,7 +118,7 @@ export function MachineQrPanel({
             <div className="row-actions">
               <button
                 className="secondary-button"
-                disabled={busy}
+                disabled={busy || !online}
                 type="button"
                 onClick={() => void download(activeLabel)}
               >
@@ -115,14 +126,14 @@ export function MachineQrPanel({
               </button>
               <button
                 className="secondary-button"
-                disabled={busy}
+                disabled={busy || !online}
                 type="button"
                 onClick={() => void revoke(activeLabel)}
               >
                 Revoke
               </button>
               <button
-                disabled={busy}
+                disabled={busy || !online}
                 type="button"
                 onClick={() => void reissue(activeLabel)}
               >

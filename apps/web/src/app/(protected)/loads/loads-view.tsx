@@ -5,16 +5,32 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { createLoad } from "../../../lib/inventory-client";
+import { useOnlineStatus } from "../online-status";
 
 export function LoadsView({
   initialLoads,
   canManage,
-}: Readonly<{ initialLoads: AcquisitionLoad[]; canManage: boolean }>) {
+  expectedOnly = false,
+}: Readonly<{
+  initialLoads: AcquisitionLoad[];
+  canManage: boolean;
+  expectedOnly?: boolean;
+}>) {
   const [loads, setLoads] = useState(initialLoads);
   const [message, setMessage] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
+  const visibleLoads = expectedOnly
+    ? loads.filter((load) => load.receivedAt === null)
+    : loads;
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!online) {
+      setMessage("Reconnect before creating a Load.");
+      return;
+    }
+    setBusy(true);
     const form = new FormData(event.currentTarget);
     try {
       const load = await createLoad({
@@ -27,6 +43,8 @@ export function LoadsView({
       setMessage("Load created.");
     } catch {
       setMessage("The Load could not be created. Check the details and retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -48,21 +66,27 @@ export function LoadsView({
               Source reference
               <input name="sourceReference" maxLength={160} />
             </label>
-            <button type="submit">Create Load</button>
+            <button type="submit" disabled={busy || !online}>
+              {busy ? "Creating…" : "Create Load"}
+            </button>
           </form>
         </section>
       ) : null}
       <section className="panel inventory-list" aria-labelledby="loads-heading">
-        <h2 id="loads-heading">Loads</h2>
+        <h2 id="loads-heading">{expectedOnly ? "Expected Loads" : "Loads"}</h2>
         {message ? (
           <p className="form-message" role="status">
             {message}
           </p>
         ) : null}
-        {loads.length === 0 ? (
-          <p className="empty-state">No Loads have been recorded.</p>
+        {visibleLoads.length === 0 ? (
+          <p className="empty-state">
+            {expectedOnly
+              ? "No Loads are currently awaiting receipt."
+              : "No Loads have been recorded."}
+          </p>
         ) : (
-          loads.map((load) => (
+          visibleLoads.map((load) => (
             <article className="inventory-row" key={load.id}>
               <div>
                 <strong>{load.displayName}</strong>

@@ -4,6 +4,7 @@ import type { FileAttachment } from "@simply-clean/contracts";
 import { useState } from "react";
 
 import { abandonIncompleteFile } from "../../../../lib/files-client";
+import { useOnlineStatus } from "../../online-status";
 
 export function IncompleteFilesReview({
   initialFiles,
@@ -11,8 +12,13 @@ export function IncompleteFilesReview({
   const [files, setFiles] = useState(initialFiles);
   const [message, setMessage] = useState<string>();
   const [busyId, setBusyId] = useState<string>();
+  const online = useOnlineStatus();
 
   async function abandon(fileId: string) {
+    if (!online) {
+      setMessage("Reconnect before cleaning up this attachment.");
+      return;
+    }
     setBusyId(fileId);
     try {
       await abandonIncompleteFile(fileId);
@@ -51,7 +57,7 @@ export function IncompleteFilesReview({
             <button
               type="button"
               className="secondary-button"
-              disabled={busyId === file.id}
+              disabled={busyId === file.id || !online}
               onClick={() => void abandon(file.id)}
             >
               Abandon and clean up

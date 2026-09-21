@@ -15,6 +15,7 @@ import {
   importReportUrl,
   importSourceUrl,
 } from "../../../../../lib/imports-client";
+import { useOnlineStatus } from "../../../online-status";
 
 const classificationLabel: Record<ImportRow["classification"], string> = {
   ready: "Ready",
@@ -46,6 +47,7 @@ export function ImportReview({
   const [machineIds, setMachineIds] = useState<string[]>([]);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
 
   function toggle(rowId: string) {
     setSelected((current) => {
@@ -57,6 +59,10 @@ export function ImportReview({
   }
 
   async function approve() {
+    if (!online) {
+      setMessage("Reconnect before approving source rows.");
+      return;
+    }
     if (selected.size === 0) {
       setMessage("Select at least one ready or reviewed warning row.");
       return;
@@ -87,6 +93,10 @@ export function ImportReview({
   }
 
   async function commit() {
+    if (!online) {
+      setMessage("Reconnect before committing approved Machines.");
+      return;
+    }
     if (!confirmCommit) {
       setMessage("Confirm the approved selection before committing.");
       return;
@@ -110,6 +120,10 @@ export function ImportReview({
   }
 
   async function changePage(page: number) {
+    if (!online) {
+      setMessage("Reconnect before loading more source rows.");
+      return;
+    }
     setBusy(true);
     setMessage(undefined);
     try {
@@ -221,7 +235,7 @@ export function ImportReview({
           {run.state === "staged" ? (
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || !online}
               onClick={() => void approve()}
             >
               Approve {selected.size} selected
@@ -251,13 +265,15 @@ export function ImportReview({
                       {row.approved ? (
                         <span className="status status--success">Approved</span>
                       ) : (
-                        <input
-                          aria-label={`Approve source row ${row.sourceRowNumber}`}
-                          type="checkbox"
-                          disabled={!selectable || busy}
-                          checked={selected.has(row.id)}
-                          onChange={() => toggle(row.id)}
-                        />
+                        <label className="checkbox-hit-target">
+                          <input
+                            aria-label={`Approve source row ${row.sourceRowNumber}`}
+                            type="checkbox"
+                            disabled={!selectable || busy || !online}
+                            checked={selected.has(row.id)}
+                            onChange={() => toggle(row.id)}
+                          />
+                        </label>
                       )}
                     </td>
                     <td>
@@ -299,7 +315,10 @@ export function ImportReview({
                     </td>
                     <td>
                       {row.machineId ? (
-                        <Link href={`/machines/${row.machineId}`}>
+                        <Link
+                          className="button-link"
+                          href={`/machines/${row.machineId}`}
+                        >
                           View Machine
                         </Link>
                       ) : (
@@ -317,7 +336,7 @@ export function ImportReview({
             <button
               type="button"
               className="secondary-button"
-              disabled={busy}
+              disabled={busy || !online}
               onClick={() => void changePage(pageResult.page - 1)}
             >
               Previous
@@ -327,7 +346,7 @@ export function ImportReview({
             <button
               type="button"
               className="secondary-button"
-              disabled={busy}
+              disabled={busy || !online}
               onClick={() => void changePage(pageResult.page + 1)}
             >
               Next
@@ -368,7 +387,7 @@ export function ImportReview({
           </label>
           <button
             type="button"
-            disabled={!confirmCommit || busy}
+            disabled={!confirmCommit || busy || !online}
             onClick={() => void commit()}
           >
             {busy ? "Committing…" : "Create provisional Machines"}

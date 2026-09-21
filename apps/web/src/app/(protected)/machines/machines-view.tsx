@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { createMachine } from "../../../lib/inventory-client";
+import { useOnlineStatus } from "../online-status";
 import { MachineIdentityStatus, recorded } from "./machine-labels";
 
 export function MachinesView({
@@ -29,9 +30,16 @@ export function MachinesView({
 }>) {
   const [machines, setMachines] = useState(initialResults.machines);
   const [message, setMessage] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!online) {
+      setMessage("Reconnect before creating a Machine.");
+      return;
+    }
+    setBusy(true);
     const form = new FormData(event.currentTarget);
     try {
       const locationId = String(form.get("currentLocationId") ?? "");
@@ -48,6 +56,8 @@ export function MachinesView({
       setMessage("Provisional Machine created with an immutable ID.");
     } catch {
       setMessage("The Machine could not be created. Check the Load and retry.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -59,7 +69,9 @@ export function MachinesView({
             Search by ID, manufacturer, model, serial, Load, or Location
             <input name="query" defaultValue={initialQuery} maxLength={160} />
           </label>
-          <button type="submit">Search</button>
+          <button type="submit" disabled={!online}>
+            Search
+          </button>
         </form>
       </section>
       {canManage ? (
@@ -104,7 +116,9 @@ export function MachinesView({
                   </select>
                 </label>
               ) : null}
-              <button type="submit">Create Machine</button>
+              <button type="submit" disabled={busy || !online}>
+                {busy ? "Creating…" : "Create Machine"}
+              </button>
             </form>
           )}
         </section>

@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 
 import { updateLoad } from "../../../../lib/inventory-client";
 import { AttachmentsPanel } from "../../attachments-panel";
+import { useOnlineStatus } from "../../online-status";
 
 export function LoadDetailView({
   initialLoad,
@@ -20,9 +21,16 @@ export function LoadDetailView({
 }>) {
   const [load, setLoad] = useState(initialLoad);
   const [message, setMessage] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const online = useOnlineStatus();
 
   async function update(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!online) {
+      setMessage("Reconnect before saving this Load.");
+      return;
+    }
+    setBusy(true);
     const form = new FormData(event.currentTarget);
     try {
       setLoad(
@@ -38,6 +46,8 @@ export function LoadDetailView({
       setMessage(
         "The Load changed elsewhere. Refresh the page before retrying.",
       );
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -106,7 +116,9 @@ export function LoadDetailView({
                 defaultValue={load.sourceReference ?? ""}
               />
             </label>
-            <button type="submit">Save Load</button>
+            <button type="submit" disabled={busy || !online}>
+              {busy ? "Saving…" : "Save Load"}
+            </button>
           </form>
         </section>
       ) : null}
