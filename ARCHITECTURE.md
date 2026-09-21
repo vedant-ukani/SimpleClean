@@ -734,8 +734,11 @@ This map describes the canonical home for reusable product decisions. The applic
 | Validated runtime configuration | `packages/config` |
 | PostgreSQL schema, migrations, and database boundary | `packages/database` |
 | Shared integration-test fixtures and builders | `packages/test-support` |
-| Inventory/import behavior | Owning API module; spreadsheet parsing behind its module interface |
-| Machine identity, Loads, Locations, and QR behavior | Owning Inventory/Intake API module, not UI components |
+| Inventory/Intake operations | `apps/api/src/modules/inventory`; later imports, files, QR, production, and listings call its exported service interface rather than its tables |
+| Machine, Load, and Location contracts | `packages/contracts/src/inventory.ts` |
+| Machine identity matching | Inventory-owned normalization and unique manufacturer/serial claims; never controller, UI, or import-local matching |
+| Inventory/import behavior | Inventory API module; spreadsheet parsing remains behind the future Import module/interface |
+| QR behavior | Owning Inventory/Intake API module, not UI components |
 | File metadata and access policy | Owning Files API module; bytes behind a storage adapter |
 | Authentication and staff identity | `apps/api/src/modules/identity`; Better Auth owns credentials/sessions and the platform profile owns role/active state |
 | Authorization policy | `packages/contracts/src/authorization.ts` for role/permission decisions; enforced by the Identity module's global API guard |
@@ -756,6 +759,9 @@ This map describes the canonical home for reusable product decisions. The applic
 - Protected APIs derive identity from the signed session and current persisted profile on every request. Browser navigation is never an authorization boundary.
 - Role changes and deactivation revoke active sessions; the final active Owner Admin cannot be demoted or deactivated.
 - Machine ID is immutable and independent of serial number. Serials remain strings; ambiguous duplicates become reviewable conflicts.
+- Machines begin with provisional identity and nullable plate facts. Raw identity submissions, verification decisions, and relocations are immutable, attributable history.
+- A verified Machine owns a unique normalized manufacturer/serial claim. A provisional or conflicted Machine owns none; duplicate verification persists a linked conflict instead of merging records.
+- Operational mutations use expected versions. Current location changes only through the Inventory relocation use case, in the same transaction as location history.
 - Inventory, production, listing, sales, payment, and shipment states remain independent axes.
 - Domain changes and their outbox records commit atomically. Retried handlers use idempotency keys or provider event IDs.
 - Files are private by default. PostgreSQL holds metadata and relationships; object storage holds bytes; access uses short-lived grants.

@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-21 — Provisional Machine identity and explicit verification claims
+
+Create every received or expected physical Machine with an immutable UUID and allow incomplete provisional plate facts. Preserve raw identity submissions separately from the normalized current view. Verifying manufacturer plus serial acquires one unique normalized identity claim; a duplicate attempt keeps both Machines and persists the attempted Machine as a linked conflict. Identity evidence, verification decisions, and relocations are immutable and attributable, while current operational records use optimistic versions.
+
+Consequences: unloading and migration do not stop for catalog enrichment, unknown values remain null rather than guessed, and concurrent verification cannot silently create duplicate confirmed identities. Later OCR/import/QR/production modules call the Inventory service interface and must not reimplement identity normalization or write its tables directly.
+
 ## 2026-09-21 — Staff authentication and platform authorization
 
 Use Better Auth for staff email/password credentials, secure cookies, and database-backed sessions. Keep the three Simply Clean application roles and their permissions in a platform-owned Identity module and shared authorization contract rather than Better Auth organizations or browser state. Every protected API request resolves the signed session and current persisted platform profile; role changes and deactivation revoke sessions, and the final active Owner Admin is protected transactionally.
