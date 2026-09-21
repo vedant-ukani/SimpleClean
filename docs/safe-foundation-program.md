@@ -1,5 +1,7 @@
 # Safe Foundation Program
 
+Status: completed and accepted on 2026-09-21. See `reviews/SF-01-review.md` through `reviews/SF-08-review.md` and `reviews/safe-foundation-program-review.md`.
+
 ## Outcome
 
 Create the secure technical foundation for the Simply Clean Core Operations Platform without pretending that the warehouse intake workflow has already been finalized. The result must be a running, tested application skeleton that can safely hold users, roles, loads, provisional machines, locations, files, audit history, spreadsheet imports, and QR labels. It must also provide a simple shared-tablet shell that can be refined after the warehouse observation.

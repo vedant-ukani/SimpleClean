@@ -4,7 +4,7 @@
 
 ## What are we building?
 
-One Core Operations Platform that follows every physical laundry Machine from acquisition and receiving through production, sale, delivery, warranty, or parts disposition. The first implementation milestone is the Safe Foundation: identity and permissions, core records, files, audit/events, inventory migration, QR identity, and a role-based tablet shell.
+One Core Operations Platform that follows every physical laundry Machine from acquisition and receiving through production, sale, delivery, warranty, or parts disposition. The completed first implementation milestone is the Safe Foundation: identity and permissions, core records, files, audit/events, inventory migration, QR identity, and a role-based tablet shell.
 
 ## Who is it for?
 

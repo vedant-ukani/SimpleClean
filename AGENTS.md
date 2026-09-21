@@ -27,6 +27,8 @@ Repository conventions discovered during initial analysis:
 - Persist a domain mutation and its outbox event in one database transaction.
 - Treat `Inventory List.xlsx` as read-only migration input. Preserve source values and row provenance.
 - Do not log secrets, tokens, PII, file contents, or complete communication payloads.
+- Keep service-worker caching limited to the canonical public-asset allowlist and generic offline page. Never add protected or operational responses or offline writes.
+- Protected pages use the shared route-state mapper; client views that retain server-derived state use the shared synchronization pattern so reconnect cannot leave stale operational data visible.
 
 Testing commands:
 
@@ -34,6 +36,7 @@ Testing commands:
 - `npm run typecheck` — type-check all shared packages and applications.
 - `npm test` — run the workspace unit tests.
 - `npm run test:integration` — run deterministic PGlite API/database integration tests locally.
+- `npm run test:browser` — build and run disposable full-boundary Playwright journeys at desktop and tablet sizes.
 - `npm run build` — produce all shared-package, API, and web production builds.
 
 Reuse vs inline:

@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-21 — Shared-tablet PWA with public-only offline assets
+
+Deliver one responsive installable web application for Owner, Warehouse, and Technician/Cleaner users. Every worker signs in with an individual account, sees permission-derived navigation, and keeps visible identity and switch-user controls. Cache only versioned public application assets plus a generic offline page; never cache sessions, protected pages, operational data, files, imports, reports, or QR responses, and never queue offline mutations.
+
+Consequences: the PWA remains useful as a home-screen application without exposing the prior worker's data on a shared device. Operational screens remain network-authoritative, disable mutations while offline, and refresh server data after reconnect. Protected routes share one error-state mapping, and prop-derived client state synchronizes after server refresh. Desktop and tablet behavior is verified through disposable full-boundary Playwright journeys rather than snapshots alone.
+
 ## 2026-09-21 — Opaque, revocable Machine QR identity
 
 Keep Machine QR labels inside Inventory and encode only a versioned random Label ID plus a dedicated HMAC signature in the platform URL fragment. The browser submits the token through an authenticated protected request; the token is a lookup reference, not an authorization credential. Store label lifecycle and privacy-safe activity in PostgreSQL, render printable SVG on demand, and retain revoked labels as immutable history.

@@ -729,11 +729,16 @@ This map describes the canonical home for reusable product decisions. The applic
 | Per-ticket implementation contracts | `specs/` |
 | Per-ticket architecture reviews | `reviews/` |
 | Web and PWA interface | `apps/web` |
+| Role navigation and dashboards | The canonical permission policy in `packages/contracts` decides visibility; `apps/web` only derives links/cards from it |
+| Protected web route states | The shared web route-state mapper distinguishes sign-in, permission/not-found, and unavailable outcomes; protected pages do not invent local error mapping |
+| Refreshed client state | Protected editable views use the shared server-state synchronization pattern so reconnect and `router.refresh()` replace stale server-derived values |
+| PWA cache policy | `apps/web` owns one public-static-asset allowlist and generic offline fallback; API, auth, protected, file, import, report, QR, Machine, and Load responses are never cached |
 | HTTP API and domain modules | `apps/api`; behavior inside `src/modules/<module>` |
 | Cross-application request/event contracts | `packages/contracts` |
 | Validated runtime configuration | `packages/config` |
 | PostgreSQL schema, migrations, and database boundary | `packages/database` |
 | Shared integration-test fixtures and builders | `packages/test-support` |
+| Full-boundary browser acceptance | Root Playwright configuration and disposable browser-test API/storage harness; tests exercise real sessions, HTTP boundaries, and role journeys |
 | Inventory/Intake operations | `apps/api/src/modules/inventory`; later imports, files, QR, production, and listings call its exported service interface rather than its tables |
 | Machine, Load, and Location contracts | `packages/contracts/src/inventory.ts` |
 | Machine identity matching | Inventory-owned normalization and unique manufacturer/serial claims; never controller, UI, or import-local matching |
@@ -778,13 +783,17 @@ This map describes the canonical home for reusable product decisions. The applic
 - Audit records are append-only, privacy-safe, attributable, and created by mutation paths rather than UI logging.
 - Migration imports always stage and preview before authoritative commit. Missing facts remain unknown and uncertain matches are not merged automatically.
 - QR payloads contain only opaque or signed lookup material. Authorization occurs after resolution.
+- Shared tablets always use individual sessions. User identity, role, and the switch-user/sign-out action remain visible; failed sign-out never implies a safe handoff.
+- Offline support is limited to versioned public assets and a generic non-personalized page. Operational reads stay network-authoritative and mutations are disabled offline rather than queued.
+- Reconnect triggers an authoritative server refresh, and client views replace prop-derived state when the refreshed server values change.
+- Protected server pages share one route-state mapping for authentication, missing/forbidden records, and temporary unavailability.
 - Shared packages exist only for cross-application decisions. Domain descriptions stay local to the owning module.
 - Open questions in this architecture remain configuration or explicit blockers; they are never embedded as assumed constants.
 
 ### Known duplication debt (which copy is canonical)
 
 - The workflow is explained in generated Word and PowerPoint artifacts as well as this document. `ARCHITECTURE.md` and `CONTEXT.md` are canonical; generated artifacts are communication outputs only.
-- No application-code duplication exists yet because the product implementation has not been bootstrapped.
+- No unresolved cross-module decision duplication is known at the Safe Foundation seam. Future modules must extend the existing authorization, Inventory identity, private storage, Operations, route-state, and PWA cache boundaries rather than fork them.
 
 ### Anti-reuse markers (do NOT reuse these)
 
@@ -793,3 +802,5 @@ This map describes the canonical home for reusable product decisions. The applic
 - Do not treat `Inventory List.xlsx` as a schema, database, or live source of truth. It is immutable migration input.
 - Do not use files under `Deliverables/` as runtime templates or authoritative business rules.
 - Do not build new code on an unattended personal Facebook Marketplace browser session.
+- Do not add protected or operational routes to the service-worker cache allowlist, and do not introduce offline mutation queues.
+- Do not treat role-hidden navigation as authorization; the API's persisted-session permission check remains authoritative.
