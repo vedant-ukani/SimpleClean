@@ -737,7 +737,9 @@ This map describes the canonical home for reusable product decisions. The applic
 | Inventory/import behavior | Owning API module; spreadsheet parsing behind its module interface |
 | Machine identity, Loads, Locations, and QR behavior | Owning Inventory/Intake API module, not UI components |
 | File metadata and access policy | Owning Files API module; bytes behind a storage adapter |
-| Authorization policy | Identity/Access API module plus shared permission identifiers in contracts |
+| Authentication and staff identity | `apps/api/src/modules/identity`; Better Auth owns credentials/sessions and the platform profile owns role/active state |
+| Authorization policy | `packages/contracts/src/authorization.ts` for role/permission decisions; enforced by the Identity module's global API guard |
+| Authenticated web API access | Same-origin `/api/*` proxy in `apps/web/next.config.ts`; validated clients in `apps/web/src/lib` |
 | Audit, idempotency, outbox, and durable jobs | Platform infrastructure modules with small domain-facing interfaces |
 
 ### Conventions (rules no keyword search will find)
@@ -747,8 +749,12 @@ This map describes the canonical home for reusable product decisions. The applic
 - All untrusted input is validated at the boundary. Authorization is enforced server-side inside or immediately before the owning use case.
 - Environment variables are parsed once through `packages/config`; application modules consume validated configuration objects.
 - Database drivers are created only through `packages/database`. Migrations are explicit deployment/setup work and never block the API liveness endpoint.
+- Owning repositories use the Drizzle handle and transaction callback exposed by `DatabaseConnection`; they never create independent database clients.
 - Local and deterministic tests use isolated PGlite; deployed environments use the PostgreSQL wire driver and reject accidental PGlite use by default.
 - Cross-application payloads are parsed with the runtime schemas in `packages/contracts`, not trusted through TypeScript types alone.
+- Better Auth owns password hashing, credential lookup, secure cookies, and session lifecycle. Application roles, active state, and permission decisions remain in the platform Identity module.
+- Protected APIs derive identity from the signed session and current persisted profile on every request. Browser navigation is never an authorization boundary.
+- Role changes and deactivation revoke active sessions; the final active Owner Admin cannot be demoted or deactivated.
 - Machine ID is immutable and independent of serial number. Serials remain strings; ambiguous duplicates become reviewable conflicts.
 - Inventory, production, listing, sales, payment, and shipment states remain independent axes.
 - Domain changes and their outbox records commit atomically. Retried handlers use idempotency keys or provider event IDs.

@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-21 — Staff authentication and platform authorization
+
+Use Better Auth for staff email/password credentials, secure cookies, and database-backed sessions. Keep the three Simply Clean application roles and their permissions in a platform-owned Identity module and shared authorization contract rather than Better Auth organizations or browser state. Every protected API request resolves the signed session and current persisted platform profile; role changes and deactivation revoke sessions, and the final active Owner Admin is protected transactionally.
+
+Consequences: credential cryptography and session semantics remain delegated to an established library, while operational authorization stays explicit and replaceable. Shared tablets still require individual accounts and a prominent sign-out/user-switch action. Adding future module permissions extends the canonical policy rather than introducing controller- or UI-local role checks.
+
 ## 2026-09-21 — Foundation tooling and database execution
 
 Use npm workspaces without an additional monorepo orchestrator. Use strict TypeScript, Zod for runtime configuration/contracts, Vitest for unit and integration tests, and Drizzle as the PostgreSQL access/migration layer. Local and deterministic tests may use PGlite because Docker is unavailable; CI and deployed environments use the PostgreSQL wire driver. Database migrations run as an explicit setup/deployment command so database outages do not prevent the API liveness endpoint from starting.
