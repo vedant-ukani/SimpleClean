@@ -103,6 +103,14 @@ describe("identity authentication", () => {
             "identity.self.read",
             "identity.users.read",
             "identity.users.manage",
+            "inventory.loads.read",
+            "inventory.loads.manage",
+            "inventory.machines.read",
+            "inventory.machines.manage",
+            "inventory.machines.verify",
+            "inventory.machines.relocate",
+            "inventory.locations.read",
+            "inventory.locations.manage",
           ],
         });
       });

@@ -281,6 +281,111 @@ a:focus-visible {
   gap: 1rem;
 }
 
+.inventory-stack,
+.inventory-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.inventory-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.inventory-row > div:first-child,
+.history-row {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.inventory-row span,
+.inventory-row small,
+.history-row span,
+.history-row small,
+.machine-id,
+.empty-state {
+  color: var(--muted);
+}
+
+.inventory-row > a,
+.button-link {
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  color: var(--forest);
+  background: var(--mint);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.search-form,
+.inline-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.search-form {
+  grid-template-columns: 1fr auto;
+}
+
+.search-form label,
+.inline-form label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.detail-grid dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1.25rem;
+  margin: 0 0 1.5rem;
+}
+
+.detail-grid dl div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.detail-grid dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-grid dd {
+  margin: 0;
+}
+
+.status {
+  width: fit-content;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  color: var(--muted);
+  background: #edf0ee;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.status--success {
+  color: var(--forest-dark);
+  background: var(--mint);
+}
+
+.status--danger {
+  color: var(--danger);
+  background: #f7e5e2;
+}
+
 .user-row {
   display: grid;
   grid-template-columns: minmax(10rem, 1fr) minmax(10rem, 0.7fr) auto;
@@ -328,7 +433,9 @@ a:focus-visible {
   }
 
   .management-grid,
-  .user-row {
+  .user-row,
+  .inventory-row,
+  .search-form {
     grid-template-columns: 1fr;
   }
 }

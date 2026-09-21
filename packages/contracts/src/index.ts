@@ -34,3 +34,4 @@ export {
   type IdentityUser,
   type IdentityUserListResponse,
 } from "./identity.js";
+export * from "./inventory.js";

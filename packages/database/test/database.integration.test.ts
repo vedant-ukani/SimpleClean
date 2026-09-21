@@ -31,11 +31,17 @@ describe("PGlite integration", () => {
             'account',
             'verification',
             'identity_profile',
-            'identity_security_activity'
+            'identity_security_activity',
+            'inventory_load',
+            'inventory_location',
+            'inventory_machine',
+            'machine_identity_evidence',
+            'machine_identity_claim',
+            'machine_location_history'
           )
       `);
       const rows = "rows" in result ? result.rows : result;
-      expect(rows).toHaveLength(6);
+      expect(rows).toHaveLength(12);
     } finally {
       await connection.close();
     }

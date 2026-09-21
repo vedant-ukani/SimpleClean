@@ -11,6 +11,14 @@ export const PERMISSIONS = [
   "identity.self.read",
   "identity.users.read",
   "identity.users.manage",
+  "inventory.loads.read",
+  "inventory.loads.manage",
+  "inventory.machines.read",
+  "inventory.machines.manage",
+  "inventory.machines.verify",
+  "inventory.machines.relocate",
+  "inventory.locations.read",
+  "inventory.locations.manage",
 ] as const;
 
 export const ApplicationRoleSchema = z.enum(APPLICATION_ROLES);
@@ -21,8 +29,22 @@ export type Permission = z.infer<typeof PermissionSchema>;
 
 export const ROLE_PERMISSION_POLICY = {
   owner_admin: PERMISSIONS,
-  warehouse: ["platform.access", "identity.self.read"],
-  technician_cleaner: ["platform.access", "identity.self.read"],
+  warehouse: [
+    "platform.access",
+    "identity.self.read",
+    "inventory.loads.read",
+    "inventory.machines.read",
+    "inventory.machines.manage",
+    "inventory.machines.verify",
+    "inventory.machines.relocate",
+    "inventory.locations.read",
+  ],
+  technician_cleaner: [
+    "platform.access",
+    "identity.self.read",
+    "inventory.machines.read",
+    "inventory.locations.read",
+  ],
 } as const satisfies Record<ApplicationRole, readonly Permission[]>;
 
 export function permissionsForRole(input: unknown): readonly Permission[] {

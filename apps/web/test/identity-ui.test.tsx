@@ -10,13 +10,19 @@ describe("role-aware identity UI", () => {
     expect(navigationForRole("owner_admin").map((item) => item.href)).toEqual([
       "/",
       "/admin/users",
+      "/loads",
+      "/machines",
+      "/locations",
     ]);
     expect(navigationForRole("warehouse").map((item) => item.href)).toEqual([
       "/",
+      "/loads",
+      "/machines",
+      "/locations",
     ]);
     expect(
       navigationForRole("technician_cleaner").map((item) => item.href),
-    ).toEqual(["/"]);
+    ).toEqual(["/", "/machines", "/locations"]);
     expect(canManageUsers("owner_admin")).toBe(true);
     expect(canManageUsers("warehouse")).toBe(false);
   });

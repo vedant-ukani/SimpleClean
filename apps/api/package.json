@@ -10,7 +10,7 @@
     "auth:provision": "tsx src/auth-provision.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run test/health.service.test.ts",
-    "test:integration": "vitest run test/health.integration.test.ts test/identity.integration.test.ts"
+    "test:integration": "vitest run test/health.integration.test.ts test/identity.integration.test.ts test/inventory.integration.test.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.5",

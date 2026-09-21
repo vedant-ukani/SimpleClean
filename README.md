@@ -27,6 +27,8 @@ Database migration is an explicit setup and deployment step. It is intentionally
 
 The browser reaches authentication and application APIs through the same-origin `/api/*` route. Better Auth serves credential and session behavior under `/auth/*` in the API; platform identity behavior is under `/identity/*`.
 
+Signed-in foundation views are available at `/loads`, `/machines`, and `/locations`. Owner Admin manages Load and Location definitions; Owner Admin and Warehouse users can create, identify, verify, and relocate Machines; Technician/Cleaner users have read-only Machine search and Location access. Inventory APIs are served under `/inventory/*`.
+
 ## Provision the first staff user
 
 After running migrations, set these values in your local `.env` file:

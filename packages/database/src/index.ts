@@ -13,4 +13,10 @@ export {
   authVerification,
   identityProfile,
   identitySecurityActivity,
+  inventoryLoad,
+  inventoryLocation,
+  inventoryMachine,
+  machineIdentityClaim,
+  machineIdentityEvidence,
+  machineLocationHistory,
 } from "./schema.js";
