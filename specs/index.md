@@ -1,0 +1,3 @@
+<!-- specs/index.md — short searchable catalog of completed specs. One line per ticket. Helps find prior work. -->
+
+# Specs Index
