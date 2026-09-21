@@ -716,7 +716,7 @@ This order stabilizes intake, production, and sales before increasing acquisitio
 
 ## Reuse Map
 
-This map describes the canonical home for reusable product decisions. The application is greenfield as of the initial analysis; paths marked as targets become authoritative when `SF-01` creates them.
+This map describes the canonical home for reusable product decisions. The application foundation was established by `SF-01`; later tickets deepen these locations rather than creating parallel foundations.
 
 ### Concept -> location
 
@@ -728,23 +728,27 @@ This map describes the canonical home for reusable product decisions. The applic
 | Safe Foundation milestone requirements | `docs/safe-foundation-program.md` |
 | Per-ticket implementation contracts | `specs/` |
 | Per-ticket architecture reviews | `reviews/` |
-| Web and PWA interface | Target: `apps/web` |
-| HTTP API and domain modules | Target: `apps/api`; behavior inside `src/modules/<module>` |
-| Cross-application request/event contracts | Target: `packages/contracts` |
-| Validated runtime configuration | Target: `packages/config` |
-| PostgreSQL schema, migrations, and database boundary | Target: `packages/database` |
-| Shared integration-test fixtures and builders | Target: `packages/test-support` |
-| Inventory/import behavior | Target: owning API module; spreadsheet parsing behind its module interface |
-| Machine identity, Loads, Locations, and QR behavior | Target: owning Inventory/Intake API module, not UI components |
-| File metadata and access policy | Target: owning Files API module; bytes behind a storage adapter |
-| Authorization policy | Target: Identity/Access API module plus shared permission identifiers in contracts |
-| Audit, idempotency, outbox, and durable jobs | Target: platform infrastructure modules with small domain-facing interfaces |
+| Web and PWA interface | `apps/web` |
+| HTTP API and domain modules | `apps/api`; behavior inside `src/modules/<module>` |
+| Cross-application request/event contracts | `packages/contracts` |
+| Validated runtime configuration | `packages/config` |
+| PostgreSQL schema, migrations, and database boundary | `packages/database` |
+| Shared integration-test fixtures and builders | `packages/test-support` |
+| Inventory/import behavior | Owning API module; spreadsheet parsing behind its module interface |
+| Machine identity, Loads, Locations, and QR behavior | Owning Inventory/Intake API module, not UI components |
+| File metadata and access policy | Owning Files API module; bytes behind a storage adapter |
+| Authorization policy | Identity/Access API module plus shared permission identifiers in contracts |
+| Audit, idempotency, outbox, and durable jobs | Platform infrastructure modules with small domain-facing interfaces |
 
 ### Conventions (rules no keyword search will find)
 
 - The API module that owns a business concept owns its mutation rules and persistence boundary. Controllers and UI code do not contain alternate copies of those decisions.
 - Modules collaborate through explicit services/ports and domain events, not arbitrary cross-module database writes.
 - All untrusted input is validated at the boundary. Authorization is enforced server-side inside or immediately before the owning use case.
+- Environment variables are parsed once through `packages/config`; application modules consume validated configuration objects.
+- Database drivers are created only through `packages/database`. Migrations are explicit deployment/setup work and never block the API liveness endpoint.
+- Local and deterministic tests use isolated PGlite; deployed environments use the PostgreSQL wire driver and reject accidental PGlite use by default.
+- Cross-application payloads are parsed with the runtime schemas in `packages/contracts`, not trusted through TypeScript types alone.
 - Machine ID is immutable and independent of serial number. Serials remain strings; ambiguous duplicates become reviewable conflicts.
 - Inventory, production, listing, sales, payment, and shipment states remain independent axes.
 - Domain changes and their outbox records commit atomically. Retried handlers use idempotency keys or provider event IDs.

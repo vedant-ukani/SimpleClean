@@ -2,4 +2,4 @@
 
 # Specs Index
 
-SF-01 — Application, database, and environments
+SF-01 — Application, database, and environments (completed)

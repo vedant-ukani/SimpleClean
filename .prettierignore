@@ -1,0 +1,14 @@
+node_modules
+dist
+.next
+coverage
+.codegraph
+.codex-build
+.codex-finalizer
+Deliverables
+package-lock.json
+*.docx
+*.pptx
+*.xlsx
+*.jpg
+*.png

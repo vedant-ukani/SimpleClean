@@ -1,0 +1,44 @@
+{
+  "name": "simply-clean-core-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simply Clean Core Operations Platform",
+  "packageManager": "npm@11.13.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "packages/test-support",
+    "packages/contracts",
+    "packages/config",
+    "packages/database",
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run build:packages && dotenv -e .env -- concurrently --kill-others-on-fail --names api,web \"npm run dev -w @simply-clean/api\" \"npm run dev -w @simply-clean/web\"",
+    "build:packages": "npm run build -w @simply-clean/test-support && npm run build -w @simply-clean/contracts && npm run build -w @simply-clean/config && npm run build -w @simply-clean/database",
+    "db:migrate": "npm run build:packages && dotenv -e .env -- npm run migrate -w @simply-clean/database",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,css,json}\" \"packages/**/*.{ts,json}\" \"*.{json,mjs}\" \".github/**/*.yml\" README.md",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,css,json}\" \"packages/**/*.{ts,json}\" \"*.{json,mjs}\" \".github/**/*.yml\" README.md",
+    "lint": "eslint .",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:packages && npm run test --workspaces --if-present",
+    "test:integration": "npm run build:packages && npm run test:integration --workspaces --if-present",
+    "build": "npm run build:packages && npm run build -w @simply-clean/api && npm run build -w @simply-clean/web"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.5.2",
+    "concurrently": "^9.2.1",
+    "dotenv-cli": "^10.0.0",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.1"
+  }
+}

@@ -30,7 +30,11 @@ Repository conventions discovered during initial analysis:
 
 Testing commands:
 
-- The root verification commands do not exist yet. `SF-01` must establish canonical `lint`, `typecheck`, `test`, `test:integration`, and `build` commands and update this section.
+- `npm run lint` — lint the full TypeScript workspace.
+- `npm run typecheck` — type-check all shared packages and applications.
+- `npm test` — run the workspace unit tests.
+- `npm run test:integration` — run deterministic PGlite API/database integration tests locally.
+- `npm run build` — produce all shared-package, API, and web production builds.
 
 Reuse vs inline:
 
