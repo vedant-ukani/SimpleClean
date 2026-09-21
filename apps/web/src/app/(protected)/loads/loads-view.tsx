@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 
 import { createLoad } from "../../../lib/inventory-client";
 import { useOnlineStatus } from "../online-status";
+import { useServerState } from "../use-server-state";
 
 export function LoadsView({
   initialLoads,
@@ -16,7 +17,7 @@ export function LoadsView({
   canManage: boolean;
   expectedOnly?: boolean;
 }>) {
-  const [loads, setLoads] = useState(initialLoads);
+  const [loads, setLoads] = useServerState(initialLoads);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();

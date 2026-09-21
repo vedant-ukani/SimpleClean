@@ -10,6 +10,7 @@ import {
   revokeIdentitySessions,
 } from "../../../../lib/identity-client";
 import { useOnlineStatus } from "../../online-status";
+import { useServerState } from "../../use-server-state";
 
 const roleLabels: Record<ApplicationRole, string> = {
   owner_admin: "Owner Admin",
@@ -20,7 +21,7 @@ const roleLabels: Record<ApplicationRole, string> = {
 export function TeamManagement({
   initialUsers,
 }: Readonly<{ initialUsers: IdentityUser[] }>) {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useServerState(initialUsers);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();

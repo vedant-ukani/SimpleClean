@@ -5,11 +5,12 @@ import { useState } from "react";
 
 import { abandonIncompleteFile } from "../../../../lib/files-client";
 import { useOnlineStatus } from "../../online-status";
+import { useServerState } from "../../use-server-state";
 
 export function IncompleteFilesReview({
   initialFiles,
 }: Readonly<{ initialFiles: FileAttachment[] }>) {
-  const [files, setFiles] = useState(initialFiles);
+  const [files, setFiles] = useServerState(initialFiles);
   const [message, setMessage] = useState<string>();
   const [busyId, setBusyId] = useState<string>();
   const online = useOnlineStatus();

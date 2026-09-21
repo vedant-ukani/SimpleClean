@@ -7,6 +7,7 @@ import { useState, type FormEvent } from "react";
 import { updateLoad } from "../../../../lib/inventory-client";
 import { AttachmentsPanel } from "../../attachments-panel";
 import { useOnlineStatus } from "../../online-status";
+import { useServerState } from "../../use-server-state";
 
 export function LoadDetailView({
   initialLoad,
@@ -19,7 +20,7 @@ export function LoadDetailView({
   initialFiles: FileAttachment[];
   canUploadFiles: boolean;
 }>) {
-  const [load, setLoad] = useState(initialLoad);
+  const [load, setLoad] = useServerState(initialLoad);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();
@@ -96,7 +97,11 @@ export function LoadDetailView({
               {message}
             </p>
           ) : null}
-          <form className="inline-form" onSubmit={update}>
+          <form
+            key={`load-${load.version}`}
+            className="inline-form"
+            onSubmit={update}
+          >
             <label>
               Display name
               <input

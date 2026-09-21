@@ -4,6 +4,7 @@ import type { QrLabel } from "@simply-clean/contracts";
 import { useState } from "react";
 
 import { useOnlineStatus } from "../../online-status";
+import { useServerState } from "../../use-server-state";
 
 export function MachineQrPanel({
   machineId,
@@ -14,7 +15,7 @@ export function MachineQrPanel({
   initialLabels: QrLabel[];
   canManage: boolean;
 }>) {
-  const [labels, setLabels] = useState(initialLabels);
+  const [labels, setLabels] = useServerState(initialLabels);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>();
   const online = useOnlineStatus();

@@ -18,6 +18,7 @@ import {
 import { MachineIdentityStatus, recorded } from "../machine-labels";
 import { AttachmentsPanel } from "../../attachments-panel";
 import { useOnlineStatus } from "../../online-status";
+import { useServerState } from "../../use-server-state";
 import { MachineQrPanel } from "./machine-qr-panel";
 
 export function MachineDetailView({
@@ -41,7 +42,7 @@ export function MachineDetailView({
   initialQrLabels: QrLabel[];
   canManageQrLabels: boolean;
 }>) {
-  const [machine, setMachine] = useState(initialDetail.machine);
+  const [machine, setMachine] = useServerState(initialDetail.machine);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();
@@ -199,7 +200,11 @@ export function MachineDetailView({
       {canManage ? (
         <section className="panel">
           <h2>Record identity evidence</h2>
-          <form className="inline-form" onSubmit={updateIdentity}>
+          <form
+            key={`identity-${machine.version}`}
+            className="inline-form"
+            onSubmit={updateIdentity}
+          >
             <label>
               Manufacturer
               <input
@@ -256,7 +261,11 @@ export function MachineDetailView({
       {canRelocate ? (
         <section className="panel">
           <h2>Relocate Machine</h2>
-          <form className="inline-form" onSubmit={relocate}>
+          <form
+            key={`relocation-${machine.version}`}
+            className="inline-form"
+            onSubmit={relocate}
+          >
             <label>
               Active destination
               <select

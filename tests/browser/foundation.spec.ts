@@ -345,8 +345,26 @@ test("owner reviews and commits a synthetic inventory import across real boundar
   ).toBeVisible();
 });
 
+test("a missing import uses the protected record-not-found state", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "The canonical route-state boundary only needs one browser journey.",
+  );
+  await signIn(page, accounts.owner);
+  await page.goto("/admin/imports/00000000-0000-4000-8000-000000000000");
+  await expect(
+    page.getByRole("heading", { name: "This record is not available" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "This workspace is unavailable" }),
+  ).toHaveCount(0);
+});
+
 test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts usable", async ({
   page,
+  browser,
 }) => {
   await signIn(page, accounts.warehouse);
   await expect(page.getByRole("banner")).toBeVisible();
@@ -355,10 +373,47 @@ test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts u
   ).toBeVisible();
   await expect(page.getByRole("main")).toBeVisible();
 
+  await page.goto("/machines?query=BROWSER-SERIAL-001");
+  await page.getByRole("link", { name: "View Machine" }).click();
+  const locationValue = page
+    .locator("dt", { hasText: "Location" })
+    .locator("..")
+    .locator("dd");
+  const startingLocation = (await locationValue.textContent())?.trim();
+  const destination =
+    startingLocation === "E2E-OFFLINE"
+      ? {
+          code: "E2E-STORAGE",
+          label: "E2E-STORAGE — Browser storage",
+        }
+      : {
+          code: "E2E-OFFLINE",
+          label: "E2E-OFFLINE — Browser reconnect destination",
+        };
+
   await page.context().setOffline(true);
   await expect(page.getByRole("status")).toContainText(
     "Private records are not stored on this device",
   );
+
+  const updaterContext = await browser.newContext({
+    baseURL: "http://localhost:3100",
+  });
+  try {
+    const updater = await updaterContext.newPage();
+    await signIn(updater, accounts.warehouse);
+    await updater.goto("/machines?query=BROWSER-SERIAL-001");
+    await updater.getByRole("link", { name: "View Machine" }).click();
+    await updater
+      .getByLabel("Active destination")
+      .selectOption({ label: destination.label });
+    await updater.getByRole("button", { name: "Record relocation" }).click();
+    await expect(updater.getByRole("status")).toContainText("Location updated");
+  } finally {
+    await updaterContext.close();
+  }
+
+  await expect(locationValue).toHaveText(startingLocation ?? "");
   const reconnectRefresh = page.waitForRequest((request) => {
     const url = new URL(request.url());
     return (
@@ -367,6 +422,7 @@ test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts u
   });
   await page.context().setOffline(false);
   await reconnectRefresh;
+  await expect(locationValue).toHaveText(destination.code);
   await expect(
     page.getByText("Private records are not stored on this device"),
   ).toHaveCount(0);

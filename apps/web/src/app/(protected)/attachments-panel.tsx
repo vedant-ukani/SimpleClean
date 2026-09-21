@@ -14,6 +14,7 @@ import {
   uploadFileContent,
 } from "../../lib/files-client";
 import { useOnlineStatus } from "./online-status";
+import { useServerState } from "./use-server-state";
 
 const stateLabel: Record<FileAttachment["state"], string> = {
   pending_upload: "Pending upload",
@@ -31,7 +32,7 @@ export function AttachmentsPanel({
   initialFiles: FileAttachment[];
   canUpload: boolean;
 }>) {
-  const [files, setFiles] = useState(initialFiles);
+  const [files, setFiles] = useServerState(initialFiles);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();

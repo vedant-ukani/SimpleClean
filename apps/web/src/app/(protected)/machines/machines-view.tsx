@@ -11,6 +11,7 @@ import { useState, type FormEvent } from "react";
 
 import { createMachine } from "../../../lib/inventory-client";
 import { useOnlineStatus } from "../online-status";
+import { useServerState } from "../use-server-state";
 import { MachineIdentityStatus, recorded } from "./machine-labels";
 
 export function MachinesView({
@@ -28,7 +29,7 @@ export function MachinesView({
   canRelocate: boolean;
   initialQuery: string;
 }>) {
-  const [machines, setMachines] = useState(initialResults.machines);
+  const [machines, setMachines] = useServerState(initialResults.machines);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();

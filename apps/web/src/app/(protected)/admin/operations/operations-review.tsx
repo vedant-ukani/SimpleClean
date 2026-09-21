@@ -5,12 +5,13 @@ import { useState } from "react";
 
 import { retryOperationsJob } from "../../../../lib/operations-client";
 import { useOnlineStatus } from "../../online-status";
+import { useServerState } from "../../use-server-state";
 
 export function OperationsReview({
   initialAudit,
   initialJobs,
 }: Readonly<{ initialAudit: AuditEntry[]; initialJobs: OutboxJob[] }>) {
-  const [jobs, setJobs] = useState(initialJobs);
+  const [jobs, setJobs] = useServerState(initialJobs);
   const [message, setMessage] = useState<string>();
   const [busyId, setBusyId] = useState<string>();
   const online = useOnlineStatus();

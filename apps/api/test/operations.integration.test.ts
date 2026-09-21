@@ -375,7 +375,8 @@ describe("Operations reliability foundation", () => {
   });
 
   it("leases, retries, dead-letters, rejects stale completion, and audits Owner requeue", async () => {
-    let now = new Date("2026-09-21T12:00:00.000Z");
+    // Keep the injected clock after database-generated available_at timestamps.
+    let now = new Date("2099-09-21T12:00:00.000Z");
     const clock = { now: () => new Date(now) };
     const app = await createApplication({
       environment: {

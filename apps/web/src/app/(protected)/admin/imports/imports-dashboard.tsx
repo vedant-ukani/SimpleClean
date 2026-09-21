@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 
 import { uploadInventoryImport } from "../../../../lib/imports-client";
 import { useOnlineStatus } from "../../online-status";
+import { useServerState } from "../../use-server-state";
 
 function runStateLabel(state: ImportRun["state"]): string {
   return state.replaceAll("_", " ");
@@ -18,7 +19,7 @@ export function ImportsDashboard({
   initialRuns: ImportRun[];
   loads: AcquisitionLoad[];
 }>) {
-  const [runs, setRuns] = useState(initialRuns);
+  const [runs, setRuns] = useServerState(initialRuns);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();

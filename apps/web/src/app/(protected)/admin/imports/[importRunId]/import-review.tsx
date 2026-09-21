@@ -16,6 +16,7 @@ import {
   importSourceUrl,
 } from "../../../../../lib/imports-client";
 import { useOnlineStatus } from "../../../online-status";
+import { useServerState } from "../../../use-server-state";
 
 const classificationLabel: Record<ImportRow["classification"], string> = {
   ready: "Ready",
@@ -40,8 +41,8 @@ export function ImportReview({
   rowResult: ImportRowListResponse;
   classification?: ImportRow["classification"];
 }>) {
-  const [run, setRun] = useState(initialRun);
-  const [pageResult, setPageResult] = useState(rowResult);
+  const [run, setRun] = useServerState(initialRun);
+  const [pageResult, setPageResult] = useServerState(rowResult);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [confirmCommit, setConfirmCommit] = useState(false);
   const [machineIds, setMachineIds] = useState<string[]>([]);

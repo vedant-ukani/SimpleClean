@@ -192,7 +192,9 @@ describe("Inventory QR labels", () => {
       request(app.getHttpServer())
         .post("/inventory/qr-labels/resolve")
         .set("Cookie", technician.cookies)
-        .send({ token: `${token.slice(0, -1)}A` }),
+        .send({
+          token: `${token.slice(0, -1)}${token.endsWith("A") ? "B" : "A"}`,
+        }),
       request(app.getHttpServer())
         .post("/inventory/qr-labels/resolve")
         .set("Cookie", technician.cookies)

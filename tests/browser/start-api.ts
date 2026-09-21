@@ -100,6 +100,10 @@ async function main(): Promise<void> {
     { code: "E2E-STORAGE", name: "Browser storage" },
     { ...ownerContext, idempotencyKey: randomUUID() },
   );
+  await inventory.createLocation(
+    { code: "E2E-OFFLINE", name: "Browser reconnect destination" },
+    { ...ownerContext, idempotencyKey: randomUUID() },
+  );
 
   const warehouseContext = {
     actorUserId: warehouse.id,

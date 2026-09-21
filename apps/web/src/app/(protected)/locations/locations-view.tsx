@@ -9,12 +9,13 @@ import {
   updateLocation,
 } from "../../../lib/inventory-client";
 import { useOnlineStatus } from "../online-status";
+import { useServerState } from "../use-server-state";
 
 export function LocationsView({
   initialLocations,
   canManage,
 }: Readonly<{ initialLocations: InventoryLocation[]; canManage: boolean }>) {
-  const [locations, setLocations] = useState(initialLocations);
+  const [locations, setLocations] = useServerState(initialLocations);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();
