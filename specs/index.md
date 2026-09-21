@@ -3,3 +3,4 @@
 # Specs Index
 
 SF-01 — Application, database, and environments (completed)
+SF-02 — Authentication and role permissions (specified)
