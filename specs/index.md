@@ -5,3 +5,4 @@
 SF-01 — Application, database, and environments (completed)
 SF-02 — Authentication and role permissions (completed)
 SF-03 — Loads, Machines, Locations, and operational identity (completed)
+SF-04 — Private photos and document storage (specified)
