@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-21 — Approval-gated inventory spreadsheet migration
+
+Treat inventory spreadsheets as immutable migration evidence, not as a live database or a trusted command stream. Store source bytes privately, parse workbook and CSV content within explicit structural and evidence limits, preserve typed source cells and row provenance, and require an Owner to approve only non-error rows before an atomic Inventory commit. Imports call Inventory-owned identity matching and Machine creation rather than copying those rules.
+
+Consequences: formulas are retained as inert evidence and formula-backed serials are rejected; legacy sold/shipped rows remain visible but non-committable; executable workbook parts are rejected; and each staged row stores an immutable exact match snapshot. Every commit attempt rechecks that snapshot. If matching Inventory changed, the run becomes terminal and must be restaged so approval never silently applies to different duplicate evidence. Private storage and PostgreSQL remain separate systems, so definite pre-commit failures are cleaned up best-effort while uncertain database outcomes retain source bytes for reconciliation.
+
 ## 2026-09-21 — Atomic audit, idempotency, and PostgreSQL outbox delivery
 
 Record a privacy-safe central audit entry and a durable outbox job through one Operations port using the owning domain repository's active PostgreSQL transaction. Keep specialized Identity, Inventory, and Files histories for domain evidence. Require retry-prone Inventory creates to hash their idempotency keys, compare canonical request fingerprints, and store only the completed target reference.
