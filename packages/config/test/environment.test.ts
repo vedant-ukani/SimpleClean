@@ -1,4 +1,5 @@
 import { createTestEnvironment } from "@simply-clean/test-support";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -13,6 +14,24 @@ describe("server environment", () => {
     );
     expect(config.databaseDriver).toBe("pglite");
     expect(config.nodeEnv).toBe("test");
+  });
+
+  it("anchors relative local data paths to the npm workspace root", () => {
+    const workspaceRoot = join("/", "tmp", "simply-clean-workspace");
+    const config = parseServerEnvironment(
+      createTestEnvironment({
+        PGLITE_DATA_DIR: ".local-data/pglite",
+        FILE_LOCAL_DIRECTORY: ".local-data/files",
+        npm_config_local_prefix: workspaceRoot,
+      }),
+    );
+
+    expect(config.pgliteDataDir).toBe(
+      join(workspaceRoot, ".local-data/pglite"),
+    );
+    expect(config.fileLocalDirectory).toBe(
+      join(workspaceRoot, ".local-data/files"),
+    );
   });
 
   it("requires a URL for the PostgreSQL wire driver without exposing its value", () => {

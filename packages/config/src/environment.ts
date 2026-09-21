@@ -2,6 +2,7 @@ import {
   ApplicationRoleSchema,
   type ApplicationRole,
 } from "@simply-clean/contracts";
+import { isAbsolute, resolve } from "node:path";
 import { z } from "zod";
 
 const booleanFromString = z.union([
@@ -294,6 +295,16 @@ export class EnvironmentValidationError extends Error {
   }
 }
 
+function resolveLocalWorkspacePath(
+  value: string,
+  input: Record<string, string | undefined>,
+): string {
+  if (value === ":memory:" || isAbsolute(value)) return value;
+
+  const workspaceRoot = input.npm_config_local_prefix?.trim();
+  return workspaceRoot ? resolve(workspaceRoot, value) : value;
+}
+
 export function parseServerEnvironment(
   input: Record<string, string | undefined>,
 ): ServerConfig {
@@ -308,7 +319,10 @@ export function parseServerEnvironment(
     ...(result.data.DATABASE_URL
       ? { databaseUrl: result.data.DATABASE_URL }
       : {}),
-    pgliteDataDir: result.data.PGLITE_DATA_DIR,
+    pgliteDataDir: resolveLocalWorkspacePath(
+      result.data.PGLITE_DATA_DIR,
+      input,
+    ),
     allowPgliteInDeployed: result.data.ALLOW_PGLITE_IN_DEPLOYED,
     apiPort: result.data.API_PORT,
     logLevel: result.data.LOG_LEVEL,
@@ -319,7 +333,10 @@ export function parseServerEnvironment(
     qrSigningSecret: result.data.QR_SIGNING_SECRET,
     platformPublicOrigin: new URL(result.data.PLATFORM_PUBLIC_ORIGIN).origin,
     fileStorageDriver: result.data.FILE_STORAGE_DRIVER,
-    fileLocalDirectory: result.data.FILE_LOCAL_DIRECTORY,
+    fileLocalDirectory: resolveLocalWorkspacePath(
+      result.data.FILE_LOCAL_DIRECTORY,
+      input,
+    ),
     allowLocalFileStorageInDeployed:
       result.data.ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED,
     ...(result.data.FILE_S3_BUCKET

@@ -7,7 +7,7 @@ This repository contains the greenfield foundation for the Simply Clean operatio
 - Node.js 22.12 or newer
 - npm 11 or newer
 
-Docker is not required for local development or tests. Local work uses PGlite, which provides PostgreSQL semantics in-process and stores development data under the gitignored `.local-data/` directory.
+Docker is not required for local development or tests. Local work uses PGlite, which provides PostgreSQL semantics in-process and stores development data under the repository's gitignored `.local-data/` directory. Relative local database and file-storage paths are anchored to the npm workspace root so every workspace command uses the same data.
 
 ## Start locally
 
