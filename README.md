@@ -29,6 +29,8 @@ The browser reaches authentication and application APIs through the same-origin 
 
 Signed-in foundation views are available at `/loads`, `/machines`, and `/locations`. Owner Admin manages Load and Location definitions; Owner Admin and Warehouse users can create, identify, verify, and relocate Machines; Technician/Cleaner users have read-only Machine search and Location access. Inventory APIs are served under `/inventory/*`.
 
+Machine and Acquisition Load detail pages also provide private attachments. File relationships and checksums live in PostgreSQL; bytes are accessed only through short-lived, one-time grants under `/files/*` and are never exposed through static serving.
+
 ## Provision the first staff user
 
 After running migrations, set these values in your local `.env` file:
@@ -74,6 +76,12 @@ DATABASE_URL=postgres://...
 ```
 
 `DATABASE_URL` is required in PostgreSQL mode and is never included in validation messages or structured logs. Staging and production reject PGlite unless `ALLOW_PGLITE_IN_DEPLOYED=true` is explicitly set for an exceptional environment.
+
+## Private file storage
+
+Local development and tests default to `FILE_STORAGE_DRIVER=local`, with bytes under the gitignored `FILE_LOCAL_DIRECTORY`. Staging and production require S3-compatible storage unless `ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED=true` is explicitly set. S3 credentials use the AWS standard provider chain unless both explicit access-key variables are supplied.
+
+The configured size and grant TTL settings apply to every upload and download. JPEG, PNG, WebP, and PDF content is verified from its bytes; an attachment becomes ready only after its stored size, media type, and SHA-256 agree.
 
 ## Architecture boundary
 

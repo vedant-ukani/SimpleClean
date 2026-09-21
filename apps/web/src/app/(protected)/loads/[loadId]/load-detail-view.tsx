@@ -1,15 +1,23 @@
 "use client";
 
-import type { AcquisitionLoad } from "@simply-clean/contracts";
+import type { AcquisitionLoad, FileAttachment } from "@simply-clean/contracts";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { updateLoad } from "../../../../lib/inventory-client";
+import { AttachmentsPanel } from "../../attachments-panel";
 
 export function LoadDetailView({
   initialLoad,
   canManage,
-}: Readonly<{ initialLoad: AcquisitionLoad; canManage: boolean }>) {
+  initialFiles,
+  canUploadFiles,
+}: Readonly<{
+  initialLoad: AcquisitionLoad;
+  canManage: boolean;
+  initialFiles: FileAttachment[];
+  canUploadFiles: boolean;
+}>) {
   const [load, setLoad] = useState(initialLoad);
   const [message, setMessage] = useState<string>();
 
@@ -65,6 +73,11 @@ export function LoadDetailView({
           Find Machines from this Load
         </Link>
       </section>
+      <AttachmentsPanel
+        target={{ type: "load", id: load.id }}
+        initialFiles={initialFiles}
+        canUpload={canUploadFiles}
+      />
       {canManage ? (
         <section className="panel">
           <h2>Edit Load</h2>

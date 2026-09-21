@@ -20,6 +20,7 @@ import { IdentityRepository } from "./identity.repository.js";
 
 const PERMISSION_METADATA = Symbol("PERMISSION_METADATA");
 export const CURRENT_IDENTITY = Symbol("CURRENT_IDENTITY");
+export const CURRENT_SESSION_ID = Symbol("CURRENT_SESSION_ID");
 
 export const RequirePermission = (permission: Permission) =>
   SetMetadata(PERMISSION_METADATA, permission);
@@ -31,6 +32,13 @@ export function currentIdentityFromRequest(request: Request): IdentityUser {
     throw new UnauthorizedException();
   }
   return identity;
+}
+
+export function currentSessionIdFromRequest(request: Request): string {
+  const sessionId = Reflect.get(request, CURRENT_SESSION_ID) as
+    string | undefined;
+  if (!sessionId) throw new UnauthorizedException();
+  return sessionId;
 }
 
 @Injectable()
@@ -58,6 +66,7 @@ export class AuthorizationGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     Reflect.set(request, CURRENT_IDENTITY, identity);
+    Reflect.set(request, CURRENT_SESSION_ID, session.session.id);
 
     const required =
       this.reflector.getAllAndOverride<Permission>(PERMISSION_METADATA, [

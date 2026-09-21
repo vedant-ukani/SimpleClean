@@ -88,6 +88,45 @@ describe("server environment", () => {
     ).toThrow("high-entropy");
   });
 
+  it("validates private file storage configuration", () => {
+    const config = parseServerEnvironment(createTestEnvironment());
+    expect(config).toMatchObject({
+      fileStorageDriver: "local",
+      fileUploadGrantTtlSeconds: 300,
+      fileDownloadGrantTtlSeconds: 60,
+      fileMaxBytes: 15 * 1_024 * 1_024,
+    });
+
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          NODE_ENV: "production",
+          DATABASE_DRIVER: "postgres",
+          DATABASE_URL: "postgres://database.example/simply_clean",
+          AUTH_SECRET: "unique-production-secret-with-entropy-42!",
+          AUTH_BASE_URL: "https://api.example.test",
+          AUTH_TRUSTED_ORIGIN: "https://app.example.test",
+        }),
+      ),
+    ).toThrow("ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED=true");
+
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ FILE_STORAGE_DRIVER: "s3" }),
+      ),
+    ).toThrow("FILE_S3_BUCKET");
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ FILE_S3_ACCESS_KEY_ID: "only-one-half" }),
+      ),
+    ).toThrow("configured together");
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ FILE_UPLOAD_GRANT_TTL_SECONDS: "5" }),
+      ),
+    ).toThrow("FILE_UPLOAD_GRANT_TTL_SECONDS");
+  });
+
   it("requires bootstrap credentials without including the password in errors", () => {
     const secretPassword = "a-secret-bootstrap-password";
     const environment = createTestEnvironment({

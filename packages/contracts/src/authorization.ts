@@ -19,6 +19,9 @@ export const PERMISSIONS = [
   "inventory.machines.relocate",
   "inventory.locations.read",
   "inventory.locations.manage",
+  "files.read",
+  "files.write",
+  "files.manage",
 ] as const;
 
 export const ApplicationRoleSchema = z.enum(APPLICATION_ROLES);
@@ -38,12 +41,16 @@ export const ROLE_PERMISSION_POLICY = {
     "inventory.machines.verify",
     "inventory.machines.relocate",
     "inventory.locations.read",
+    "files.read",
+    "files.write",
   ],
   technician_cleaner: [
     "platform.access",
     "identity.self.read",
     "inventory.machines.read",
     "inventory.locations.read",
+    "files.read",
+    "files.write",
   ],
 } as const satisfies Record<ApplicationRole, readonly Permission[]>;
 

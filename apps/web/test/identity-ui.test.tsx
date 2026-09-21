@@ -10,6 +10,7 @@ describe("role-aware identity UI", () => {
     expect(navigationForRole("owner_admin").map((item) => item.href)).toEqual([
       "/",
       "/admin/users",
+      "/admin/files",
       "/loads",
       "/machines",
       "/locations",

@@ -13,6 +13,12 @@ export function createTestEnvironment(
     AUTH_BASE_URL: "http://localhost:3001",
     AUTH_TRUSTED_ORIGIN: "http://localhost:3000",
     AUTH_SESSION_DURATION_SECONDS: "28800",
+    FILE_STORAGE_DRIVER: "local",
+    FILE_LOCAL_DIRECTORY: ".local-data/test-files",
+    ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED: "false",
+    FILE_UPLOAD_GRANT_TTL_SECONDS: "300",
+    FILE_DOWNLOAD_GRANT_TTL_SECONDS: "60",
+    FILE_MAX_BYTES: "15728640",
     ...overrides,
   };
 }

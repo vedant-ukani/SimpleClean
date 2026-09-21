@@ -36,6 +36,36 @@ const serverEnvironmentSchema = z
       .min(300)
       .max(86_400)
       .default(28_800),
+    FILE_STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
+    FILE_LOCAL_DIRECTORY: z.string().min(1).default(".local-data/files"),
+    ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED: booleanFromString.default(false),
+    FILE_S3_BUCKET: optionalNonEmptyString,
+    FILE_S3_REGION: optionalNonEmptyString,
+    FILE_S3_ENDPOINT: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.url().optional(),
+    ),
+    FILE_S3_FORCE_PATH_STYLE: booleanFromString.default(false),
+    FILE_S3_ACCESS_KEY_ID: optionalNonEmptyString,
+    FILE_S3_SECRET_ACCESS_KEY: optionalNonEmptyString,
+    FILE_UPLOAD_GRANT_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(30)
+      .max(900)
+      .default(300),
+    FILE_DOWNLOAD_GRANT_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(15)
+      .max(300)
+      .default(60),
+    FILE_MAX_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .max(100 * 1_024 * 1_024)
+      .default(15 * 1_024 * 1_024),
   })
   .superRefine((environment, context) => {
     if (
@@ -62,6 +92,48 @@ const serverEnvironmentSchema = z
         path: ["DATABASE_DRIVER"],
         message:
           "pglite in staging or production requires ALLOW_PGLITE_IN_DEPLOYED=true",
+      });
+    }
+
+    if (
+      isDeployed &&
+      environment.FILE_STORAGE_DRIVER === "local" &&
+      !environment.ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["FILE_STORAGE_DRIVER"],
+        message:
+          "local file storage in staging or production requires ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED=true",
+      });
+    }
+
+    if (environment.FILE_STORAGE_DRIVER === "s3") {
+      if (!environment.FILE_S3_BUCKET) {
+        context.addIssue({
+          code: "custom",
+          path: ["FILE_S3_BUCKET"],
+          message: "is required when FILE_STORAGE_DRIVER is s3",
+        });
+      }
+      if (!environment.FILE_S3_REGION) {
+        context.addIssue({
+          code: "custom",
+          path: ["FILE_S3_REGION"],
+          message: "is required when FILE_STORAGE_DRIVER is s3",
+        });
+      }
+    }
+
+    if (
+      Boolean(environment.FILE_S3_ACCESS_KEY_ID) !==
+      Boolean(environment.FILE_S3_SECRET_ACCESS_KEY)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["FILE_S3_ACCESS_KEY_ID"],
+        message:
+          "explicit S3 access key and secret must be configured together",
       });
     }
 
@@ -111,6 +183,18 @@ export interface ServerConfig {
   authBaseUrl: string;
   authTrustedOrigin: string;
   authSessionDurationSeconds: number;
+  fileStorageDriver: "local" | "s3";
+  fileLocalDirectory: string;
+  allowLocalFileStorageInDeployed: boolean;
+  fileS3Bucket?: string;
+  fileS3Region?: string;
+  fileS3Endpoint?: string;
+  fileS3ForcePathStyle: boolean;
+  fileS3AccessKeyId?: string;
+  fileS3SecretAccessKey?: string;
+  fileUploadGrantTtlSeconds: number;
+  fileDownloadGrantTtlSeconds: number;
+  fileMaxBytes: number;
 }
 
 export interface WebServerConfig {
@@ -156,6 +240,29 @@ export function parseServerEnvironment(
     authBaseUrl: result.data.AUTH_BASE_URL,
     authTrustedOrigin: result.data.AUTH_TRUSTED_ORIGIN,
     authSessionDurationSeconds: result.data.AUTH_SESSION_DURATION_SECONDS,
+    fileStorageDriver: result.data.FILE_STORAGE_DRIVER,
+    fileLocalDirectory: result.data.FILE_LOCAL_DIRECTORY,
+    allowLocalFileStorageInDeployed:
+      result.data.ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED,
+    ...(result.data.FILE_S3_BUCKET
+      ? { fileS3Bucket: result.data.FILE_S3_BUCKET }
+      : {}),
+    ...(result.data.FILE_S3_REGION
+      ? { fileS3Region: result.data.FILE_S3_REGION }
+      : {}),
+    ...(result.data.FILE_S3_ENDPOINT
+      ? { fileS3Endpoint: result.data.FILE_S3_ENDPOINT }
+      : {}),
+    fileS3ForcePathStyle: result.data.FILE_S3_FORCE_PATH_STYLE,
+    ...(result.data.FILE_S3_ACCESS_KEY_ID
+      ? { fileS3AccessKeyId: result.data.FILE_S3_ACCESS_KEY_ID }
+      : {}),
+    ...(result.data.FILE_S3_SECRET_ACCESS_KEY
+      ? { fileS3SecretAccessKey: result.data.FILE_S3_SECRET_ACCESS_KEY }
+      : {}),
+    fileUploadGrantTtlSeconds: result.data.FILE_UPLOAD_GRANT_TTL_SECONDS,
+    fileDownloadGrantTtlSeconds: result.data.FILE_DOWNLOAD_GRANT_TTL_SECONDS,
+    fileMaxBytes: result.data.FILE_MAX_BYTES,
   };
 }
 

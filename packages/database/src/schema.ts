@@ -420,6 +420,139 @@ export const machineLocationHistory = pgTable(
   ],
 );
 
+export const fileAttachment = pgTable(
+  "file_attachment",
+  {
+    id: text("id").primaryKey(),
+    machineId: text("machine_id").references(() => inventoryMachine.id, {
+      onDelete: "restrict",
+    }),
+    loadId: text("load_id").references(() => inventoryLoad.id, {
+      onDelete: "restrict",
+    }),
+    purpose: text("purpose").notNull(),
+    storageKey: text("storage_key").notNull(),
+    originalFilename: text("original_filename").notNull(),
+    declaredMediaType: text("declared_media_type").notNull(),
+    detectedMediaType: text("detected_media_type"),
+    declaredByteCount: integer("declared_byte_count").notNull(),
+    byteCount: integer("byte_count"),
+    sha256: text("sha256"),
+    uploaderUserId: text("uploader_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    state: text("state").notNull().default("pending_upload"),
+    failureCode: text("failure_code"),
+    uploadLeaseId: text("upload_lease_id"),
+    uploadLeaseExpiresAt: timestamp("upload_lease_expires_at", {
+      withTimezone: true,
+    }),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "file_attachment_one_target_check",
+      sql`(${table.machineId} is not null and ${table.loadId} is null) or (${table.machineId} is null and ${table.loadId} is not null)`,
+    ),
+    check(
+      "file_attachment_purpose_check",
+      sql`${table.purpose} in ('nameplate', 'arrival_condition', 'document', 'receipt', 'other')`,
+    ),
+    check(
+      "file_attachment_nameplate_target_check",
+      sql`${table.purpose} <> 'nameplate' or ${table.machineId} is not null`,
+    ),
+    check(
+      "file_attachment_state_check",
+      sql`${table.state} in ('pending_upload', 'ready', 'failed', 'abandoned')`,
+    ),
+    check(
+      "file_attachment_declared_media_type_check",
+      sql`${table.declaredMediaType} in ('image/jpeg', 'image/png', 'image/webp', 'application/pdf')`,
+    ),
+    check(
+      "file_attachment_detected_media_type_check",
+      sql`${table.detectedMediaType} is null or ${table.detectedMediaType} in ('image/jpeg', 'image/png', 'image/webp', 'application/pdf')`,
+    ),
+    check(
+      "file_attachment_byte_count_check",
+      sql`${table.declaredByteCount} >= 0 and (${table.byteCount} is null or ${table.byteCount} >= 0)`,
+    ),
+    check(
+      "file_attachment_upload_lease_check",
+      sql`(${table.uploadLeaseId} is null and ${table.uploadLeaseExpiresAt} is null) or (${table.uploadLeaseId} is not null and ${table.uploadLeaseExpiresAt} is not null)`,
+    ),
+    check("file_attachment_version_check", sql`${table.version} > 0`),
+    uniqueIndex("file_attachment_storage_key_unique").on(table.storageKey),
+    index("file_attachment_machine_index").on(table.machineId, table.createdAt),
+    index("file_attachment_load_index").on(table.loadId, table.createdAt),
+    index("file_attachment_incomplete_index").on(table.state, table.createdAt),
+  ],
+);
+
+export const fileAccessGrant = pgTable(
+  "file_access_grant",
+  {
+    id: text("id").primaryKey(),
+    fileId: text("file_id")
+      .notNull()
+      .references(() => fileAttachment.id, { onDelete: "restrict" }),
+    operation: text("operation").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    issuedToUserId: text("issued_to_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    issuedSessionId: text("issued_session_id")
+      .notNull()
+      .references(() => authSession.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "file_access_grant_operation_check",
+      sql`${table.operation} in ('upload', 'download')`,
+    ),
+    uniqueIndex("file_access_grant_token_hash_unique").on(table.tokenHash),
+    index("file_access_grant_file_index").on(table.fileId, table.operation),
+    index("file_access_grant_expiry_index").on(table.expiresAt),
+  ],
+);
+
+export const fileActivity = pgTable(
+  "file_activity",
+  {
+    id: text("id").primaryKey(),
+    fileId: text("file_id")
+      .notNull()
+      .references(() => fileAttachment.id, { onDelete: "restrict" }),
+    action: text("action").notNull(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    requestId: text("request_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "file_activity_action_check",
+      sql`${table.action} in ('upload_grant_created', 'upload_ready', 'upload_failed', 'download_grant_created', 'downloaded', 'abandoned')`,
+    ),
+    index("file_activity_file_index").on(table.fileId, table.createdAt),
+  ],
+);
+
 export const authSchema = {
   user: authUser,
   session: authSession,

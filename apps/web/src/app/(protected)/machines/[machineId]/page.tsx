@@ -2,6 +2,7 @@ import { roleHasPermission } from "@simply-clean/contracts";
 import { headers } from "next/headers";
 
 import { getCurrentIdentity } from "../../../../lib/identity-client";
+import { getFiles } from "../../../../lib/files-client";
 import { getLocations, getMachine } from "../../../../lib/inventory-client";
 import { MachineDetailView } from "./machine-detail-view";
 
@@ -13,10 +14,11 @@ export default async function MachineDetailPage({
     headers(),
   ]);
   const cookie = requestHeaders.get("cookie") ?? undefined;
-  const [identity, detail, locations] = await Promise.all([
+  const [identity, detail, locations, files] = await Promise.all([
     getCurrentIdentity(fetch, process.env, cookie),
     getMachine(machineId, fetch, process.env, cookie),
     getLocations(fetch, process.env, cookie),
+    getFiles({ type: "machine", id: machineId }, fetch, process.env, cookie),
   ]);
   return (
     <main className="page-main page-main--wide">
@@ -35,6 +37,8 @@ export default async function MachineDetailPage({
           identity.user.role,
           "inventory.machines.relocate",
         )}
+        initialFiles={files}
+        canUploadFiles={roleHasPermission(identity.user.role, "files.write")}
       />
     </main>
   );

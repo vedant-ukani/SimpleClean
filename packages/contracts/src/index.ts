@@ -35,3 +35,4 @@ export {
   type IdentityUserListResponse,
 } from "./identity.js";
 export * from "./inventory.js";
+export * from "./files.js";

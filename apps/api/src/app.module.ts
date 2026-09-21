@@ -10,6 +10,7 @@ import type { ServerConfig } from "@simply-clean/config";
 import { json, urlencoded } from "express";
 
 import { AuthHandlerMiddleware } from "./modules/identity/auth.middleware.js";
+import { FilesModule } from "./modules/files/files.module.js";
 import { AuthorizationGuard } from "./modules/identity/authorization.guard.js";
 import { IdentityModule } from "./modules/identity/identity.module.js";
 import { InventoryModule } from "./modules/inventory/inventory.module.js";
@@ -31,6 +32,7 @@ export class AppModule implements NestModule {
         DatabaseModule.register(config),
         IdentityModule.register(config),
         InventoryModule,
+        FilesModule.register(config),
       ],
       controllers: [HealthController],
       providers: [

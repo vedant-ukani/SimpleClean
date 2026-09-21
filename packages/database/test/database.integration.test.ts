@@ -38,11 +38,14 @@ describe("PGlite integration", () => {
             'machine_identity_evidence',
             'machine_identity_claim',
             'machine_identity_verification_history',
-            'machine_location_history'
+            'machine_location_history',
+            'file_attachment',
+            'file_access_grant',
+            'file_activity'
           )
       `);
       const rows = "rows" in result ? result.rows : result;
-      expect(rows).toHaveLength(13);
+      expect(rows).toHaveLength(16);
     } finally {
       await connection.close();
     }

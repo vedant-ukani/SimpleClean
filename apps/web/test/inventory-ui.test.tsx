@@ -42,6 +42,8 @@ describe("inventory UI", () => {
         canManage={false}
         canVerify={false}
         canRelocate={false}
+        initialFiles={[]}
+        canUploadFiles={false}
       />,
     );
     expect(markup).toContain("Not recorded");
@@ -71,6 +73,8 @@ describe("inventory UI", () => {
           canManage
           canVerify
           canRelocate
+          initialFiles={[]}
+          canUploadFiles
         />
       </>,
     );

@@ -24,12 +24,19 @@ export function canManageMachines(role: ApplicationRole): boolean {
   return roleHasPermission(role, "inventory.machines.manage");
 }
 
+export function canManageFiles(role: ApplicationRole): boolean {
+  return roleHasPermission(role, "files.manage");
+}
+
 export function navigationForRole(
   role: ApplicationRole,
 ): readonly NavigationItem[] {
   const navigation: NavigationItem[] = [{ href: "/", label: "Home" }];
   if (roleHasPermission(role, "identity.users.read")) {
     navigation.push({ href: "/admin/users", label: "Team" });
+  }
+  if (roleHasPermission(role, "files.manage")) {
+    navigation.push({ href: "/admin/files", label: "File review" });
   }
   if (roleHasPermission(role, "inventory.loads.read")) {
     navigation.push({ href: "/loads", label: "Loads" });

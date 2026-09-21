@@ -22,6 +22,9 @@ describe("authorization policy", () => {
       "inventory.machines.relocate",
       "inventory.locations.read",
       "inventory.locations.manage",
+      "files.read",
+      "files.write",
+      "files.manage",
     ]);
     expect(permissionsForRole("warehouse")).toEqual([
       "platform.access",
@@ -32,12 +35,16 @@ describe("authorization policy", () => {
       "inventory.machines.verify",
       "inventory.machines.relocate",
       "inventory.locations.read",
+      "files.read",
+      "files.write",
     ]);
     expect(permissionsForRole("technician_cleaner")).toEqual([
       "platform.access",
       "identity.self.read",
       "inventory.machines.read",
       "inventory.locations.read",
+      "files.read",
+      "files.write",
     ]);
 
     expect(roleHasPermission("owner_admin", "identity.users.manage")).toBe(
@@ -56,6 +63,8 @@ describe("authorization policy", () => {
     expect(
       roleHasPermission("technician_cleaner", "inventory.machines.manage"),
     ).toBe(false);
+    expect(roleHasPermission("warehouse", "files.manage")).toBe(false);
+    expect(roleHasPermission("technician_cleaner", "files.write")).toBe(true);
   });
 
   it("rejects unknown roles and permissions at runtime", () => {

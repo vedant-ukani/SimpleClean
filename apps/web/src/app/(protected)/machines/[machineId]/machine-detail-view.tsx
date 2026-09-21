@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  FileAttachment,
   InventoryLocation,
   Machine,
   MachineDetail,
@@ -14,6 +15,7 @@ import {
   verifyMachine,
 } from "../../../../lib/inventory-client";
 import { MachineIdentityStatus, recorded } from "../machine-labels";
+import { AttachmentsPanel } from "../../attachments-panel";
 
 export function MachineDetailView({
   initialDetail,
@@ -21,12 +23,16 @@ export function MachineDetailView({
   canManage,
   canVerify,
   canRelocate,
+  initialFiles,
+  canUploadFiles,
 }: Readonly<{
   initialDetail: MachineDetail;
   locations: InventoryLocation[];
   canManage: boolean;
   canVerify: boolean;
   canRelocate: boolean;
+  initialFiles: FileAttachment[];
+  canUploadFiles: boolean;
 }>) {
   const [machine, setMachine] = useState(initialDetail.machine);
   const [message, setMessage] = useState<string>();
@@ -150,6 +156,11 @@ export function MachineDetailView({
           </div>
         </dl>
       </section>
+      <AttachmentsPanel
+        target={{ type: "machine", id: machine.id }}
+        initialFiles={initialFiles}
+        canUpload={canUploadFiles}
+      />
       {canManage ? (
         <section className="panel">
           <h2>Record identity evidence</h2>
