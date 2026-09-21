@@ -386,6 +386,93 @@ a:focus-visible {
   background: #f7e5e2;
 }
 
+.status--warning {
+  color: #715113;
+  background: #fff0c7;
+}
+
+.imports-layout {
+  grid-template-columns: minmax(20rem, 0.75fr) minmax(30rem, 1.25fr);
+}
+
+.section-heading-row,
+.confirmation-control,
+.pagination {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.import-table-wrap {
+  overflow-x: auto;
+}
+
+.import-table {
+  width: 100%;
+  margin-top: 1.5rem;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.import-table th,
+.import-table td {
+  padding: 0.85rem 0.65rem;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.import-table th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.import-table td > strong,
+.import-table td > span,
+.import-table td > small {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.import-table input[type="checkbox"],
+.confirmation-control input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.findings-list {
+  margin: 0.6rem 0 0;
+  padding-left: 1.15rem;
+  color: var(--muted);
+}
+
+.pagination {
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.pagination a {
+  font-weight: 700;
+}
+
+.commit-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.commit-panel p,
+.confirmation-control {
+  margin: 0;
+  color: var(--muted);
+}
+
+.confirmation-control {
+  justify-content: flex-start;
+}
+
 .user-row {
   display: grid;
   grid-template-columns: minmax(10rem, 1fr) minmax(10rem, 0.7fr) auto;
@@ -433,6 +520,7 @@ a:focus-visible {
   }
 
   .management-grid,
+  .imports-layout,
   .user-row,
   .inventory-row,
   .search-form {

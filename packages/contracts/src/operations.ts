@@ -22,6 +22,10 @@ export const OPERATIONS_ACTIONS = [
   "files.attachment.failed",
   "files.attachment.abandoned",
   "operations.job.requeued",
+  "imports.run.staged",
+  "imports.run.approved",
+  "imports.run.committed",
+  "imports.run.commit_failed",
 ] as const;
 
 export const OPERATIONS_TARGET_TYPES = [
@@ -32,6 +36,7 @@ export const OPERATIONS_TARGET_TYPES = [
   "machine",
   "file",
   "outbox_job",
+  "import_run",
 ] as const;
 
 export const AuditActorKindSchema = z.enum(["user", "system"]);

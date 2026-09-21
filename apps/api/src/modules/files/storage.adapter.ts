@@ -1,10 +1,8 @@
-import type { FileMediaType } from "@simply-clean/contracts";
-
 export const STORAGE_ADAPTER = Symbol("STORAGE_ADAPTER");
 
 export interface StorageObjectMetadata {
   byteCount: number;
-  mediaType: FileMediaType;
+  mediaType: string;
   sha256: string;
 }
 

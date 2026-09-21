@@ -11,9 +11,11 @@ import { json, urlencoded } from "express";
 
 import { AuthHandlerMiddleware } from "./modules/identity/auth.middleware.js";
 import { FilesModule } from "./modules/files/files.module.js";
+import { PrivateStorageModule } from "./modules/files/private-storage.module.js";
 import { AuthorizationGuard } from "./modules/identity/authorization.guard.js";
 import { IdentityModule } from "./modules/identity/identity.module.js";
 import { InventoryModule } from "./modules/inventory/inventory.module.js";
+import { ImportsModule } from "./modules/imports/imports.module.js";
 import { OperationsModule } from "./modules/operations/operations.module.js";
 import { DatabaseModule } from "./platform/database.module.js";
 import { HealthController } from "./platform/health.controller.js";
@@ -31,10 +33,12 @@ export class AppModule implements NestModule {
       module: AppModule,
       imports: [
         DatabaseModule.register(config),
+        PrivateStorageModule.register(config),
         OperationsModule.register(config),
         IdentityModule.register(config),
         InventoryModule,
         FilesModule.register(config),
+        ImportsModule.register(config),
       ],
       controllers: [HealthController],
       providers: [

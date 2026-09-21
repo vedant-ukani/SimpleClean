@@ -91,6 +91,16 @@ Successful foundation mutations append a central audit entry and an outbox job i
 
 The API process polls the PostgreSQL outbox when `OPERATIONS_WORKER_POLLING_ENABLED=true`. Claim leases, maximum attempts, polling interval, and exponential-backoff base are configured by the `OPERATIONS_WORKER_*` environment values in `.env.example`. Tests disable polling and call the worker directly. A delivery with no registered internal subscribers succeeds. Handler failures store only the safe code `handler_failed`, retry automatically, and eventually become `dead_letter`; an Owner Admin can requeue the current dead-letter version from the Operations page. The stable job ID is the idempotency boundary future handlers must use for at-least-once delivery.
 
+## Inventory spreadsheet import
+
+Owner Admins can stage a legacy inventory file at `/admin/imports`. Choose the existing Acquisition Load that supplied the equipment, upload one `.xlsx` or UTF-8 `.csv` file, review every source row and finding, explicitly select the rows to approve, then separately confirm the atomic commit. The source remains private and unchanged. Unsupported sold/shipped history cannot be approved, warnings are never selected automatically, and a successful commit creates provisional Machines with exact source-row provenance.
+
+Imports use the configured `FILE_MAX_BYTES` limit (15 MiB by default) and reject unsupported or mismatched content. Parsing is bounded to 20 worksheets, 10,000 aggregate non-header rows, 640,000 aggregate cells, 64 columns per sheet, 256 characters per header, 4,000 JSON characters per typed cell value, and 8 MiB of expanded staged evidence. Formula text is retained as inert evidence and is never evaluated; a formula-backed serial is rejected. If Inventory matches change after approval, that approval becomes terminal and the Owner must stage a new Import Run.
+
+Private object storage and PostgreSQL cannot share one atomic transaction. The importer verifies stored-object metadata before staging, cleans up definite pre-commit failures best-effort, and retains the private object when the database outcome is uncertain so a committed Import Run is not broken. After a storage or database outage, operators should reconcile private objects against Import Runs.
+
+For local acceptance, start the platform, create or choose an Acquisition Load, and upload the unmodified root `Inventory List.xlsx`. The review should show 227 source rows: 172 on-hand candidates, 55 non-committable sold/shipped rows, and five duplicate serial groups. Download the source and result report from the Import Run review page; do not edit or write back to the workbook.
+
 ## Architecture boundary
 
 The Core Operations Platform is authoritative for operational state. The API is a modular monolith backed by one PostgreSQL database, and shared packages contain only cross-application decisions:

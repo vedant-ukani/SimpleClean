@@ -24,6 +24,7 @@ import {
   type MachineDetail,
   type MachineSearchResponse,
 } from "@simply-clean/contracts";
+import type { DatabaseExecutor } from "@simply-clean/database";
 
 import {
   IdempotencyKeyReuseError,
@@ -89,6 +90,29 @@ export interface InventoryOperations {
     rawInput: unknown,
     context: InventoryActorContext,
   ): Promise<Machine>;
+  analyzeImportCandidates(
+    database: DatabaseExecutor,
+    candidates: readonly ImportMachineCandidate[],
+  ): Promise<ImportCandidateMatch[]>;
+  createImportedMachine(
+    database: DatabaseExecutor,
+    input: ImportMachineCandidate & { sourceLoadId: string },
+    context: InventoryActorContext,
+  ): Promise<Machine>;
+}
+
+export interface ImportMachineCandidate {
+  machineType: Machine["machineType"];
+  manufacturer: string | null;
+  model: string | null;
+  serial: string | null;
+  inventoryState: "expected" | "on_hand";
+}
+
+export interface ImportCandidateMatch {
+  exactIdentityMachineIds: string[];
+  serialMachineIds: string[];
+  modelMachineIds: string[];
 }
 
 @Injectable()
@@ -290,6 +314,26 @@ export class InventoryService implements InventoryOperations {
       this.id(rawId),
       input.toLocationId,
       input.expectedVersion,
+      context,
+    );
+    return this.resolveMachineMutation(result);
+  }
+
+  analyzeImportCandidates(
+    database: DatabaseExecutor,
+    candidates: readonly ImportMachineCandidate[],
+  ): Promise<ImportCandidateMatch[]> {
+    return this.repository.analyzeImportCandidates(database, candidates);
+  }
+
+  async createImportedMachine(
+    database: DatabaseExecutor,
+    input: ImportMachineCandidate & { sourceLoadId: string },
+    context: InventoryActorContext,
+  ): Promise<Machine> {
+    const result = await this.repository.createImportedMachine(
+      database,
+      input,
       context,
     );
     return this.resolveMachineMutation(result);

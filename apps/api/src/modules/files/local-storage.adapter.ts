@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import type { FileMediaType } from "@simply-clean/contracts";
 import { createHash, randomUUID } from "node:crypto";
 import {
   mkdir,
@@ -111,7 +110,7 @@ async function removeIfPresent(path: string): Promise<void> {
 
 export function localMetadata(
   byteCount: number,
-  mediaType: FileMediaType,
+  mediaType: string,
   sha256: string,
 ): StorageObjectMetadata {
   return { byteCount, mediaType, sha256 };

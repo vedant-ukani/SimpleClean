@@ -25,6 +25,8 @@ export const PERMISSIONS = [
   "operations.audit.read",
   "operations.jobs.read",
   "operations.jobs.manage",
+  "imports.read",
+  "imports.manage",
 ] as const;
 
 export const ApplicationRoleSchema = z.enum(APPLICATION_ROLES);

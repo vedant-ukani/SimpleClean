@@ -36,8 +36,13 @@ import {
 import {
   escapeLikePattern,
   normalizeIdentityMatchValue,
+  normalizeManufacturerMatchValue,
   normalizeStoredFact,
 } from "./normalization.js";
+import type {
+  ImportCandidateMatch,
+  ImportMachineCandidate,
+} from "./inventory.service.js";
 
 export interface InventoryActorContext {
   actorUserId: string;
@@ -491,7 +496,7 @@ export class InventoryRepository {
           current_location_id, inventory_state
         ) values (
           ${id}, ${input.machineType}, ${manufacturer},
-          ${normalizeIdentityMatchValue(manufacturer)}, ${model}, ${serial},
+          ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
           ${normalizeIdentityMatchValue(serial)}, ${voltage},
           ${input.phase ?? null}, ${input.fuel ?? null}, ${input.sourceLoadId},
           ${input.currentLocationId ?? null},
@@ -546,6 +551,109 @@ export class InventoryRepository {
       });
       return { status: "updated", value: machine };
     });
+  }
+
+  async analyzeImportCandidates(
+    database: DatabaseExecutor,
+    candidates: readonly ImportMachineCandidate[],
+  ): Promise<ImportCandidateMatch[]> {
+    const matches: ImportCandidateMatch[] = [];
+    for (const candidate of candidates) {
+      const manufacturer = normalizeManufacturerMatchValue(
+        candidate.manufacturer,
+      );
+      const model = normalizeIdentityMatchValue(candidate.model);
+      const serial = normalizeIdentityMatchValue(candidate.serial);
+      const exact =
+        manufacturer && serial
+          ? rowsFromResult(
+              await database.execute(sql`
+              select id from inventory_machine
+              where normalized_manufacturer = ${manufacturer}
+                and normalized_serial = ${serial}
+              order by id
+            `),
+            ).map((row) => String(row.id))
+          : [];
+      const serialRows = serial
+        ? rowsFromResult(
+            await database.execute(sql`
+              select id from inventory_machine
+              where normalized_serial = ${serial}
+              order by id
+            `),
+          ).map((row) => String(row.id))
+        : [];
+      const modelRows =
+        manufacturer && model
+          ? rowsFromResult(
+              await database.execute(sql`
+              select id from inventory_machine
+              where normalized_manufacturer = ${manufacturer}
+                and lower(regexp_replace(trim(coalesce(model, '')), '\\s+', ' ', 'g')) = ${model}
+              order by id
+            `),
+            ).map((row) => String(row.id))
+          : [];
+      matches.push({
+        exactIdentityMachineIds: exact,
+        serialMachineIds: serialRows.filter((id) => !exact.includes(id)),
+        modelMachineIds: modelRows.filter((id) => !exact.includes(id)),
+      });
+    }
+    return matches;
+  }
+
+  async createImportedMachine(
+    database: DatabaseExecutor,
+    input: ImportMachineCandidate & { sourceLoadId: string },
+    context: InventoryActorContext,
+  ): Promise<MachineMutationResult> {
+    if (!(await this.findLoadWith(database, input.sourceLoadId))) {
+      return { status: "missing_load" };
+    }
+    const id = randomUUID();
+    const manufacturer = normalizeStoredFact(input.manufacturer);
+    const model = normalizeStoredFact(input.model);
+    const serial = normalizeStoredFact(input.serial);
+    await database.execute(sql`
+      insert into inventory_machine (
+        id, machine_type, manufacturer, normalized_manufacturer, model,
+        serial, normalized_serial, voltage, phase, fuel, source_load_id,
+        current_location_id, inventory_state
+      ) values (
+        ${id}, ${input.machineType}, ${manufacturer},
+        ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
+        ${normalizeIdentityMatchValue(serial)}, null, null, null,
+        ${input.sourceLoadId}, null, ${input.inventoryState}
+      )
+    `);
+    await this.insertEvidence(
+      database,
+      id,
+      {
+        machineType: input.machineType,
+        manufacturer: input.manufacturer,
+        model: input.model,
+        serial: input.serial,
+        voltage: null,
+        phase: null,
+        fuel: null,
+        sourceKind: "spreadsheet_import",
+      },
+      context,
+    );
+    const machine = await this.findMachineWith(database, id);
+    if (!machine) throw new Error("Imported Machine was not created");
+    await this.record(
+      database,
+      "inventory.machine.created",
+      "machine",
+      id,
+      context,
+      ["machine_type", "identity", "source_load_id", "inventory_state"],
+    );
+    return { status: "updated", value: machine };
   }
 
   async findMachine(id: string): Promise<Machine | undefined> {
@@ -685,7 +793,7 @@ export class InventoryRepository {
         update inventory_machine set
           machine_type = ${next.machineType},
           manufacturer = ${next.manufacturer},
-          normalized_manufacturer = ${normalizeIdentityMatchValue(next.manufacturer)},
+          normalized_manufacturer = ${normalizeManufacturerMatchValue(next.manufacturer)},
           model = ${next.model},
           serial = ${next.serial},
           normalized_serial = ${normalizeIdentityMatchValue(next.serial)},
@@ -723,7 +831,9 @@ export class InventoryRepository {
       if (!current) return { status: "not_found" };
       if (current.version !== expectedVersion)
         return { status: "version_conflict" };
-      const manufacturer = normalizeIdentityMatchValue(current.manufacturer);
+      const manufacturer = normalizeManufacturerMatchValue(
+        current.manufacturer,
+      );
       const serial = normalizeIdentityMatchValue(current.serial);
       if (!manufacturer || !serial) return { status: "identity_incomplete" };
       const owner = await this.findClaimOwner(database, manufacturer, serial);
@@ -777,7 +887,9 @@ export class InventoryRepository {
       if (!current) return { status: "not_found" };
       if (current.version !== expectedVersion)
         return { status: "version_conflict" };
-      const manufacturer = normalizeIdentityMatchValue(current.manufacturer);
+      const manufacturer = normalizeManufacturerMatchValue(
+        current.manufacturer,
+      );
       const serial = normalizeIdentityMatchValue(current.serial);
       if (!manufacturer || !serial) return { status: "identity_incomplete" };
       const owner = await this.findClaimOwner(database, manufacturer, serial);

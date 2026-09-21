@@ -3,6 +3,7 @@ import {
   type AnyPgColumn,
   boolean,
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -297,7 +298,7 @@ export const machineIdentityEvidence = pgTable(
   (table) => [
     check(
       "machine_identity_evidence_source_check",
-      sql`${table.sourceKind} in ('manual', 'other')`,
+      sql`${table.sourceKind} in ('manual', 'other', 'spreadsheet_import')`,
     ),
     check(
       "machine_identity_evidence_type_check",
@@ -418,6 +419,217 @@ export const machineLocationHistory = pgTable(
       table.machineId,
       table.createdAt,
     ),
+  ],
+);
+
+export const inventoryImportRun = pgTable(
+  "inventory_import_run",
+  {
+    id: text("id").primaryKey(),
+    sourceLoadId: text("source_load_id")
+      .notNull()
+      .references(() => inventoryLoad.id, { onDelete: "restrict" }),
+    storageKey: text("storage_key").notNull(),
+    originalFilename: text("original_filename").notNull(),
+    mediaType: text("media_type").notNull(),
+    byteCount: integer("byte_count").notNull(),
+    sha256: text("sha256").notNull(),
+    uploaderUserId: text("uploader_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    state: text("state").notNull().default("staged"),
+    totalRows: integer("total_rows").notNull(),
+    readyRows: integer("ready_rows").notNull(),
+    warningRows: integer("warning_rows").notNull(),
+    errorRows: integer("error_rows").notNull(),
+    approvedRows: integer("approved_rows").notNull().default(0),
+    committedRows: integer("committed_rows").notNull().default(0),
+    failureCode: text("failure_code"),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("inventory_import_run_storage_key_unique").on(table.storageKey),
+    check(
+      "inventory_import_run_state_check",
+      sql`${table.state} in ('staged', 'approved', 'committed', 'commit_failed')`,
+    ),
+    check(
+      "inventory_import_run_media_check",
+      sql`${table.mediaType} in ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv')`,
+    ),
+    check(
+      "inventory_import_run_counts_check",
+      sql`${table.byteCount} > 0 and ${table.totalRows} > 0 and ${table.readyRows} >= 0 and ${table.warningRows} >= 0 and ${table.errorRows} >= 0 and ${table.committedRows} >= 0 and ${table.committedRows} <= ${table.approvedRows} and ${table.approvedRows} <= ${table.totalRows} and ${table.readyRows} + ${table.warningRows} + ${table.errorRows} = ${table.totalRows}`,
+    ),
+    check(
+      "inventory_import_run_lifecycle_check",
+      sql`(${table.state} = 'staged' and ${table.approvedRows} = 0 and ${table.committedRows} = 0 and ${table.failureCode} is null) or (${table.state} = 'approved' and ${table.approvedRows} > 0 and ${table.committedRows} = 0 and ${table.failureCode} is null) or (${table.state} = 'committed' and ${table.approvedRows} > 0 and ${table.committedRows} = ${table.approvedRows} and ${table.failureCode} is null) or (${table.state} = 'commit_failed' and ${table.approvedRows} > 0 and ${table.committedRows} = 0 and ${table.failureCode} is not null)`,
+    ),
+    check(
+      "inventory_import_run_sha256_check",
+      sql`${table.sha256} ~ '^[a-f0-9]{64}$'`,
+    ),
+    check(
+      "inventory_import_run_failure_code_check",
+      sql`${table.failureCode} is null or ${table.failureCode} in ('duplicate_state_changed', 'commit_failed')`,
+    ),
+    check("inventory_import_run_version_check", sql`${table.version} > 0`),
+    index("inventory_import_run_state_index").on(table.state, table.createdAt),
+    index("inventory_import_run_load_index").on(table.sourceLoadId),
+  ],
+);
+
+export const inventoryImportRow = pgTable(
+  "inventory_import_row",
+  {
+    id: text("id").primaryKey(),
+    runId: text("run_id")
+      .notNull()
+      .references(() => inventoryImportRun.id, { onDelete: "restrict" }),
+    sheetName: text("sheet_name").notNull(),
+    sourceRowNumber: integer("source_row_number").notNull(),
+    rawCells: jsonb("raw_cells").notNull(),
+    candidate: jsonb("candidate").notNull(),
+    normalizedManufacturer: text("normalized_manufacturer"),
+    normalizedModel: text("normalized_model"),
+    normalizedSerial: text("normalized_serial"),
+    matchSnapshot: jsonb("match_snapshot").notNull(),
+    matchFingerprint: text("match_fingerprint").notNull(),
+    classification: text("classification").notNull(),
+    findings: jsonb("findings").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("inventory_import_row_source_unique").on(
+      table.runId,
+      table.sheetName,
+      table.sourceRowNumber,
+    ),
+    uniqueIndex("inventory_import_row_id_run_unique").on(table.id, table.runId),
+    check(
+      "inventory_import_row_classification_check",
+      sql`${table.classification} in ('ready', 'warning', 'error')`,
+    ),
+    check(
+      "inventory_import_row_number_check",
+      sql`${table.sourceRowNumber} > 0`,
+    ),
+    check(
+      "inventory_import_row_match_snapshot_check",
+      sql`jsonb_typeof(${table.matchSnapshot}) = 'object'`,
+    ),
+    check(
+      "inventory_import_row_match_fingerprint_check",
+      sql`${table.matchFingerprint} ~ '^[a-f0-9]{64}$'`,
+    ),
+    index("inventory_import_row_run_classification_index").on(
+      table.runId,
+      table.classification,
+      table.sourceRowNumber,
+    ),
+    index("inventory_import_row_identity_index").on(
+      table.normalizedManufacturer,
+      table.normalizedSerial,
+    ),
+  ],
+);
+
+export const inventoryImportApproval = pgTable(
+  "inventory_import_approval",
+  {
+    id: text("id").primaryKey(),
+    runId: text("run_id")
+      .notNull()
+      .references(() => inventoryImportRun.id, { onDelete: "restrict" }),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    requestId: text("request_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("inventory_import_approval_run_unique").on(table.runId),
+    uniqueIndex("inventory_import_approval_id_run_unique").on(
+      table.id,
+      table.runId,
+    ),
+  ],
+);
+
+export const inventoryImportApprovalRow = pgTable(
+  "inventory_import_approval_row",
+  {
+    approvalId: text("approval_id")
+      .notNull()
+      .references(() => inventoryImportApproval.id, { onDelete: "restrict" }),
+    runId: text("run_id").notNull(),
+    rowId: text("row_id")
+      .notNull()
+      .references(() => inventoryImportRow.id, { onDelete: "restrict" }),
+  },
+  (table) => [
+    uniqueIndex("inventory_import_approval_row_unique").on(
+      table.approvalId,
+      table.rowId,
+    ),
+    uniqueIndex("inventory_import_approval_selected_once").on(table.rowId),
+    uniqueIndex("inventory_import_approval_row_reference_unique").on(
+      table.approvalId,
+      table.runId,
+      table.rowId,
+    ),
+    foreignKey({
+      columns: [table.approvalId, table.runId],
+      foreignColumns: [
+        inventoryImportApproval.id,
+        inventoryImportApproval.runId,
+      ],
+      name: "inventory_import_approval_row_approval_run_fk",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.rowId, table.runId],
+      foreignColumns: [inventoryImportRow.id, inventoryImportRow.runId],
+      name: "inventory_import_approval_row_row_run_fk",
+    }).onDelete("restrict"),
+  ],
+);
+
+export const inventoryImportMachineMapping = pgTable(
+  "inventory_import_machine_mapping",
+  {
+    id: text("id").primaryKey(),
+    approvalId: text("approval_id").notNull(),
+    runId: text("run_id").notNull(),
+    rowId: text("row_id").notNull(),
+    machineId: text("machine_id")
+      .notNull()
+      .references(() => inventoryMachine.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("inventory_import_mapping_row_unique").on(table.rowId),
+    uniqueIndex("inventory_import_mapping_machine_unique").on(table.machineId),
+    foreignKey({
+      columns: [table.approvalId, table.runId, table.rowId],
+      foreignColumns: [
+        inventoryImportApprovalRow.approvalId,
+        inventoryImportApprovalRow.runId,
+        inventoryImportApprovalRow.rowId,
+      ],
+      name: "inventory_import_mapping_approved_row_fk",
+    }).onDelete("restrict"),
   ],
 );
 
@@ -578,11 +790,11 @@ export const operationsAuditEntry = pgTable(
     ),
     check(
       "operations_audit_action_check",
-      sql`${table.action} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued')`,
+      sql`${table.action} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed')`,
     ),
     check(
       "operations_audit_target_type_check",
-      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job')`,
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job', 'import_run')`,
     ),
     index("operations_audit_created_index").on(table.createdAt),
     index("operations_audit_action_index").on(table.action, table.createdAt),
@@ -636,11 +848,11 @@ export const platformOutboxJob = pgTable(
     ),
     check(
       "platform_outbox_event_type_check",
-      sql`${table.eventType} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued')`,
+      sql`${table.eventType} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed')`,
     ),
     check(
       "platform_outbox_target_type_check",
-      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job')`,
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job', 'import_run')`,
     ),
     check(
       "platform_outbox_state_check",
@@ -700,7 +912,7 @@ export const operationsIdempotencyRecord = pgTable(
     ),
     check(
       "operations_idempotency_target_type_check",
-      sql`${table.targetType} is null or ${table.targetType} in ('load', 'location', 'machine')`,
+      sql`${table.targetType} is null or ${table.targetType} in ('load', 'location', 'machine', 'import_run')`,
     ),
     index("operations_idempotency_target_index").on(
       table.targetType,

@@ -117,6 +117,8 @@ describe("identity authentication", () => {
             "operations.audit.read",
             "operations.jobs.read",
             "operations.jobs.manage",
+            "imports.read",
+            "imports.manage",
           ],
         });
       });

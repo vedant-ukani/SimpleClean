@@ -13,6 +13,13 @@ export function normalizeIdentityMatchValue(
   return stored ? stored.toLowerCase() : null;
 }
 
+export function normalizeManufacturerMatchValue(
+  value: string | null | undefined,
+): string | null {
+  const normalized = normalizeIdentityMatchValue(value);
+  return normalized === "speedqueen" ? "speed queen" : normalized;
+}
+
 export function escapeLikePattern(value: string): string {
   return value.replace(/[\\%_]/g, "\\$&");
 }

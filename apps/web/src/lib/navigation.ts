@@ -32,6 +32,10 @@ export function canReviewOperations(role: ApplicationRole): boolean {
   return roleHasPermission(role, "operations.audit.read");
 }
 
+export function canManageImports(role: ApplicationRole): boolean {
+  return roleHasPermission(role, "imports.manage");
+}
+
 export function navigationForRole(
   role: ApplicationRole,
 ): readonly NavigationItem[] {
@@ -44,6 +48,9 @@ export function navigationForRole(
   }
   if (roleHasPermission(role, "operations.audit.read")) {
     navigation.push({ href: "/admin/operations", label: "Operations" });
+  }
+  if (roleHasPermission(role, "imports.read")) {
+    navigation.push({ href: "/admin/imports", label: "Imports" });
   }
   if (roleHasPermission(role, "inventory.loads.read")) {
     navigation.push({ href: "/loads", label: "Loads" });

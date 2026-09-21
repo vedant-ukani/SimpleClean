@@ -10,7 +10,11 @@ export const IDENTITY_VERIFICATION_STATES = [
 ] as const;
 export const INVENTORY_STATES = ["expected", "on_hand"] as const;
 export const PRODUCTION_STATES = ["not_started"] as const;
-export const IDENTITY_SOURCE_KINDS = ["manual", "other"] as const;
+export const IDENTITY_SOURCE_KINDS = [
+  "manual",
+  "other",
+  "spreadsheet_import",
+] as const;
 
 export const MachineTypeSchema = z.enum(MACHINE_TYPES);
 export const MachinePhaseSchema = z.enum(MACHINE_PHASES);

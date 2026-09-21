@@ -4,19 +4,16 @@ import type { ServerConfig } from "@simply-clean/config";
 import { memoryStorage } from "multer";
 
 import { InventoryModule } from "../inventory/inventory.module.js";
-import { FilesController } from "./files.controller.js";
-import { FilesRepository } from "./files.repository.js";
-import {
-  FILES_CONFIG,
-  FILES_OPERATIONS,
-  FilesService,
-} from "./files.service.js";
+import { SERVER_CONFIG } from "../../platform/logging.js";
+import { ImportsController } from "./imports.controller.js";
+import { ImportsRepository } from "./imports.repository.js";
+import { ImportsService } from "./imports.service.js";
 
 @Module({})
-export class FilesModule {
+export class ImportsModule {
   static register(config: ServerConfig): DynamicModule {
     return {
-      module: FilesModule,
+      module: ImportsModule,
       imports: [
         InventoryModule,
         MulterModule.register({
@@ -24,14 +21,13 @@ export class FilesModule {
           limits: { files: 1, fileSize: config.fileMaxBytes },
         }),
       ],
-      controllers: [FilesController],
+      controllers: [ImportsController],
       providers: [
-        { provide: FILES_CONFIG, useValue: config },
-        FilesRepository,
-        FilesService,
-        { provide: FILES_OPERATIONS, useExisting: FilesService },
+        { provide: SERVER_CONFIG, useValue: config },
+        ImportsRepository,
+        ImportsService,
       ],
-      exports: [FILES_OPERATIONS, FilesService],
+      exports: [ImportsService],
     };
   }
 }

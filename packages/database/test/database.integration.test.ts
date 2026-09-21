@@ -45,10 +45,15 @@ describe("PGlite integration", () => {
             ,'operations_audit_entry'
             ,'platform_outbox_job'
             ,'operations_idempotency_record'
+            ,'inventory_import_run'
+            ,'inventory_import_row'
+            ,'inventory_import_approval'
+            ,'inventory_import_approval_row'
+            ,'inventory_import_machine_mapping'
           )
       `);
       const rows = "rows" in result ? result.rows : result;
-      expect(rows).toHaveLength(19);
+      expect(rows).toHaveLength(24);
     } finally {
       await connection.close();
     }

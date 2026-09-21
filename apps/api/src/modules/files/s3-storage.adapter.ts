@@ -8,7 +8,6 @@ import {
   type HeadObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 import type { ServerConfig } from "@simply-clean/config";
-import type { FileMediaType } from "@simply-clean/contracts";
 
 import type {
   StorageAdapter,
@@ -78,7 +77,7 @@ export class S3StorageAdapter implements StorageAdapter {
       }
       return {
         byteCount: output.ContentLength,
-        mediaType: output.ContentType as FileMediaType,
+        mediaType: output.ContentType,
         sha256: output.Metadata.sha256,
       };
     } catch (error) {

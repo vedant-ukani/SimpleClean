@@ -28,6 +28,8 @@ describe("authorization policy", () => {
       "operations.audit.read",
       "operations.jobs.read",
       "operations.jobs.manage",
+      "imports.read",
+      "imports.manage",
     ]);
     expect(permissionsForRole("warehouse")).toEqual([
       "platform.access",
@@ -68,6 +70,8 @@ describe("authorization policy", () => {
     ).toBe(false);
     expect(roleHasPermission("warehouse", "files.manage")).toBe(false);
     expect(roleHasPermission("technician_cleaner", "files.write")).toBe(true);
+    expect(roleHasPermission("owner_admin", "imports.manage")).toBe(true);
+    expect(roleHasPermission("warehouse", "imports.read")).toBe(false);
   });
 
   it("rejects unknown roles and permissions at runtime", () => {

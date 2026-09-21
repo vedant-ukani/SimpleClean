@@ -49,7 +49,7 @@ export interface IdempotencyCoordinator {
     database: DatabaseExecutor,
     input: {
       recordId: string;
-      targetType: "load" | "location" | "machine";
+      targetType: "load" | "location" | "machine" | "import_run";
       targetId: string;
     },
   ): Promise<void>;
