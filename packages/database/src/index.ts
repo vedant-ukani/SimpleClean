@@ -18,5 +18,6 @@ export {
   inventoryMachine,
   machineIdentityClaim,
   machineIdentityEvidence,
+  machineIdentityVerificationHistory,
   machineLocationHistory,
 } from "./schema.js";

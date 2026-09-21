@@ -12,3 +12,7 @@ export function normalizeIdentityMatchValue(
   const stored = normalizeStoredFact(value);
   return stored ? stored.toLowerCase() : null;
 }
+
+export function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}

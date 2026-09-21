@@ -37,11 +37,12 @@ describe("PGlite integration", () => {
             'inventory_machine',
             'machine_identity_evidence',
             'machine_identity_claim',
+            'machine_identity_verification_history',
             'machine_location_history'
           )
       `);
       const rows = "rows" in result ? result.rows : result;
-      expect(rows).toHaveLength(12);
+      expect(rows).toHaveLength(13);
     } finally {
       await connection.close();
     }

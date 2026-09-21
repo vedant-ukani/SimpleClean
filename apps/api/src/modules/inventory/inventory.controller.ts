@@ -124,10 +124,17 @@ export class InventoryController {
   @Post("machines/:machineId/verify")
   @RequirePermission("inventory.machines.verify")
   async verifyMachine(
+    @Req() request: Request,
     @Param("machineId") machineId: string,
     @Body() body: unknown,
   ) {
-    return { machine: await this.inventory.verifyMachine(machineId, body) };
+    return {
+      machine: await this.inventory.verifyMachine(
+        machineId,
+        body,
+        this.context(request),
+      ),
+    };
   }
 
   @Post("machines/:machineId/relocate")

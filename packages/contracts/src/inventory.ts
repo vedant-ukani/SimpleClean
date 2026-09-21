@@ -99,9 +99,22 @@ export const MachineLocationHistorySchema = z.object({
   createdAt: TimestampSchema,
 });
 
+export const MachineIdentityVerificationHistorySchema = z.object({
+  id: InventoryIdSchema,
+  machineId: InventoryIdSchema,
+  fromState: IdentityVerificationStateSchema,
+  toState: IdentityVerificationStateSchema,
+  conflictingMachineId: InventoryIdSchema.nullable(),
+  machineVersion: VersionSchema,
+  actorUserId: z.string().min(1),
+  requestId: z.string().min(1),
+  createdAt: TimestampSchema,
+});
+
 export const MachineDetailSchema = z.object({
   machine: MachineSchema,
   identityEvidence: z.array(MachineIdentityEvidenceSchema),
+  verificationHistory: z.array(MachineIdentityVerificationHistorySchema),
   locationHistory: z.array(MachineLocationHistorySchema),
 });
 
@@ -234,6 +247,9 @@ export type MachineIdentityEvidence = z.infer<
 >;
 export type MachineLocationHistory = z.infer<
   typeof MachineLocationHistorySchema
+>;
+export type MachineIdentityVerificationHistory = z.infer<
+  typeof MachineIdentityVerificationHistorySchema
 >;
 export type MachineDetail = z.infer<typeof MachineDetailSchema>;
 export type CreateAcquisitionLoadRequest = z.infer<

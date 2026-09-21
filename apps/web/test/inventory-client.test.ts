@@ -38,6 +38,7 @@ describe("inventory client", () => {
         JSON.stringify({
           machine,
           identityEvidence: [],
+          verificationHistory: [],
           locationHistory: [],
         }),
         { status: 200 },

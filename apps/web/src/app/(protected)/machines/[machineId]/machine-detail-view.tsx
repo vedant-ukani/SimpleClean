@@ -245,6 +245,26 @@ export function MachineDetailView({
           ))}
         </section>
         <section className="panel inventory-list">
+          <h2>Verification history</h2>
+          {initialDetail.verificationHistory.length === 0 ? (
+            <p className="empty-state">No verification decision recorded.</p>
+          ) : (
+            initialDetail.verificationHistory.map((entry) => (
+              <article className="history-row" key={entry.id}>
+                <strong>
+                  {entry.fromState} → {entry.toState}
+                </strong>
+                <span>
+                  {entry.conflictingMachineId
+                    ? `Conflict with ${entry.conflictingMachineId}`
+                    : `Machine version ${entry.machineVersion}`}
+                </span>
+                <small>{entry.createdAt}</small>
+              </article>
+            ))
+          )}
+        </section>
+        <section className="panel inventory-list">
           <h2>Location history</h2>
           {initialDetail.locationHistory.length === 0 ? (
             <p className="empty-state">No relocation recorded.</p>

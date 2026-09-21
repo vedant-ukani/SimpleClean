@@ -86,6 +86,23 @@ describe("inventory foundation", () => {
     const technician = await user(app, "technician_cleaner");
     const records = await foundation(app, owner.cookies);
 
+    await request(app.getHttpServer())
+      .patch(`/inventory/loads/${records.load.id}`)
+      .set("Cookie", owner.cookies)
+      .send({
+        displayName: "September Phoenix Load — received",
+        receivedAt: "2026-09-21T18:30:00.000Z",
+        expectedVersion: records.load.version,
+      })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.load).toMatchObject({
+          displayName: "September Phoenix Load — received",
+          receivedAt: "2026-09-21T18:30:00.000Z",
+          version: 2,
+        });
+      });
+
     const created = await request(app.getHttpServer())
       .post("/inventory/machines")
       .set("Cookie", warehouse.cookies)
@@ -157,6 +174,15 @@ describe("inventory foundation", () => {
       .expect(200)
       .expect(({ body }) => {
         expect(body.identityEvidence).toHaveLength(2);
+        expect(body.verificationHistory).toHaveLength(1);
+        expect(body.verificationHistory[0]).toMatchObject({
+          fromState: "provisional",
+          toState: "verified",
+          conflictingMachineId: null,
+          machineVersion: 3,
+          actorUserId: warehouse.identity.id,
+          requestId: expect.any(String),
+        });
         expect(body.identityEvidence[0]).toMatchObject({
           manufacturer: "  Speed   Queen ",
           requestId: expect.any(String),
@@ -166,6 +192,35 @@ describe("inventory foundation", () => {
           toLocationId: records.receiving.id,
           machineVersion: 4,
         });
+      });
+
+    const special = await request(app.getHttpServer())
+      .post("/inventory/machines")
+      .set("Cookie", warehouse.cookies)
+      .send({
+        machineType: "other",
+        sourceLoadId: records.load.id,
+        model: "Tag%_Literal",
+      })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post("/inventory/machines")
+      .set("Cookie", warehouse.cookies)
+      .send({
+        machineType: "other",
+        sourceLoadId: records.load.id,
+        model: "TagXXLiteral",
+      })
+      .expect(201);
+    await request(app.getHttpServer())
+      .get("/inventory/machines")
+      .query({ query: "%_" })
+      .set("Cookie", technician.cookies)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(
+          body.machines.map((machine: { id: string }) => machine.id),
+        ).toEqual([special.body.machine.id]);
       });
 
     await request(app.getHttpServer())
@@ -210,7 +265,11 @@ describe("inventory foundation", () => {
       context,
     );
     await expect(
-      service.verifyMachine(first.id, { expectedVersion: first.version }),
+      service.verifyMachine(
+        first.id,
+        { expectedVersion: first.version },
+        context,
+      ),
     ).resolves.toMatchObject({ identityVerificationState: "verified" });
     await request(app.getHttpServer())
       .post(`/inventory/machines/${second.id}/verify`)
@@ -235,6 +294,16 @@ describe("inventory foundation", () => {
       conflictingMachineId: first.id,
       version: 2,
     });
+    expect(conflicted.verificationHistory).toEqual([
+      expect.objectContaining({
+        fromState: "provisional",
+        toState: "conflict",
+        conflictingMachineId: first.id,
+        machineVersion: 2,
+        actorUserId: warehouse.identity.id,
+        requestId: expect.any(String),
+      }),
+    ]);
     const corrected = await service.updateMachineIdentity(
       second.id,
       { serial: "D-901", expectedVersion: 2 },
@@ -246,7 +315,7 @@ describe("inventory foundation", () => {
       version: 3,
     });
     await expect(
-      service.verifyMachine(second.id, { expectedVersion: 3 }),
+      service.verifyMachine(second.id, { expectedVersion: 3 }, context),
     ).resolves.toMatchObject({
       identityVerificationState: "verified",
       version: 4,
@@ -270,13 +339,19 @@ describe("inventory foundation", () => {
       },
       context,
     );
+    const concurrentAContext = { ...context, requestId: "concurrent-a" };
+    const concurrentBContext = { ...context, requestId: "concurrent-b" };
     const concurrent = await Promise.allSettled([
-      service.verifyMachine(concurrentA.id, {
-        expectedVersion: concurrentA.version,
-      }),
-      service.verifyMachine(concurrentB.id, {
-        expectedVersion: concurrentB.version,
-      }),
+      service.verifyMachine(
+        concurrentA.id,
+        { expectedVersion: concurrentA.version },
+        concurrentAContext,
+      ),
+      service.verifyMachine(
+        concurrentB.id,
+        { expectedVersion: concurrentB.version },
+        concurrentBContext,
+      ),
     ]);
     expect(concurrent.map((result) => result.status).sort()).toEqual([
       "fulfilled",
@@ -290,6 +365,68 @@ describe("inventory foundation", () => {
       `);
     const claimRows = "rows" in claims ? claims.rows : claims;
     expect(claimRows).toHaveLength(1);
+    const winnerId = String(claimRows[0]!.machine_id);
+    const loserId =
+      winnerId === concurrentA.id ? concurrentB.id : concurrentA.id;
+    const winner = await service.getMachine(winnerId);
+    const loser = await service.getMachine(loserId);
+    expect(winner.machine).toMatchObject({
+      identityVerificationState: "verified",
+      conflictingMachineId: null,
+      version: 2,
+    });
+    expect(loser.machine).toMatchObject({
+      identityVerificationState: "conflict",
+      conflictingMachineId: winnerId,
+      version: 2,
+    });
+    expect(winner.verificationHistory).toEqual([
+      expect.objectContaining({
+        fromState: "provisional",
+        toState: "verified",
+        conflictingMachineId: null,
+        machineVersion: 2,
+        actorUserId: warehouse.identity.id,
+        requestId:
+          winnerId === concurrentA.id ? "concurrent-a" : "concurrent-b",
+      }),
+    ]);
+    expect(loser.verificationHistory).toEqual([
+      expect.objectContaining({
+        fromState: "provisional",
+        toState: "conflict",
+        conflictingMachineId: winnerId,
+        machineVersion: 2,
+        actorUserId: warehouse.identity.id,
+        requestId: loserId === concurrentA.id ? "concurrent-a" : "concurrent-b",
+      }),
+    ]);
+
+    const connection = app.get<DatabaseConnection>(DATABASE_CONNECTION);
+    const loserHistoryId = loser.verificationHistory[0]!.id;
+    await expect(
+      connection.database.execute(sql`
+        update machine_identity_verification_history
+        set to_state = 'verified'
+        where id = ${loserHistoryId}
+      `),
+    ).rejects.toThrow();
+    await expect(
+      connection.database.execute(sql`
+        delete from machine_identity_verification_history
+        where id = ${loserHistoryId}
+      `),
+    ).rejects.toThrow();
+    const preservedHistory = await connection.database.execute(sql`
+      select to_state, conflicting_machine_id
+      from machine_identity_verification_history
+      where id = ${loserHistoryId}
+    `);
+    const preservedHistoryRows =
+      "rows" in preservedHistory ? preservedHistory.rows : preservedHistory;
+    expect(preservedHistoryRows).toEqual([
+      { to_state: "conflict", conflicting_machine_id: winnerId },
+    ]);
   });
 
   it("rejects stale versions, invalid input, and inactive destinations", async () => {

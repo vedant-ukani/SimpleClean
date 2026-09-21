@@ -61,7 +61,11 @@ export interface InventoryOperations {
     rawInput: unknown,
     context: InventoryActorContext,
   ): Promise<Machine>;
-  verifyMachine(machineId: string, rawInput: unknown): Promise<Machine>;
+  verifyMachine(
+    machineId: string,
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<Machine>;
   relocateMachine(
     machineId: string,
     rawInput: unknown,
@@ -196,7 +200,11 @@ export class InventoryService implements InventoryOperations {
     return this.resolveMutation(result, "Machine");
   }
 
-  async verifyMachine(rawId: string, rawInput: unknown): Promise<Machine> {
+  async verifyMachine(
+    rawId: string,
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<Machine> {
     const id = this.id(rawId);
     const { expectedVersion } = this.parse(
       VerifyMachineIdentityRequestSchema,
@@ -204,12 +212,17 @@ export class InventoryService implements InventoryOperations {
     );
     let result: VerificationResult;
     try {
-      result = await this.repository.verifyMachine(id, expectedVersion);
+      result = await this.repository.verifyMachine(
+        id,
+        expectedVersion,
+        context,
+      );
     } catch (error) {
       if (!isUniqueViolation(error)) throw error;
       result = await this.repository.persistConcurrentConflict(
         id,
         expectedVersion,
+        context,
       );
     }
     if (result.status === "identity_incomplete") {

@@ -8,6 +8,7 @@ import type {
   Machine,
   MachineDetail,
   MachineIdentityEvidence,
+  MachineIdentityVerificationHistory,
   MachineLocationHistory,
   MachineSearchQuery,
   MachineSearchResponse,
@@ -24,6 +25,7 @@ import { randomUUID } from "node:crypto";
 
 import { DATABASE_CONNECTION } from "../../platform/database.module.js";
 import {
+  escapeLikePattern,
   normalizeIdentityMatchValue,
   normalizeStoredFact,
 } from "./normalization.js";
@@ -156,6 +158,23 @@ function historyFromRow(row: RecordRow): MachineLocationHistory {
     actorUserId: String(row.actor_user_id),
     requestId: String(row.request_id),
     machineVersion: Number(row.machine_version),
+    createdAt: iso(row.created_at),
+  };
+}
+
+function verificationHistoryFromRow(
+  row: RecordRow,
+): MachineIdentityVerificationHistory {
+  return {
+    id: String(row.id),
+    machineId: String(row.machine_id),
+    fromState:
+      row.from_state as MachineIdentityVerificationHistory["fromState"],
+    toState: row.to_state as MachineIdentityVerificationHistory["toState"],
+    conflictingMachineId: nullableString(row.conflicting_machine_id),
+    machineVersion: Number(row.machine_version),
+    actorUserId: String(row.actor_user_id),
+    requestId: String(row.request_id),
     createdAt: iso(row.created_at),
   };
 }
@@ -369,21 +388,30 @@ export class InventoryRepository {
   async getMachineDetail(id: string): Promise<MachineDetail | undefined> {
     const machine = await this.findMachine(id);
     if (!machine) return undefined;
-    const [evidenceResult, historyResult] = await Promise.all([
-      this.connection.database.execute(sql`
+    const [evidenceResult, verificationResult, historyResult] =
+      await Promise.all([
+        this.connection.database.execute(sql`
         select * from machine_identity_evidence
         where machine_id = ${id}
         order by created_at desc, id desc
       `),
-      this.connection.database.execute(sql`
+        this.connection.database.execute(sql`
+        select * from machine_identity_verification_history
+        where machine_id = ${id}
+        order by created_at desc, id desc
+      `),
+        this.connection.database.execute(sql`
         select * from machine_location_history
         where machine_id = ${id}
         order by created_at desc, id desc
       `),
-    ]);
+      ]);
     return {
       machine,
       identityEvidence: rowsFromResult(evidenceResult).map(evidenceFromRow),
+      verificationHistory: rowsFromResult(verificationResult).map(
+        verificationHistoryFromRow,
+      ),
       locationHistory: rowsFromResult(historyResult).map(historyFromRow),
     };
   }
@@ -393,18 +421,18 @@ export class InventoryRepository {
   ): Promise<MachineSearchResponse> {
     const query = input.query.toLowerCase();
     const normalized = normalizeIdentityMatchValue(input.query) ?? "";
-    const pattern = `%${query}%`;
+    const pattern = `%${escapeLikePattern(query)}%`;
     const filter = input.query
       ? sql`where (
           lower(m.id) = ${query}
           or m.normalized_serial = ${normalized}
-          or lower(coalesce(m.manufacturer, '')) like ${pattern}
-          or lower(coalesce(m.model, '')) like ${pattern}
-          or lower(coalesce(m.serial, '')) like ${pattern}
-          or lower(l.display_name) like ${pattern}
-          or lower(coalesce(l.source_reference, '')) like ${pattern}
-          or lower(coalesce(loc.code, '')) like ${pattern}
-          or lower(coalesce(loc.name, '')) like ${pattern}
+          or lower(coalesce(m.manufacturer, '')) like ${pattern} escape '\\'
+          or lower(coalesce(m.model, '')) like ${pattern} escape '\\'
+          or lower(coalesce(m.serial, '')) like ${pattern} escape '\\'
+          or lower(l.display_name) like ${pattern} escape '\\'
+          or lower(coalesce(l.source_reference, '')) like ${pattern} escape '\\'
+          or lower(coalesce(loc.code, '')) like ${pattern} escape '\\'
+          or lower(coalesce(loc.name, '')) like ${pattern} escape '\\'
         )`
       : sql``;
     const countResult = await this.connection.database.execute(sql`
@@ -513,6 +541,7 @@ export class InventoryRepository {
   async verifyMachine(
     id: string,
     expectedVersion: number,
+    context: InventoryActorContext,
   ): Promise<VerificationResult> {
     return this.connection.transaction(async (database) => {
       const current = await this.lockMachine(database, id);
@@ -524,7 +553,7 @@ export class InventoryRepository {
       if (!manufacturer || !serial) return { status: "identity_incomplete" };
       const owner = await this.findClaimOwner(database, manufacturer, serial);
       if (owner && owner !== id) {
-        return this.markConflict(database, current, owner);
+        return this.markConflict(database, current, owner, context);
       }
       if (!owner) {
         await database.execute(sql`
@@ -541,6 +570,14 @@ export class InventoryRepository {
           updated_at = now()
         where id = ${id}
       `);
+      await this.insertVerificationHistory(
+        database,
+        current,
+        "verified",
+        null,
+        current.version + 1,
+        context,
+      );
       const machine = await this.findMachineWith(database, id);
       if (!machine) throw new Error("Machine disappeared during verification");
       return { status: "updated", value: machine };
@@ -550,6 +587,7 @@ export class InventoryRepository {
   async persistConcurrentConflict(
     id: string,
     expectedVersion: number,
+    context: InventoryActorContext,
   ): Promise<VerificationResult> {
     return this.connection.transaction(async (database) => {
       const current = await this.lockMachine(database, id);
@@ -562,7 +600,7 @@ export class InventoryRepository {
       const owner = await this.findClaimOwner(database, manufacturer, serial);
       if (!owner)
         throw new Error("Identity claim conflict could not be resolved");
-      return this.markConflict(database, current, owner);
+      return this.markConflict(database, current, owner, context);
     });
   }
 
@@ -665,6 +703,7 @@ export class InventoryRepository {
     database: DatabaseExecutor,
     current: Machine,
     conflictingMachineId: string,
+    context: InventoryActorContext,
   ): Promise<VerificationResult> {
     await database.execute(
       sql`delete from machine_identity_claim where machine_id = ${current.id}`,
@@ -677,6 +716,14 @@ export class InventoryRepository {
         updated_at = now()
       where id = ${current.id}
     `);
+    await this.insertVerificationHistory(
+      database,
+      current,
+      "conflict",
+      conflictingMachineId,
+      current.version + 1,
+      context,
+    );
     const machine = await this.findMachineWith(database, current.id);
     if (!machine) throw new Error("Machine disappeared during conflict update");
     return { status: "identity_conflict", machine, conflictingMachineId };
@@ -705,6 +752,26 @@ export class InventoryRepository {
         ${randomUUID()}, ${machineId}, ${input.sourceKind}, ${input.machineType},
         ${input.manufacturer}, ${input.model}, ${input.serial}, ${input.voltage},
         ${input.phase}, ${input.fuel}, ${context.actorUserId}, ${context.requestId}
+      )
+    `);
+  }
+
+  private async insertVerificationHistory(
+    database: DatabaseExecutor,
+    current: Machine,
+    toState: "verified" | "conflict",
+    conflictingMachineId: string | null,
+    machineVersion: number,
+    context: InventoryActorContext,
+  ): Promise<void> {
+    await database.execute(sql`
+      insert into machine_identity_verification_history (
+        id, machine_id, from_state, to_state, conflicting_machine_id,
+        machine_version, actor_user_id, request_id
+      ) values (
+        ${randomUUID()}, ${current.id}, ${current.identityVerificationState},
+        ${toState}, ${conflictingMachineId}, ${machineVersion},
+        ${context.actorUserId}, ${context.requestId}
       )
     `);
   }

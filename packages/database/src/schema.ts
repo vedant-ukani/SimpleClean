@@ -339,6 +339,52 @@ export const machineIdentityClaim = pgTable(
   ],
 );
 
+export const machineIdentityVerificationHistory = pgTable(
+  "machine_identity_verification_history",
+  {
+    id: text("id").primaryKey(),
+    machineId: text("machine_id")
+      .notNull()
+      .references(() => inventoryMachine.id, { onDelete: "restrict" }),
+    fromState: text("from_state").notNull(),
+    toState: text("to_state").notNull(),
+    conflictingMachineId: text("conflicting_machine_id").references(
+      () => inventoryMachine.id,
+      { onDelete: "restrict" },
+    ),
+    machineVersion: integer("machine_version").notNull(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    requestId: text("request_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "machine_identity_verification_history_from_state_check",
+      sql`${table.fromState} in ('provisional', 'verified', 'conflict')`,
+    ),
+    check(
+      "machine_identity_verification_history_to_state_check",
+      sql`${table.toState} in ('verified', 'conflict')`,
+    ),
+    check(
+      "machine_identity_verification_history_conflict_check",
+      sql`(${table.toState} = 'conflict' and ${table.conflictingMachineId} is not null) or (${table.toState} = 'verified' and ${table.conflictingMachineId} is null)`,
+    ),
+    check(
+      "machine_identity_verification_history_version_check",
+      sql`${table.machineVersion} > 0`,
+    ),
+    index("machine_identity_verification_history_machine_index").on(
+      table.machineId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const machineLocationHistory = pgTable(
   "machine_location_history",
   {

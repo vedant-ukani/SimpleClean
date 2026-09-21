@@ -32,7 +32,12 @@ describe("inventory UI", () => {
   it("labels unknown facts and provisional identity explicitly", () => {
     const markup = renderToStaticMarkup(
       <MachineDetailView
-        initialDetail={{ machine, identityEvidence: [], locationHistory: [] }}
+        initialDetail={{
+          machine,
+          identityEvidence: [],
+          verificationHistory: [],
+          locationHistory: [],
+        }}
         locations={[]}
         canManage={false}
         canVerify={false}
@@ -56,7 +61,12 @@ describe("inventory UI", () => {
           }}
         />
         <MachineDetailView
-          initialDetail={{ machine, identityEvidence: [], locationHistory: [] }}
+          initialDetail={{
+            machine,
+            identityEvidence: [],
+            verificationHistory: [],
+            locationHistory: [],
+          }}
           locations={[]}
           canManage
           canVerify
