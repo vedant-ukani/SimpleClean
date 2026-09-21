@@ -738,7 +738,7 @@ This map describes the canonical home for reusable product decisions. The applic
 | Machine, Load, and Location contracts | `packages/contracts/src/inventory.ts` |
 | Machine identity matching | Inventory-owned normalization and unique manufacturer/serial claims; never controller, UI, or import-local matching |
 | Inventory/import behavior | `apps/api/src/modules/imports` owns bounded parsing, immutable staging, approval, reports, and atomic commit; it calls Inventory's exported matching/creation interface rather than writing Inventory tables |
-| QR behavior | Owning Inventory/Intake API module, not UI components |
+| Machine QR identity | `apps/api/src/modules/inventory/qr` owns signed opaque labels, lifecycle, print rendering, and authenticated resolution; `/scan` and Machine UI consume its validated contracts |
 | File metadata and access policy | `apps/api/src/modules/files`; its exported service owns attachment policy and `PrivateStorageModule` exposes the shared `StorageAdapter` for private bytes through local or S3-compatible implementations |
 | File contracts and permissions | `packages/contracts/src/files.ts` and the canonical policy in `packages/contracts/src/authorization.ts` |
 | Authentication and staff identity | `apps/api/src/modules/identity`; Better Auth owns credentials/sessions and the platform profile owns role/active state |
@@ -769,6 +769,7 @@ This map describes the canonical home for reusable product decisions. The applic
 - Cross-domain audit is a privacy-safe index, not a replacement for detailed domain history. Owning repositories record the domain change, audit entry, and outbox job in one transaction.
 - Retry-prone create commands hash their idempotency keys, compare canonical parsed-input fingerprints, and replay target references. Raw keys and request bodies are never persisted.
 - Spreadsheet imports preserve the source as private immutable evidence, stage bounded inert cell values, require explicit Owner approval, and commit only after exact Inventory match snapshots still agree. A changed duplicate state requires a new Import Run.
+- Machine QR codes contain only a versioned random Label ID and HMAC signature in a URL fragment. They are lookup references, never authorization; the active label must match both expected Label ID and version for lifecycle changes.
 - Outbox delivery is at least once. Workers claim bounded leases, increment attempts on claim, reject stale completion, back off finitely, and dead-letter exhausted work. Future handlers must deduplicate with the stable job ID.
 - Files are private by default. PostgreSQL holds metadata and relationships; object storage holds bytes; access uses short-lived grants.
 - File storage keys are generated IDs, never client filenames. Upload/download grants are stored only as hashes, bound to the exact user/session/file/operation, expire quickly, and are consumed once.

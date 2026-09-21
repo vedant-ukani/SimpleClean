@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-21 — Opaque, revocable Machine QR identity
+
+Keep Machine QR labels inside Inventory and encode only a versioned random Label ID plus a dedicated HMAC signature in the platform URL fragment. The browser submits the token through an authenticated protected request; the token is a lookup reference, not an authorization credential. Store label lifecycle and privacy-safe activity in PostgreSQL, render printable SVG on demand, and retain revoked labels as immutable history.
+
+Consequences: QR images, filenames, audit summaries, and printed text do not disclose Machine IDs, serials, prices, customers, or locations. Reissue atomically revokes the exact expected active Label ID and version before creating a replacement, preventing stale-tab ABA changes. Secret rotation invalidates existing signatures and therefore requires an explicit reissue migration. Owner Admin and Warehouse can manage labels; every authorized role can resolve them through normal current-session permission checks.
+
 ## 2026-09-21 — Approval-gated inventory spreadsheet migration
 
 Treat inventory spreadsheets as immutable migration evidence, not as a live database or a trusted command stream. Store source bytes privately, parse workbook and CSV content within explicit structural and evidence limits, preserve typed source cells and row provenance, and require an Owner to approve only non-error rows before an atomic Inventory commit. Imports call Inventory-owned identity matching and Machine creation rather than copying those rules.
