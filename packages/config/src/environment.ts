@@ -66,6 +66,31 @@ const serverEnvironmentSchema = z
       .min(1_024)
       .max(100 * 1_024 * 1_024)
       .default(15 * 1_024 * 1_024),
+    OPERATIONS_WORKER_MAX_ATTEMPTS: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(20)
+      .default(5),
+    OPERATIONS_WORKER_LEASE_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(5)
+      .max(900)
+      .default(60),
+    OPERATIONS_WORKER_POLL_MS: z.coerce
+      .number()
+      .int()
+      .min(100)
+      .max(60_000)
+      .default(1_000),
+    OPERATIONS_WORKER_BACKOFF_BASE_MS: z.coerce
+      .number()
+      .int()
+      .min(100)
+      .max(300_000)
+      .default(1_000),
+    OPERATIONS_WORKER_POLLING_ENABLED: booleanFromString.optional(),
   })
   .superRefine((environment, context) => {
     if (
@@ -195,6 +220,11 @@ export interface ServerConfig {
   fileUploadGrantTtlSeconds: number;
   fileDownloadGrantTtlSeconds: number;
   fileMaxBytes: number;
+  operationsWorkerMaxAttempts: number;
+  operationsWorkerLeaseSeconds: number;
+  operationsWorkerPollMs: number;
+  operationsWorkerBackoffBaseMs: number;
+  operationsWorkerPollingEnabled: boolean;
 }
 
 export interface WebServerConfig {
@@ -263,6 +293,14 @@ export function parseServerEnvironment(
     fileUploadGrantTtlSeconds: result.data.FILE_UPLOAD_GRANT_TTL_SECONDS,
     fileDownloadGrantTtlSeconds: result.data.FILE_DOWNLOAD_GRANT_TTL_SECONDS,
     fileMaxBytes: result.data.FILE_MAX_BYTES,
+    operationsWorkerMaxAttempts: result.data.OPERATIONS_WORKER_MAX_ATTEMPTS,
+    operationsWorkerLeaseSeconds: result.data.OPERATIONS_WORKER_LEASE_SECONDS,
+    operationsWorkerPollMs: result.data.OPERATIONS_WORKER_POLL_MS,
+    operationsWorkerBackoffBaseMs:
+      result.data.OPERATIONS_WORKER_BACKOFF_BASE_MS,
+    operationsWorkerPollingEnabled:
+      result.data.OPERATIONS_WORKER_POLLING_ENABLED ??
+      result.data.NODE_ENV !== "test",
   };
 }
 

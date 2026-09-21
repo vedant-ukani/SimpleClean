@@ -9,6 +9,7 @@ import {
   CreateAcquisitionLoadRequestSchema,
   CreateInventoryLocationRequestSchema,
   CreateMachineRequestSchema,
+  IdempotencyKeySchema,
   InventoryIdSchema,
   MachineSearchQuerySchema,
   RelocateMachineRequestSchema,
@@ -25,6 +26,11 @@ import {
 } from "@simply-clean/contracts";
 
 import {
+  IdempotencyKeyReuseError,
+  IdempotencyRequestInProgressError,
+} from "../operations/operations.ports.js";
+
+import {
   InventoryRepository,
   isUniqueViolation,
   type InventoryActorContext,
@@ -35,20 +41,32 @@ import {
 export const INVENTORY_OPERATIONS = Symbol("INVENTORY_OPERATIONS");
 
 export interface InventoryOperations {
-  createLoad(rawInput: unknown): Promise<AcquisitionLoad>;
+  createLoad(
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<AcquisitionLoad>;
   listLoads(): Promise<AcquisitionLoad[]>;
   getLoad(loadId: string): Promise<AcquisitionLoad>;
-  updateLoad(loadId: string, rawInput: unknown): Promise<AcquisitionLoad>;
-  createLocation(rawInput: unknown): Promise<InventoryLocation>;
+  updateLoad(
+    loadId: string,
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<AcquisitionLoad>;
+  createLocation(
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<InventoryLocation>;
   listLocations(): Promise<InventoryLocation[]>;
   getLocation(locationId: string): Promise<InventoryLocation>;
   updateLocation(
     locationId: string,
     rawInput: unknown,
+    context: InventoryActorContext,
   ): Promise<InventoryLocation>;
   deactivateLocation(
     locationId: string,
     rawInput: unknown,
+    context: InventoryActorContext,
   ): Promise<InventoryLocation>;
   createMachine(
     rawInput: unknown,
@@ -80,9 +98,15 @@ export class InventoryService implements InventoryOperations {
     private readonly repository: InventoryRepository,
   ) {}
 
-  async createLoad(rawInput: unknown): Promise<AcquisitionLoad> {
-    return this.repository.createLoad(
-      this.parse(CreateAcquisitionLoadRequestSchema, rawInput),
+  async createLoad(
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<AcquisitionLoad> {
+    return this.idempotent(() =>
+      this.repository.createLoad(
+        this.parse(CreateAcquisitionLoadRequestSchema, rawInput),
+        context,
+      ),
     );
   }
 
@@ -97,21 +121,31 @@ export class InventoryService implements InventoryOperations {
     return load;
   }
 
-  async updateLoad(rawId: string, rawInput: unknown): Promise<AcquisitionLoad> {
+  async updateLoad(
+    rawId: string,
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<AcquisitionLoad> {
     const id = this.id(rawId);
     const input = this.parse(UpdateAcquisitionLoadRequestSchema, rawInput);
     const current = await this.repository.findLoad(id);
     if (!current) throw new NotFoundException("Load not found");
     return this.resolveMutation(
-      await this.repository.updateLoad(id, input, current),
+      await this.repository.updateLoad(id, input, current, context),
       "Load",
     );
   }
 
-  async createLocation(rawInput: unknown): Promise<InventoryLocation> {
+  async createLocation(
+    rawInput: unknown,
+    context: InventoryActorContext,
+  ): Promise<InventoryLocation> {
     try {
-      return await this.repository.createLocation(
-        this.parse(CreateInventoryLocationRequestSchema, rawInput),
+      return await this.idempotent(() =>
+        this.repository.createLocation(
+          this.parse(CreateInventoryLocationRequestSchema, rawInput),
+          context,
+        ),
       );
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -134,6 +168,7 @@ export class InventoryService implements InventoryOperations {
   async updateLocation(
     rawId: string,
     rawInput: unknown,
+    context: InventoryActorContext,
   ): Promise<InventoryLocation> {
     const id = this.id(rawId);
     const input = this.parse(UpdateInventoryLocationRequestSchema, rawInput);
@@ -141,7 +176,7 @@ export class InventoryService implements InventoryOperations {
     if (!current) throw new NotFoundException("Location not found");
     try {
       return this.resolveMutation(
-        await this.repository.updateLocation(id, input, current),
+        await this.repository.updateLocation(id, input, current, context),
         "Location",
       );
     } catch (error) {
@@ -155,11 +190,12 @@ export class InventoryService implements InventoryOperations {
   async deactivateLocation(
     rawId: string,
     rawInput: unknown,
+    context: InventoryActorContext,
   ): Promise<InventoryLocation> {
     const id = this.id(rawId);
     const { expectedVersion } = this.parse(VersionedRequestSchema, rawInput);
     return this.resolveMutation(
-      await this.repository.deactivateLocation(id, expectedVersion),
+      await this.repository.deactivateLocation(id, expectedVersion, context),
       "Location",
     );
   }
@@ -168,9 +204,11 @@ export class InventoryService implements InventoryOperations {
     rawInput: unknown,
     context: InventoryActorContext,
   ): Promise<Machine> {
-    const result = await this.repository.createMachine(
-      this.parse(CreateMachineRequestSchema, rawInput),
-      context,
+    const result = await this.idempotent(() =>
+      this.repository.createMachine(
+        this.parse(CreateMachineRequestSchema, rawInput),
+        context,
+      ),
     );
     return this.resolveMachineMutation(result);
   }
@@ -274,6 +312,32 @@ export class InventoryService implements InventoryOperations {
     const result = schema.safeParse(input);
     if (!result.success) throw new BadRequestException("Invalid request");
     return result.data;
+  }
+
+  static parseIdempotencyKey(input: unknown): string {
+    const result = IdempotencyKeySchema.safeParse(input);
+    if (!result.success) {
+      throw new BadRequestException("A valid Idempotency-Key is required");
+    }
+    return result.data;
+  }
+
+  private async idempotent<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error instanceof IdempotencyKeyReuseError) {
+        throw new ConflictException(
+          "Idempotency-Key was already used for a different request",
+        );
+      }
+      if (error instanceof IdempotencyRequestInProgressError) {
+        throw new ConflictException(
+          "The original request is still in progress",
+        );
+      }
+      throw error;
+    }
   }
 
   private resolveMutation<T>(result: MutationResult<T>, entity: string): T {

@@ -5,6 +5,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -550,6 +551,161 @@ export const fileActivity = pgTable(
       sql`${table.action} in ('upload_grant_created', 'upload_ready', 'upload_failed', 'download_grant_created', 'downloaded', 'abandoned')`,
     ),
     index("file_activity_file_index").on(table.fileId, table.createdAt),
+  ],
+);
+
+export const operationsAuditEntry = pgTable(
+  "operations_audit_entry",
+  {
+    id: text("id").primaryKey(),
+    actorKind: text("actor_kind").notNull(),
+    actorUserId: text("actor_user_id").references(() => authUser.id, {
+      onDelete: "restrict",
+    }),
+    action: text("action").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    requestId: text("request_id").notNull(),
+    safeSummary: jsonb("safe_summary").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "operations_audit_actor_check",
+      sql`(${table.actorKind} = 'user' and ${table.actorUserId} is not null) or (${table.actorKind} = 'system' and ${table.actorUserId} is null)`,
+    ),
+    check(
+      "operations_audit_action_check",
+      sql`${table.action} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued')`,
+    ),
+    check(
+      "operations_audit_target_type_check",
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job')`,
+    ),
+    index("operations_audit_created_index").on(table.createdAt),
+    index("operations_audit_action_index").on(table.action, table.createdAt),
+    index("operations_audit_target_index").on(
+      table.targetType,
+      table.targetId,
+      table.createdAt,
+    ),
+    index("operations_audit_actor_index").on(
+      table.actorUserId,
+      table.createdAt,
+    ),
+    index("operations_audit_request_index").on(table.requestId),
+  ],
+);
+
+export const platformOutboxJob = pgTable(
+  "platform_outbox_job",
+  {
+    id: text("id").primaryKey(),
+    eventType: text("event_type").notNull(),
+    targetType: text("target_type").notNull(),
+    targetId: text("target_id").notNull(),
+    actorKind: text("actor_kind").notNull(),
+    actorUserId: text("actor_user_id").references(() => authUser.id, {
+      onDelete: "restrict",
+    }),
+    requestId: text("request_id").notNull(),
+    safeSummary: jsonb("safe_summary").notNull(),
+    state: text("state").notNull().default("queued"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    availableAt: timestamp("available_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    leaseId: text("lease_id"),
+    leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
+    errorCode: text("error_code"),
+    version: integer("version").notNull().default(1),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "platform_outbox_actor_check",
+      sql`(${table.actorKind} = 'user' and ${table.actorUserId} is not null) or (${table.actorKind} = 'system' and ${table.actorUserId} is null)`,
+    ),
+    check(
+      "platform_outbox_event_type_check",
+      sql`${table.eventType} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued')`,
+    ),
+    check(
+      "platform_outbox_target_type_check",
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job')`,
+    ),
+    check(
+      "platform_outbox_state_check",
+      sql`${table.state} in ('queued', 'processing', 'retry_wait', 'delivered', 'dead_letter')`,
+    ),
+    check("platform_outbox_attempt_check", sql`${table.attemptCount} >= 0`),
+    check("platform_outbox_version_check", sql`${table.version} > 0`),
+    check(
+      "platform_outbox_error_code_check",
+      sql`${table.errorCode} is null or ${table.errorCode} in ('handler_failed')`,
+    ),
+    check(
+      "platform_outbox_lease_check",
+      sql`(${table.state} = 'processing' and ${table.leaseId} is not null and ${table.leaseExpiresAt} is not null) or (${table.state} <> 'processing' and ${table.leaseId} is null and ${table.leaseExpiresAt} is null)`,
+    ),
+    index("platform_outbox_claim_index").on(
+      table.state,
+      table.availableAt,
+      table.leaseExpiresAt,
+    ),
+    index("platform_outbox_target_index").on(table.targetType, table.targetId),
+    index("platform_outbox_created_index").on(table.createdAt),
+  ],
+);
+
+export const operationsIdempotencyRecord = pgTable(
+  "operations_idempotency_record",
+  {
+    id: text("id").primaryKey(),
+    scope: text("scope").notNull(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    keyHash: text("key_hash").notNull(),
+    requestFingerprint: text("request_fingerprint").notNull(),
+    state: text("state").notNull().default("in_progress"),
+    targetType: text("target_type"),
+    targetId: text("target_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("operations_idempotency_scope_key_unique").on(
+      table.scope,
+      table.actorUserId,
+      table.keyHash,
+    ),
+    check(
+      "operations_idempotency_state_check",
+      sql`${table.state} in ('in_progress', 'completed')`,
+    ),
+    check(
+      "operations_idempotency_completion_check",
+      sql`(${table.state} = 'in_progress' and ${table.targetType} is null and ${table.targetId} is null and ${table.completedAt} is null) or (${table.state} = 'completed' and ${table.targetType} is not null and ${table.targetId} is not null and ${table.completedAt} is not null)`,
+    ),
+    check(
+      "operations_idempotency_target_type_check",
+      sql`${table.targetType} is null or ${table.targetType} in ('load', 'location', 'machine')`,
+    ),
+    index("operations_idempotency_target_index").on(
+      table.targetType,
+      table.targetId,
+    ),
   ],
 );
 

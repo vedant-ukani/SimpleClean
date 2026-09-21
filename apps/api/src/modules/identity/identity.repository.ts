@@ -12,6 +12,10 @@ import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
 import { DATABASE_CONNECTION } from "../../platform/database.module.js";
+import {
+  MUTATION_RECORDER,
+  type MutationRecorder,
+} from "../operations/operations.ports.js";
 
 interface IdentityRow {
   id: string;
@@ -89,6 +93,8 @@ export class IdentityRepository {
   constructor(
     @Inject(DATABASE_CONNECTION)
     private readonly connection: DatabaseConnection,
+    @Inject(MUTATION_RECORDER)
+    private readonly mutationRecorder: MutationRecorder,
   ) {}
 
   async findByUserId(userId: string): Promise<IdentityUser | undefined> {
@@ -263,7 +269,9 @@ export class IdentityRepository {
   }
 
   async recordActivity(input: ActivityInput): Promise<void> {
-    await this.recordActivityWith(this.connection.database, input);
+    await this.connection.transaction((database) =>
+      this.recordActivityWith(database, input),
+    );
   }
 
   private async recordActivityWith(
@@ -285,6 +293,43 @@ export class IdentityRepository {
         ${input.requestId}
       )
     `);
+    if (
+      input.action !== "authorization_denied" &&
+      input.action !== "signed_in" &&
+      input.action !== "signed_out"
+    ) {
+      const centralAction = {
+        user_created: "identity.user.created",
+        role_changed: "identity.user.role_changed",
+        user_activated: "identity.user.activated",
+        user_deactivated: "identity.user.deactivated",
+        sessions_revoked: "identity.user.sessions_revoked",
+        user_provisioned: "identity.user.provisioned",
+      } as const;
+      const action = centralAction[input.action];
+      await this.mutationRecorder.record(database, {
+        actorKind: input.actorUserId ? "user" : "system",
+        ...(input.actorUserId ? { actorUserId: input.actorUserId } : {}),
+        action,
+        targetType: "user",
+        targetId: input.subjectUserId ?? input.actorUserId!,
+        requestId: input.requestId,
+        summary: {
+          changedFields:
+            input.action === "role_changed"
+              ? ["role", "sessions"]
+              : input.action === "user_activated" ||
+                  input.action === "user_deactivated"
+                ? ["active", "sessions"]
+                : input.action === "sessions_revoked"
+                  ? ["sessions"]
+                  : input.action === "user_provisioned"
+                    ? ["profile", "credentials", "sessions"]
+                    : ["profile"],
+          outcome: input.action,
+        },
+      });
+    }
   }
 
   private async findWithExecutor(

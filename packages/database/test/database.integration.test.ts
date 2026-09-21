@@ -42,10 +42,13 @@ describe("PGlite integration", () => {
             'file_attachment',
             'file_access_grant',
             'file_activity'
+            ,'operations_audit_entry'
+            ,'platform_outbox_job'
+            ,'operations_idempotency_record'
           )
       `);
       const rows = "rows" in result ? result.rows : result;
-      expect(rows).toHaveLength(16);
+      expect(rows).toHaveLength(19);
     } finally {
       await connection.close();
     }

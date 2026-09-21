@@ -127,6 +127,27 @@ describe("server environment", () => {
     ).toThrow("FILE_UPLOAD_GRANT_TTL_SECONDS");
   });
 
+  it("validates bounded Operations worker settings and disables test polling", () => {
+    const config = parseServerEnvironment(createTestEnvironment());
+    expect(config).toMatchObject({
+      operationsWorkerMaxAttempts: 5,
+      operationsWorkerLeaseSeconds: 60,
+      operationsWorkerPollMs: 1_000,
+      operationsWorkerBackoffBaseMs: 1_000,
+      operationsWorkerPollingEnabled: false,
+    });
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ OPERATIONS_WORKER_MAX_ATTEMPTS: "0" }),
+      ),
+    ).toThrow("OPERATIONS_WORKER_MAX_ATTEMPTS");
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ OPERATIONS_WORKER_LEASE_SECONDS: "0" }),
+      ),
+    ).toThrow("OPERATIONS_WORKER_LEASE_SECONDS");
+  });
+
   it("requires bootstrap credentials without including the password in errors", () => {
     const secretPassword = "a-secret-bootstrap-password";
     const environment = createTestEnvironment({

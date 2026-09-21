@@ -22,6 +22,9 @@ export const PERMISSIONS = [
   "files.read",
   "files.write",
   "files.manage",
+  "operations.audit.read",
+  "operations.jobs.read",
+  "operations.jobs.manage",
 ] as const;
 
 export const ApplicationRoleSchema = z.enum(APPLICATION_ROLES);

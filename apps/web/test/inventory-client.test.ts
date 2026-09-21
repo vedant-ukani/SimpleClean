@@ -1,7 +1,8 @@
 import { createTestEnvironment } from "@simply-clean/test-support";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  createLoad,
   getMachine,
   InventoryRequestError,
   searchMachines,
@@ -31,7 +32,49 @@ const machine = {
   updatedAt: timestamp,
 };
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe("inventory client", () => {
+  it("sends a fresh idempotency key for a browser create attempt", async () => {
+    const response = {
+      id: "a6ebd4ca-f41a-4e94-a247-b0b359a65d66",
+      displayName: "Incoming Load",
+      sourceName: null,
+      sourceReference: null,
+      expectedArrivalAt: null,
+      receivedAt: null,
+      version: 1,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new TypeError("network interrupted"))
+      .mockResolvedValue(new Response(JSON.stringify({ load: response })));
+    vi.stubGlobal("fetch", fetcher);
+    await expect(createLoad({ displayName: "Incoming Load" })).resolves.toEqual(
+      response,
+    );
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/inventory/loads",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "idempotency-key": expect.stringMatching(/^[0-9a-f-]{36}$/),
+        }),
+      }),
+    );
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(
+      (fetcher.mock.calls[0]![1]!.headers as Record<string, string>)[
+        "idempotency-key"
+      ],
+    ).toBe(
+      (fetcher.mock.calls[1]![1]!.headers as Record<string, string>)[
+        "idempotency-key"
+      ],
+    );
+  });
+
   it("forwards the session and validates Machine details", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(

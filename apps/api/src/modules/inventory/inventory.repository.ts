@@ -25,6 +25,15 @@ import { randomUUID } from "node:crypto";
 
 import { DATABASE_CONNECTION } from "../../platform/database.module.js";
 import {
+  IDEMPOTENCY_COORDINATOR,
+  MUTATION_RECORDER,
+  IdempotencyKeyReuseError,
+  IdempotencyRequestInProgressError,
+  requestFingerprint,
+  type IdempotencyCoordinator,
+  type MutationRecorder,
+} from "../operations/operations.ports.js";
+import {
   escapeLikePattern,
   normalizeIdentityMatchValue,
   normalizeStoredFact,
@@ -33,6 +42,7 @@ import {
 export interface InventoryActorContext {
   actorUserId: string;
   requestId: string;
+  idempotencyKey?: string;
 }
 
 export type MutationResult<T> =
@@ -195,23 +205,64 @@ export class InventoryRepository {
   constructor(
     @Inject(DATABASE_CONNECTION)
     private readonly connection: DatabaseConnection,
+    @Inject(MUTATION_RECORDER)
+    private readonly mutationRecorder: MutationRecorder,
+    @Inject(IDEMPOTENCY_COORDINATOR)
+    private readonly idempotency: IdempotencyCoordinator,
   ) {}
 
   async createLoad(
     input: CreateAcquisitionLoadRequest,
+    context: InventoryActorContext,
   ): Promise<AcquisitionLoad> {
-    const id = randomUUID();
-    const result = await this.connection.database.execute(sql`
-      insert into inventory_load (
-        id, display_name, source_name, source_reference,
-        expected_arrival_at, received_at
-      ) values (
-        ${id}, ${input.displayName}, ${input.sourceName ?? null},
-        ${input.sourceReference ?? null}, ${input.expectedArrivalAt ?? null},
-        ${input.receivedAt ?? null}
-      ) returning *
-    `);
-    return loadFromRow(rowsFromResult(result)[0]!);
+    return this.connection.transaction(async (database) => {
+      const reservation = await this.reserveCreate(
+        database,
+        "inventory.load.create",
+        "load",
+        input,
+        context,
+      );
+      if (reservation.existingTargetId) {
+        const existing = await this.findLoadWith(
+          database,
+          reservation.existingTargetId,
+        );
+        if (!existing) throw new Error("Idempotent Load target is unavailable");
+        return existing;
+      }
+      const id = randomUUID();
+      const result = await database.execute(sql`
+        insert into inventory_load (
+          id, display_name, source_name, source_reference,
+          expected_arrival_at, received_at
+        ) values (
+          ${id}, ${input.displayName}, ${input.sourceName ?? null},
+          ${input.sourceReference ?? null}, ${input.expectedArrivalAt ?? null},
+          ${input.receivedAt ?? null}
+        ) returning *
+      `);
+      await this.record(
+        database,
+        "inventory.load.created",
+        "load",
+        id,
+        context,
+        [
+          "display_name",
+          "source_name",
+          "source_reference",
+          "expected_arrival_at",
+          "received_at",
+        ],
+      );
+      await this.idempotency.complete(database, {
+        recordId: reservation.recordId!,
+        targetType: "load",
+        targetId: id,
+      });
+      return loadFromRow(rowsFromResult(result)[0]!);
+    });
   }
 
   async listLoads(): Promise<AcquisitionLoad[]> {
@@ -229,8 +280,10 @@ export class InventoryRepository {
     id: string,
     input: UpdateAcquisitionLoadRequest,
     current: AcquisitionLoad,
+    context: InventoryActorContext,
   ): Promise<MutationResult<AcquisitionLoad>> {
-    const result = await this.connection.database.execute(sql`
+    return this.connection.transaction(async (database) => {
+      const result = await database.execute(sql`
       update inventory_load set
         display_name = ${input.displayName ?? current.displayName},
         source_name = ${input.sourceName === undefined ? current.sourceName : input.sourceName},
@@ -242,22 +295,66 @@ export class InventoryRepository {
       where id = ${id} and version = ${input.expectedVersion}
       returning *
     `);
-    const row = rowsFromResult(result)[0];
-    if (row) return { status: "updated", value: loadFromRow(row) };
-    return (await this.findLoad(id))
-      ? { status: "version_conflict" }
-      : { status: "not_found" };
+      const row = rowsFromResult(result)[0];
+      if (row) {
+        await this.record(
+          database,
+          "inventory.load.updated",
+          "load",
+          id,
+          context,
+          Object.keys(input).filter((key) => key !== "expectedVersion"),
+        );
+        return { status: "updated", value: loadFromRow(row) };
+      }
+      return (await this.findLoadWith(database, id))
+        ? { status: "version_conflict" }
+        : { status: "not_found" };
+    });
   }
 
   async createLocation(
     input: CreateInventoryLocationRequest,
+    context: InventoryActorContext,
   ): Promise<InventoryLocation> {
-    const result = await this.connection.database.execute(sql`
-      insert into inventory_location (id, code, name)
-      values (${randomUUID()}, ${input.code}, ${input.name})
-      returning *
-    `);
-    return locationFromRow(rowsFromResult(result)[0]!);
+    return this.connection.transaction(async (database) => {
+      const reservation = await this.reserveCreate(
+        database,
+        "inventory.location.create",
+        "location",
+        input,
+        context,
+      );
+      if (reservation.existingTargetId) {
+        const existing = await this.findLocationWith(
+          database,
+          reservation.existingTargetId,
+        );
+        if (!existing)
+          throw new Error("Idempotent Location target is unavailable");
+        return existing;
+      }
+      const id = randomUUID();
+      const result = await database.execute(sql`
+        insert into inventory_location (id, code, name)
+        values (${id}, ${input.code}, ${input.name})
+        returning *
+      `);
+      await this.record(
+        database,
+        "inventory.location.created",
+        "location",
+        id,
+        context,
+        ["code", "name"],
+      );
+      await this.idempotency.complete(database, {
+        recordId: reservation.recordId!,
+        targetType: "location",
+        targetId: id,
+      });
+      return locationFromRow(rowsFromResult(result)[0]!);
+    });
   }
 
   async listLocations(): Promise<InventoryLocation[]> {
@@ -279,8 +376,10 @@ export class InventoryRepository {
     id: string,
     input: UpdateInventoryLocationRequest,
     current: InventoryLocation,
+    context: InventoryActorContext,
   ): Promise<MutationResult<InventoryLocation>> {
-    const result = await this.connection.database.execute(sql`
+    return this.connection.transaction(async (database) => {
+      const result = await database.execute(sql`
       update inventory_location set
         code = ${input.code ?? current.code},
         name = ${input.name ?? current.name},
@@ -289,18 +388,31 @@ export class InventoryRepository {
       where id = ${id} and version = ${input.expectedVersion}
       returning *
     `);
-    const row = rowsFromResult(result)[0];
-    if (row) return { status: "updated", value: locationFromRow(row) };
-    return (await this.findLocation(id))
-      ? { status: "version_conflict" }
-      : { status: "not_found" };
+      const row = rowsFromResult(result)[0];
+      if (row) {
+        await this.record(
+          database,
+          "inventory.location.updated",
+          "location",
+          id,
+          context,
+          Object.keys(input).filter((key) => key !== "expectedVersion"),
+        );
+        return { status: "updated", value: locationFromRow(row) };
+      }
+      return (await this.findLocationWith(database, id))
+        ? { status: "version_conflict" }
+        : { status: "not_found" };
+    });
   }
 
   async deactivateLocation(
     id: string,
     expectedVersion: number,
+    context: InventoryActorContext,
   ): Promise<MutationResult<InventoryLocation>> {
-    const result = await this.connection.database.execute(sql`
+    return this.connection.transaction(async (database) => {
+      const result = await database.execute(sql`
       update inventory_location set
         active = false,
         version = version + 1,
@@ -308,11 +420,22 @@ export class InventoryRepository {
       where id = ${id} and version = ${expectedVersion}
       returning *
     `);
-    const row = rowsFromResult(result)[0];
-    if (row) return { status: "updated", value: locationFromRow(row) };
-    return (await this.findLocation(id))
-      ? { status: "version_conflict" }
-      : { status: "not_found" };
+      const row = rowsFromResult(result)[0];
+      if (row) {
+        await this.record(
+          database,
+          "inventory.location.deactivated",
+          "location",
+          id,
+          context,
+          ["active"],
+        );
+        return { status: "updated", value: locationFromRow(row) };
+      }
+      return (await this.findLocationWith(database, id))
+        ? { status: "version_conflict" }
+        : { status: "not_found" };
+    });
   }
 
   async createMachine(
@@ -320,7 +443,26 @@ export class InventoryRepository {
     context: InventoryActorContext,
   ): Promise<MachineMutationResult> {
     return this.connection.transaction(async (database) => {
+      const reservation = await this.reserveCreate(
+        database,
+        "inventory.machine.create",
+        "machine",
+        input,
+        context,
+      );
+      if (reservation.existingTargetId) {
+        const existing = await this.findMachineWith(
+          database,
+          reservation.existingTargetId,
+        );
+        if (!existing)
+          throw new Error("Idempotent Machine target is unavailable");
+        return { status: "updated", value: existing };
+      }
       if (!(await this.findLoadWith(database, input.sourceLoadId))) {
+        await this.idempotency.release(database, {
+          recordId: reservation.recordId!,
+        });
         return { status: "missing_load" };
       }
       if (input.currentLocationId) {
@@ -328,8 +470,14 @@ export class InventoryRepository {
           database,
           input.currentLocationId,
         );
-        if (!location) return { status: "missing_location" };
-        if (!location.active) return { status: "inactive_location" };
+        if (!location || !location.active) {
+          await this.idempotency.release(database, {
+            recordId: reservation.recordId!,
+          });
+          return {
+            status: location ? "inactive_location" : "missing_location",
+          };
+        }
       }
       const id = randomUUID();
       const manufacturer = normalizeStoredFact(input.manufacturer);
@@ -377,6 +525,25 @@ export class InventoryRepository {
       }
       const machine = await this.findMachineWith(database, id);
       if (!machine) throw new Error("Machine was not created");
+      await this.record(
+        database,
+        "inventory.machine.created",
+        "machine",
+        id,
+        context,
+        [
+          "machine_type",
+          "identity",
+          "source_load_id",
+          "current_location_id",
+          "inventory_state",
+        ],
+      );
+      await this.idempotency.complete(database, {
+        recordId: reservation.recordId!,
+        targetType: "machine",
+        targetId: id,
+      });
       return { status: "updated", value: machine };
     });
   }
@@ -534,6 +701,14 @@ export class InventoryRepository {
       const machine = await this.findMachineWith(database, id);
       if (!machine)
         throw new Error("Machine disappeared during identity update");
+      await this.record(
+        database,
+        "inventory.machine.identity_updated",
+        "machine",
+        id,
+        context,
+        ["identity", "identity_verification_state"],
+      );
       return { status: "updated", value: machine };
     });
   }
@@ -580,6 +755,14 @@ export class InventoryRepository {
       );
       const machine = await this.findMachineWith(database, id);
       if (!machine) throw new Error("Machine disappeared during verification");
+      await this.record(
+        database,
+        "inventory.machine.verified",
+        "machine",
+        id,
+        context,
+        ["identity_verification_state", "identity_claim"],
+      );
       return { status: "updated", value: machine };
     });
   }
@@ -637,6 +820,14 @@ export class InventoryRepository {
       );
       const machine = await this.findMachineWith(database, id);
       if (!machine) throw new Error("Machine disappeared during relocation");
+      await this.record(
+        database,
+        "inventory.machine.relocated",
+        "machine",
+        id,
+        context,
+        ["current_location_id", "inventory_state"],
+      );
       return { status: "updated", value: machine };
     });
   }
@@ -726,7 +917,79 @@ export class InventoryRepository {
     );
     const machine = await this.findMachineWith(database, current.id);
     if (!machine) throw new Error("Machine disappeared during conflict update");
+    await this.record(
+      database,
+      "inventory.machine.identity_conflict",
+      "machine",
+      current.id,
+      context,
+      ["identity_verification_state", "conflicting_machine_id"],
+      "identity_conflict",
+    );
     return { status: "identity_conflict", machine, conflictingMachineId };
+  }
+
+  private async reserveCreate(
+    database: DatabaseExecutor,
+    scope: string,
+    targetType: "load" | "location" | "machine",
+    input: unknown,
+    context: InventoryActorContext,
+  ): Promise<{ recordId?: string; existingTargetId?: string }> {
+    const reservation = await this.idempotency.reserve(database, {
+      scope,
+      actorUserId: context.actorUserId,
+      rawKey: context.idempotencyKey ?? randomUUID(),
+      requestFingerprint: requestFingerprint(input),
+    });
+    if (reservation.status === "fingerprint_conflict") {
+      throw new IdempotencyKeyReuseError();
+    }
+    if (reservation.status === "in_progress") {
+      throw new IdempotencyRequestInProgressError();
+    }
+    if (reservation.status === "completed") {
+      if (reservation.targetType !== targetType) {
+        throw new IdempotencyKeyReuseError();
+      }
+      return { existingTargetId: reservation.targetId };
+    }
+    return { recordId: reservation.recordId };
+  }
+
+  private record(
+    database: DatabaseExecutor,
+    action:
+      | "inventory.load.created"
+      | "inventory.load.updated"
+      | "inventory.location.created"
+      | "inventory.location.updated"
+      | "inventory.location.deactivated"
+      | "inventory.machine.created"
+      | "inventory.machine.identity_updated"
+      | "inventory.machine.verified"
+      | "inventory.machine.identity_conflict"
+      | "inventory.machine.relocated",
+    targetType: "load" | "location" | "machine",
+    targetId: string,
+    context: InventoryActorContext,
+    changedFields: string[],
+    outcome = "completed",
+  ): Promise<unknown> {
+    return this.mutationRecorder.record(database, {
+      actorKind: "user",
+      actorUserId: context.actorUserId,
+      action,
+      targetType,
+      targetId,
+      requestId: context.requestId,
+      summary: {
+        changedFields: changedFields.map((field) =>
+          field.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`),
+        ),
+        outcome,
+      },
+    });
   }
 
   private async insertEvidence(

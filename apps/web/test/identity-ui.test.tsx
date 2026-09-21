@@ -11,6 +11,7 @@ describe("role-aware identity UI", () => {
       "/",
       "/admin/users",
       "/admin/files",
+      "/admin/operations",
       "/loads",
       "/machines",
       "/locations",

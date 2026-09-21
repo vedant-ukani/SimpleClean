@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Inject,
   Param,
   Patch,
@@ -31,8 +32,20 @@ export class InventoryController {
 
   @Post("loads")
   @RequirePermission("inventory.loads.manage")
-  async createLoad(@Body() body: unknown) {
-    return { load: await this.inventory.createLoad(body) };
+  async createLoad(
+    @Req() request: Request,
+    @Headers("idempotency-key") idempotencyKey: string | undefined,
+    @Body() body: unknown,
+  ) {
+    return {
+      load: await this.inventory.createLoad(
+        body,
+        this.context(
+          request,
+          InventoryService.parseIdempotencyKey(idempotencyKey),
+        ),
+      ),
+    };
   }
 
   @Get("loads/:loadId")
@@ -43,8 +56,18 @@ export class InventoryController {
 
   @Patch("loads/:loadId")
   @RequirePermission("inventory.loads.manage")
-  async updateLoad(@Param("loadId") loadId: string, @Body() body: unknown) {
-    return { load: await this.inventory.updateLoad(loadId, body) };
+  async updateLoad(
+    @Req() request: Request,
+    @Param("loadId") loadId: string,
+    @Body() body: unknown,
+  ) {
+    return {
+      load: await this.inventory.updateLoad(
+        loadId,
+        body,
+        this.context(request),
+      ),
+    };
   }
 
   @Get("locations")
@@ -55,8 +78,20 @@ export class InventoryController {
 
   @Post("locations")
   @RequirePermission("inventory.locations.manage")
-  async createLocation(@Body() body: unknown) {
-    return { location: await this.inventory.createLocation(body) };
+  async createLocation(
+    @Req() request: Request,
+    @Headers("idempotency-key") idempotencyKey: string | undefined,
+    @Body() body: unknown,
+  ) {
+    return {
+      location: await this.inventory.createLocation(
+        body,
+        this.context(
+          request,
+          InventoryService.parseIdempotencyKey(idempotencyKey),
+        ),
+      ),
+    };
   }
 
   @Get("locations/:locationId")
@@ -68,20 +103,32 @@ export class InventoryController {
   @Patch("locations/:locationId")
   @RequirePermission("inventory.locations.manage")
   async updateLocation(
+    @Req() request: Request,
     @Param("locationId") locationId: string,
     @Body() body: unknown,
   ) {
-    return { location: await this.inventory.updateLocation(locationId, body) };
+    return {
+      location: await this.inventory.updateLocation(
+        locationId,
+        body,
+        this.context(request),
+      ),
+    };
   }
 
   @Post("locations/:locationId/deactivate")
   @RequirePermission("inventory.locations.manage")
   async deactivateLocation(
+    @Req() request: Request,
     @Param("locationId") locationId: string,
     @Body() body: unknown,
   ) {
     return {
-      location: await this.inventory.deactivateLocation(locationId, body),
+      location: await this.inventory.deactivateLocation(
+        locationId,
+        body,
+        this.context(request),
+      ),
     };
   }
 
@@ -93,9 +140,19 @@ export class InventoryController {
 
   @Post("machines")
   @RequirePermission("inventory.machines.manage")
-  async createMachine(@Req() request: Request, @Body() body: unknown) {
+  async createMachine(
+    @Req() request: Request,
+    @Headers("idempotency-key") idempotencyKey: string | undefined,
+    @Body() body: unknown,
+  ) {
     return {
-      machine: await this.inventory.createMachine(body, this.context(request)),
+      machine: await this.inventory.createMachine(
+        body,
+        this.context(
+          request,
+          InventoryService.parseIdempotencyKey(idempotencyKey),
+        ),
+      ),
     };
   }
 
@@ -153,10 +210,15 @@ export class InventoryController {
     };
   }
 
-  private context(request: Request) {
+  private context(request: Request, idempotencyKey?: string) {
     return {
       actorUserId: currentIdentityFromRequest(request).id,
       requestId: typeof request.id === "string" ? request.id : "api-request",
+      ...(idempotencyKey
+        ? {
+            idempotencyKey,
+          }
+        : {}),
     };
   }
 }

@@ -31,6 +31,8 @@ Signed-in foundation views are available at `/loads`, `/machines`, and `/locatio
 
 Machine and Acquisition Load detail pages also provide private attachments. File relationships and checksums live in PostgreSQL; bytes are accessed only through short-lived, one-time grants under `/files/*` and are never exposed through static serving.
 
+Owner Admins can review privacy-safe mutation history and failed internal work at `/admin/operations`. Creating a Load, Location, or Machine requires an `Idempotency-Key` header; the web application generates one UUID for each submit attempt so a retried request cannot create a duplicate record.
+
 ## Provision the first staff user
 
 After running migrations, set these values in your local `.env` file:
@@ -82,6 +84,12 @@ DATABASE_URL=postgres://...
 Local development and tests default to `FILE_STORAGE_DRIVER=local`, with bytes under the gitignored `FILE_LOCAL_DIRECTORY`. Staging and production require S3-compatible storage unless `ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED=true` is explicitly set. S3 credentials use the AWS standard provider chain unless both explicit access-key variables are supplied.
 
 The configured size and grant TTL settings apply to every upload and download. JPEG, PNG, WebP, and PDF content is verified from its bytes; an attachment becomes ready only after its stored size, media type, and SHA-256 agree.
+
+## Audit and internal work
+
+Successful foundation mutations append a central audit entry and an outbox job in the same PostgreSQL transaction as the owning domain change. Audit summaries contain controlled field names and outcomes only; request bodies, credentials, serial values, filenames, tokens, file bytes, and exception text are not stored there.
+
+The API process polls the PostgreSQL outbox when `OPERATIONS_WORKER_POLLING_ENABLED=true`. Claim leases, maximum attempts, polling interval, and exponential-backoff base are configured by the `OPERATIONS_WORKER_*` environment values in `.env.example`. Tests disable polling and call the worker directly. A delivery with no registered internal subscribers succeeds. Handler failures store only the safe code `handler_failed`, retry automatically, and eventually become `dead_letter`; an Owner Admin can requeue the current dead-letter version from the Operations page. The stable job ID is the idempotency boundary future handlers must use for at-least-once delivery.
 
 ## Architecture boundary
 

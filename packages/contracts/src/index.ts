@@ -36,3 +36,4 @@ export {
 } from "./identity.js";
 export * from "./inventory.js";
 export * from "./files.js";
+export * from "./operations.js";

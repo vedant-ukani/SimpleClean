@@ -153,19 +153,33 @@ async function browserMutation(
   path: string,
   method: "POST" | "PATCH",
   body: unknown,
+  idempotencyKey?: string,
 ): Promise<unknown> {
   return requestJson(`/api${path}`, fetch, {
     method,
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(idempotencyKey ? { "idempotency-key": idempotencyKey } : {}),
+    },
     body: JSON.stringify(body),
   });
+}
+
+async function browserCreate(path: string, body: unknown): Promise<unknown> {
+  const idempotencyKey = crypto.randomUUID();
+  try {
+    return await browserMutation(path, "POST", body, idempotencyKey);
+  } catch (error) {
+    if (error instanceof InventoryRequestError) throw error;
+    return browserMutation(path, "POST", body, idempotencyKey);
+  }
 }
 
 export async function createLoad(
   input: CreateAcquisitionLoadRequest,
 ): Promise<AcquisitionLoad> {
   return AcquisitionLoadResponseSchema.parse(
-    await browserMutation("/inventory/loads", "POST", input),
+    await browserCreate("/inventory/loads", input),
   ).load;
 }
 
@@ -182,7 +196,7 @@ export async function createLocation(
   input: CreateInventoryLocationRequest,
 ): Promise<InventoryLocation> {
   return InventoryLocationResponseSchema.parse(
-    await browserMutation("/inventory/locations", "POST", input),
+    await browserCreate("/inventory/locations", input),
   ).location;
 }
 
@@ -212,7 +226,7 @@ export async function createMachine(
   input: CreateMachineRequest,
 ): Promise<Machine> {
   return MachineResponseSchema.parse(
-    await browserMutation("/inventory/machines", "POST", input),
+    await browserCreate("/inventory/machines", input),
   ).machine;
 }
 

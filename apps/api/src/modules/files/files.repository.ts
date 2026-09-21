@@ -13,6 +13,10 @@ import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
 import { DATABASE_CONNECTION } from "../../platform/database.module.js";
+import {
+  MUTATION_RECORDER,
+  type MutationRecorder,
+} from "../operations/operations.ports.js";
 
 export interface FileActorContext {
   actorUserId: string;
@@ -80,6 +84,8 @@ export class FilesRepository {
   constructor(
     @Inject(DATABASE_CONNECTION)
     private readonly connection: DatabaseConnection,
+    @Inject(MUTATION_RECORDER)
+    private readonly mutationRecorder: MutationRecorder,
   ) {}
 
   async createPendingUpload(input: {
@@ -119,6 +125,18 @@ export class FilesRepository {
         "upload_grant_created",
         input.context,
       );
+      await this.mutationRecorder.record(database, {
+        actorKind: "user",
+        actorUserId: input.context.actorUserId,
+        action: "files.attachment.requested",
+        targetType: "file",
+        targetId: input.fileId,
+        requestId: input.context.requestId,
+        summary: {
+          changedFields: ["target", "purpose", "media_type", "byte_count"],
+          outcome: "pending_upload",
+        },
+      });
       return fileFromRow(rows(result)[0]!);
     });
   }
@@ -226,6 +244,23 @@ export class FilesRepository {
       const row = rows(result)[0];
       if (!row) return undefined;
       await this.activity(database, fileId, "upload_ready", context);
+      await this.mutationRecorder.record(database, {
+        actorKind: "user",
+        actorUserId: context.actorUserId,
+        action: "files.attachment.ready",
+        targetType: "file",
+        targetId: fileId,
+        requestId: context.requestId,
+        summary: {
+          changedFields: [
+            "state",
+            "detected_media_type",
+            "byte_count",
+            "checksum",
+          ],
+          outcome: "ready",
+        },
+      });
       return fileFromRow(row);
     });
   }
@@ -248,6 +283,18 @@ export class FilesRepository {
       `);
       if (rows(result).length) {
         await this.activity(database, fileId, "upload_failed", context);
+        await this.mutationRecorder.record(database, {
+          actorKind: "user",
+          actorUserId: context.actorUserId,
+          action: "files.attachment.failed",
+          targetType: "file",
+          targetId: fileId,
+          requestId: context.requestId,
+          summary: {
+            changedFields: ["state", "failure_code"],
+            outcome: "failed",
+          },
+        });
       }
     });
   }
@@ -325,6 +372,15 @@ export class FilesRepository {
       const row = rows(result)[0];
       if (!row) return undefined;
       await this.activity(database, fileId, "abandoned", context);
+      await this.mutationRecorder.record(database, {
+        actorKind: "user",
+        actorUserId: context.actorUserId,
+        action: "files.attachment.abandoned",
+        targetType: "file",
+        targetId: fileId,
+        requestId: context.requestId,
+        summary: { changedFields: ["state"], outcome: "abandoned" },
+      });
       return fileFromRow(row);
     });
   }

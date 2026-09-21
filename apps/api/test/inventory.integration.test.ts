@@ -4,6 +4,7 @@ import { parseServerEnvironment } from "@simply-clean/config";
 import type { DatabaseConnection } from "@simply-clean/database";
 import { createTestEnvironment } from "@simply-clean/test-support";
 import { sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import request from "supertest";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -59,16 +60,19 @@ async function foundation(app: INestApplication, ownerCookies: string[]) {
   const load = await request(app.getHttpServer())
     .post("/inventory/loads")
     .set("Cookie", ownerCookies)
+    .set("Idempotency-Key", randomUUID())
     .send({ displayName: "September Phoenix Load", sourceReference: "PO-42" })
     .expect(201);
   const receiving = await request(app.getHttpServer())
     .post("/inventory/locations")
     .set("Cookie", ownerCookies)
+    .set("Idempotency-Key", randomUUID())
     .send({ code: "REC-01", name: "Receiving bay" })
     .expect(201);
   const storage = await request(app.getHttpServer())
     .post("/inventory/locations")
     .set("Cookie", ownerCookies)
+    .set("Idempotency-Key", randomUUID())
     .send({ code: "A-12", name: "Storage aisle A" })
     .expect(201);
   return {
@@ -106,6 +110,7 @@ describe("inventory foundation", () => {
     const created = await request(app.getHttpServer())
       .post("/inventory/machines")
       .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
       .send({ machineType: "washer", sourceLoadId: records.load.id })
       .expect(201);
     expect(created.body.machine).toMatchObject({
@@ -197,6 +202,7 @@ describe("inventory foundation", () => {
     const special = await request(app.getHttpServer())
       .post("/inventory/machines")
       .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
       .send({
         machineType: "other",
         sourceLoadId: records.load.id,
@@ -206,6 +212,7 @@ describe("inventory foundation", () => {
     await request(app.getHttpServer())
       .post("/inventory/machines")
       .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
       .send({
         machineType: "other",
         sourceLoadId: records.load.id,
@@ -226,6 +233,7 @@ describe("inventory foundation", () => {
     await request(app.getHttpServer())
       .post("/inventory/loads")
       .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
       .send({ displayName: "Forbidden" })
       .expect(403);
     await request(app.getHttpServer())
@@ -233,6 +241,19 @@ describe("inventory foundation", () => {
       .set("Cookie", technician.cookies)
       .send({ model: "forged", expectedVersion: 4 })
       .expect(403);
+    const central = await app.get<DatabaseConnection>(DATABASE_CONNECTION)
+      .database.execute(sql`
+        select action from operations_audit_entry
+        where target_id = ${machineId}
+        order by created_at
+      `);
+    const centralRows = "rows" in central ? central.rows : central;
+    expect(centralRows.map((row) => row.action)).toEqual([
+      "inventory.machine.created",
+      "inventory.machine.identity_updated",
+      "inventory.machine.verified",
+      "inventory.machine.relocated",
+    ]);
   });
 
   it("persists normalized duplicate conflicts and permits correction", async () => {
@@ -437,6 +458,7 @@ describe("inventory foundation", () => {
     const created = await request(app.getHttpServer())
       .post("/inventory/machines")
       .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
       .send({ machineType: "other", sourceLoadId: records.load.id })
       .expect(201);
 

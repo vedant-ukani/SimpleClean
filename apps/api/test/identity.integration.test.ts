@@ -114,6 +114,9 @@ describe("identity authentication", () => {
             "files.read",
             "files.write",
             "files.manage",
+            "operations.audit.read",
+            "operations.jobs.read",
+            "operations.jobs.manage",
           ],
         });
       });
@@ -283,6 +286,20 @@ describe("identity authentication", () => {
         "sessions_revoked",
       ]),
     );
+    const central = await app.get<DatabaseConnection>(DATABASE_CONNECTION)
+      .database.execute(sql`
+        select action from operations_audit_entry
+        where target_id = ${warehouse.id}
+        order by created_at
+      `);
+    const centralRows = "rows" in central ? central.rows : central;
+    expect(centralRows.map((row) => row.action)).toEqual([
+      "identity.user.created",
+      "identity.user.role_changed",
+      "identity.user.deactivated",
+      "identity.user.activated",
+      "identity.user.sessions_revoked",
+    ]);
   });
 
   it("protects the final active Owner Admin and rejects stale versions", async () => {

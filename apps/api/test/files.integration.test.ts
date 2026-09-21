@@ -4,6 +4,7 @@ import { parseServerEnvironment } from "@simply-clean/config";
 import type { DatabaseConnection } from "@simply-clean/database";
 import { createTestEnvironment } from "@simply-clean/test-support";
 import { sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -151,11 +152,13 @@ async function foundation(app: INestApplication, ownerCookies: string[]) {
   const load = await request(app.getHttpServer())
     .post("/inventory/loads")
     .set("Cookie", ownerCookies)
+    .set("Idempotency-Key", randomUUID())
     .send({ displayName: "Private File Load" })
     .expect(201);
   const machine = await request(app.getHttpServer())
     .post("/inventory/machines")
     .set("Cookie", ownerCookies)
+    .set("Idempotency-Key", randomUUID())
     .send({ machineType: "washer", sourceLoadId: load.body.load.id })
     .expect(201);
   return {
@@ -285,6 +288,15 @@ describe("private files", () => {
       "downloaded",
       "download_grant_created",
     ]);
+    const central = await connection.database.execute(sql`
+      select action, safe_summary::text as summary
+      from operations_audit_entry where target_id = ${granted.body.file.id}
+      order by created_at
+    `);
+    expect(
+      resultRows<{ action: string }>(central).map((row) => row.action),
+    ).toEqual(["files.attachment.requested", "files.attachment.ready"]);
+    expect(JSON.stringify(resultRows(central))).not.toContain("plate");
   });
 
   it("enforces target access, issuer binding, expiry, and content policy", async () => {
@@ -294,6 +306,7 @@ describe("private files", () => {
     const otherWarehouse = await user(app, "warehouse", "-other");
     const technician = await user(app, "technician_cleaner");
     const { loadId, machineId } = await foundation(app, owner.cookies);
+    const connection = app.get<DatabaseConnection>(DATABASE_CONNECTION);
 
     await request(app.getHttpServer())
       .post("/files/upload-grants")
@@ -389,6 +402,12 @@ describe("private files", () => {
       .attach("file", Buffer.from([0xff, 0xd8, 0xff, 0xd9]), "disguised.png")
       .expect(400)
       .expect(({ body }) => expect(body.code).toBe("media_type_mismatch"));
+    const failedAudit = await connection.database.execute(sql`
+      select action from operations_audit_entry
+      where target_id in (${grant.body.file.id}, ${mismatch.body.file.id})
+        and action = 'files.attachment.failed'
+    `);
+    expect(resultRows(failedAudit)).toHaveLength(2);
 
     const expired = await request(app.getHttpServer())
       .post("/files/upload-grants")
@@ -401,7 +420,6 @@ describe("private files", () => {
         declaredByteCount: 4,
       })
       .expect(201);
-    const connection = app.get<DatabaseConnection>(DATABASE_CONNECTION);
     await connection.database.execute(sql`
       update file_access_grant set expires_at = now() - interval '1 second'
       where file_id = ${expired.body.file.id}
@@ -490,6 +508,12 @@ describe("private files", () => {
       .set("Cookie", owner.cookies)
       .expect(409);
     await expect(storage.head(readyStorageKey)).resolves.toBeDefined();
+    const abandonedAudit = await connection.database.execute(sql`
+      select action from operations_audit_entry
+      where target_id = ${pending.body.file.id}
+        and action = 'files.attachment.abandoned'
+    `);
+    expect(resultRows(abandonedAudit)).toHaveLength(1);
   });
 
   it("does not let cleanup race an in-flight upload into ready metadata without bytes", async () => {

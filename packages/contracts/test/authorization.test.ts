@@ -25,6 +25,9 @@ describe("authorization policy", () => {
       "files.read",
       "files.write",
       "files.manage",
+      "operations.audit.read",
+      "operations.jobs.read",
+      "operations.jobs.manage",
     ]);
     expect(permissionsForRole("warehouse")).toEqual([
       "platform.access",

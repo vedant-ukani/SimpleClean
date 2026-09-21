@@ -14,6 +14,7 @@ import { FilesModule } from "./modules/files/files.module.js";
 import { AuthorizationGuard } from "./modules/identity/authorization.guard.js";
 import { IdentityModule } from "./modules/identity/identity.module.js";
 import { InventoryModule } from "./modules/inventory/inventory.module.js";
+import { OperationsModule } from "./modules/operations/operations.module.js";
 import { DatabaseModule } from "./platform/database.module.js";
 import { HealthController } from "./platform/health.controller.js";
 import { HealthService } from "./platform/health.service.js";
@@ -30,6 +31,7 @@ export class AppModule implements NestModule {
       module: AppModule,
       imports: [
         DatabaseModule.register(config),
+        OperationsModule.register(config),
         IdentityModule.register(config),
         InventoryModule,
         FilesModule.register(config),
