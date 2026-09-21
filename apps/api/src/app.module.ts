@@ -1,11 +1,17 @@
 import {
   Module,
+  RequestMethod,
   type DynamicModule,
   type MiddlewareConsumer,
   type NestModule,
 } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
 import type { ServerConfig } from "@simply-clean/config";
+import { json, urlencoded } from "express";
 
+import { AuthHandlerMiddleware } from "./modules/identity/auth.middleware.js";
+import { AuthorizationGuard } from "./modules/identity/authorization.guard.js";
+import { IdentityModule } from "./modules/identity/identity.module.js";
 import { DatabaseModule } from "./platform/database.module.js";
 import { HealthController } from "./platform/health.controller.js";
 import { HealthService } from "./platform/health.service.js";
@@ -20,18 +26,30 @@ export class AppModule implements NestModule {
   static register(config: ServerConfig): DynamicModule {
     return {
       module: AppModule,
-      imports: [DatabaseModule.register(config)],
+      imports: [
+        DatabaseModule.register(config),
+        IdentityModule.register(config),
+      ],
       controllers: [HealthController],
       providers: [
         { provide: SERVER_CONFIG, useValue: config },
         HealthService,
         StructuredLogger,
         RequestLoggingMiddleware,
+        { provide: APP_GUARD, useExisting: AuthorizationGuard },
       ],
     };
   }
 
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(RequestLoggingMiddleware).forRoutes("*");
+    consumer.apply(AuthHandlerMiddleware).forRoutes({
+      path: "auth/*path",
+      method: RequestMethod.ALL,
+    });
+    consumer
+      .apply(json(), urlencoded({ extended: false }))
+      .exclude({ path: "auth/*path", method: RequestMethod.ALL })
+      .forRoutes("*");
   }
 }

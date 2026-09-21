@@ -1,5 +1,6 @@
 import { parseServerEnvironment } from "@simply-clean/config";
 import { createTestEnvironment } from "@simply-clean/test-support";
+import { sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import { createDatabase, migrateDatabase } from "../src/index.js";
@@ -20,6 +21,21 @@ describe("PGlite integration", () => {
     try {
       await connection.migrate();
       await expect(connection.isReady()).resolves.toBe(true);
+      const result = await connection.database.execute(sql`
+        select table_name
+        from information_schema.tables
+        where table_schema = 'public'
+          and table_name in (
+            'user',
+            'session',
+            'account',
+            'verification',
+            'identity_profile',
+            'identity_security_activity'
+          )
+      `);
+      const rows = "rows" in result ? result.rows : result;
+      expect(rows).toHaveLength(6);
     } finally {
       await connection.close();
     }

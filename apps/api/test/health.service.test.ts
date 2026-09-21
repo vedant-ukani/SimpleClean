@@ -6,6 +6,9 @@ import { HealthService } from "../src/platform/health.service.js";
 function databaseWithReadiness(isReady: boolean): DatabaseConnection {
   return {
     driver: "pglite",
+    database: undefined as unknown as DatabaseConnection["database"],
+    transaction: async (operation) =>
+      operation({ execute: async () => ({ rows: [] }) }),
     migrate: async () => undefined,
     isReady: async () => isReady,
     close: async () => undefined,

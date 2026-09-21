@@ -1,7 +1,10 @@
 import { createTestEnvironment } from "@simply-clean/test-support";
 import { describe, expect, it } from "vitest";
 
-import { parseServerEnvironment } from "../src/index.js";
+import {
+  parseBootstrapEnvironment,
+  parseServerEnvironment,
+} from "../src/index.js";
 
 describe("server environment", () => {
   it("uses PGlite safely for tests", () => {
@@ -39,5 +42,71 @@ describe("server environment", () => {
     expect(() =>
       parseServerEnvironment(createTestEnvironment({ NODE_ENV: "production" })),
     ).toThrow("ALLOW_PGLITE_IN_DEPLOYED=true");
+  });
+
+  it("validates finite secure auth configuration", () => {
+    const config = parseServerEnvironment(createTestEnvironment());
+    expect(config.authSessionDurationSeconds).toBe(28_800);
+    expect(config.authTrustedOrigin).toBe("http://localhost:3000");
+
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ AUTH_SECRET: "too-short" }),
+      ),
+    ).toThrow("AUTH_SECRET");
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ AUTH_SESSION_DURATION_SECONDS: "0" }),
+      ),
+    ).toThrow("AUTH_SESSION_DURATION_SECONDS");
+  });
+
+  it("requires HTTPS auth URLs in deployed environments", () => {
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          NODE_ENV: "production",
+          DATABASE_DRIVER: "postgres",
+          DATABASE_URL: "postgres://database.example/simply_clean",
+          AUTH_BASE_URL: "http://api.example.test",
+          AUTH_TRUSTED_ORIGIN: "http://app.example.test",
+        }),
+      ),
+    ).toThrow("HTTPS");
+
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          NODE_ENV: "production",
+          DATABASE_DRIVER: "postgres",
+          DATABASE_URL: "postgres://database.example/simply_clean",
+          AUTH_SECRET: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          AUTH_BASE_URL: "https://api.example.test",
+          AUTH_TRUSTED_ORIGIN: "https://app.example.test",
+        }),
+      ),
+    ).toThrow("high-entropy");
+  });
+
+  it("requires bootstrap credentials without including the password in errors", () => {
+    const secretPassword = "a-secret-bootstrap-password";
+    const environment = createTestEnvironment({
+      AUTH_BOOTSTRAP_EMAIL: "owner@example.test",
+      AUTH_BOOTSTRAP_NAME: "Pilot Owner",
+      AUTH_BOOTSTRAP_PASSWORD: secretPassword,
+      AUTH_BOOTSTRAP_ROLE: "owner_admin",
+    });
+    expect(parseBootstrapEnvironment(environment).bootstrap.role).toBe(
+      "owner_admin",
+    );
+
+    try {
+      parseBootstrapEnvironment({
+        ...environment,
+        AUTH_BOOTSTRAP_EMAIL: "not-an-email",
+      });
+    } catch (error) {
+      expect(String(error)).not.toContain(secretPassword);
+    }
   });
 });

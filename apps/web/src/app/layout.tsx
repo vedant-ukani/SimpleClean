@@ -5,7 +5,7 @@ import "./styles.css";
 
 export const metadata: Metadata = {
   title: "Simply Clean Operations",
-  description: "Core Operations Platform health and readiness",
+  description: "Secure Simply Clean staff operations",
 };
 
 export default function RootLayout({

@@ -3,9 +3,11 @@
   --ink: #15342d;
   --muted: #65746f;
   --forest: #176b55;
+  --forest-dark: #10503f;
   --mint: #dff4e9;
   --cream: #f7f4eb;
   --line: #d7dfda;
+  --danger: #8b3c36;
   font-family:
     Inter,
     ui-sans-serif,
@@ -27,20 +29,39 @@ body {
   background:
     radial-gradient(
       circle at 85% 5%,
-      rgba(121, 201, 166, 0.32),
+      rgba(121, 201, 166, 0.26),
       transparent 30rem
     ),
     var(--cream);
 }
 
-main {
-  width: min(100% - 2rem, 68rem);
-  margin: 0 auto;
-  padding: clamp(3rem, 8vw, 7rem) 0;
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: clamp(2rem, 7vw, 6rem);
-  align-items: center;
+a {
+  color: inherit;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  color: white;
+  background: var(--forest);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--forest-dark);
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .brand-mark {
@@ -57,6 +78,14 @@ main {
   box-shadow: 0 1rem 2rem rgba(23, 107, 85, 0.2);
 }
 
+.brand-mark--small {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  border-radius: 0.75rem;
+  box-shadow: none;
+}
+
 .eyebrow {
   margin: 0 0 0.75rem;
   color: var(--forest);
@@ -71,101 +100,235 @@ h2 {
   margin: 0;
   letter-spacing: -0.04em;
 }
+
 h1 {
-  max-width: 12ch;
-  font-size: clamp(2.75rem, 7vw, 5.5rem);
-  line-height: 0.97;
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  line-height: 0.98;
 }
+
 h2 {
-  font-size: 1.65rem;
+  font-size: 1.55rem;
 }
 
 .lede {
-  max-width: 38rem;
-  margin: 1.5rem 0 0;
+  max-width: 42rem;
+  margin: 1.35rem 0 0;
   color: var(--muted);
-  font-size: 1.1rem;
-  line-height: 1.7;
+  font-size: 1.05rem;
+  line-height: 1.65;
 }
 
-.health-card {
-  padding: clamp(1.5rem, 4vw, 2.5rem);
+.auth-page {
+  width: min(100% - 2rem, 34rem);
+  min-height: 100vh;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 2rem 0;
+}
+
+.auth-card,
+.panel,
+.hero-card {
+  width: 100%;
+  padding: clamp(1.5rem, 5vw, 2.75rem);
   border: 1px solid rgba(21, 52, 45, 0.1);
   border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 1.5rem 4rem rgba(28, 55, 48, 0.1);
-  backdrop-filter: blur(1rem);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 1.5rem 4rem rgba(28, 55, 48, 0.09);
 }
 
-.card-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
+.auth-form {
+  display: grid;
   gap: 1rem;
-  padding-bottom: 1.5rem;
+  margin-top: 2rem;
 }
 
-.pill {
-  padding: 0.5rem 0.75rem;
-  border-radius: 999px;
-  color: #8b3c36;
-  background: #fce7e4;
-  font-size: 0.75rem;
-  font-weight: 750;
-  white-space: nowrap;
+.auth-form label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
-.pill--ready {
-  color: #145b48;
+input,
+select {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  color: var(--ink);
+  background: white;
+}
+
+input:focus,
+select:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(23, 107, 85, 0.28);
+  outline-offset: 2px;
+}
+
+.form-error {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.form-message {
+  padding: 0.8rem 1rem;
+  border-radius: 0.7rem;
   background: var(--mint);
 }
 
-.status-row {
+.app-header {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 0.75rem;
+  gap: 2rem;
   align-items: center;
-  padding: 1.1rem 0;
-  border-top: 1px solid var(--line);
+  padding: 1rem max(1rem, calc((100vw - 74rem) / 2));
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(1rem);
 }
 
-.status-row strong {
-  font-size: 0.85rem;
+.brand-link {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  text-decoration: none;
+  font-weight: 800;
 }
-.status-dot {
-  width: 0.65rem;
-  height: 0.65rem;
-  border-radius: 50%;
-  background: #c85d53;
+
+.app-header nav {
+  display: flex;
+  gap: 0.5rem;
 }
-.status-dot--ready {
-  background: #2b9b72;
-  box-shadow: 0 0 0 0.3rem var(--mint);
+
+.app-header nav a {
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  text-decoration: none;
+  font-weight: 700;
 }
-.checked-at {
-  margin: 1rem 0 0;
-  color: var(--muted);
+
+.app-header nav a:hover {
+  background: var(--mint);
+}
+
+.account-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.logout-control {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 16rem;
+}
+
+.logout-control .form-error {
   font-size: 0.75rem;
 }
 
-button {
-  margin-top: 1.5rem;
-  padding: 0.8rem 1.1rem;
-  border: 0;
-  border-radius: 0.75rem;
-  color: white;
-  background: var(--forest);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
+.account-actions > span {
+  display: grid;
+  text-align: right;
 }
 
-@media (max-width: 760px) {
-  main {
-    grid-template-columns: 1fr;
-    padding-top: 3rem;
+.account-actions small,
+.user-row small,
+.user-row span {
+  color: var(--muted);
+}
+
+.secondary-button,
+.row-actions button {
+  color: var(--forest);
+  background: var(--mint);
+}
+
+.secondary-button:hover,
+.row-actions button:hover {
+  color: white;
+}
+
+.page-main {
+  width: min(100% - 2rem, 64rem);
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 7rem) 0;
+}
+
+.page-main--wide {
+  width: min(100% - 2rem, 74rem);
+}
+
+.page-heading {
+  margin-bottom: 2rem;
+}
+
+.management-grid {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.7fr) minmax(28rem, 1.3fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.team-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.user-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(10rem, 0.7fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.user-row > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 850px) {
+  .app-header {
+    grid-template-columns: 1fr auto;
   }
-  h1 {
-    font-size: clamp(2.75rem, 14vw, 4.25rem);
+
+  .app-header nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .account-actions > span {
+    display: none;
+  }
+
+  .management-grid,
+  .user-row {
+    grid-template-columns: 1fr;
   }
 }

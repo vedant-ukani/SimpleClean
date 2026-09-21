@@ -10,6 +10,7 @@ describe("database factory", () => {
       parseServerEnvironment(createTestEnvironment()),
     );
     expect(connection.driver).toBe("pglite");
+    expect(connection.database).toBeDefined();
     await connection.close();
   });
 });

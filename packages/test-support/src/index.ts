@@ -9,6 +9,10 @@ export function createTestEnvironment(
     API_PORT: "3001",
     API_BASE_URL: "http://localhost:3001",
     LOG_LEVEL: "silent",
+    AUTH_SECRET: "test-only-auth-secret-at-least-32-characters-long",
+    AUTH_BASE_URL: "http://localhost:3001",
+    AUTH_TRUSTED_ORIGIN: "http://localhost:3000",
+    AUTH_SESSION_DURATION_SECONDS: "28800",
     ...overrides,
   };
 }

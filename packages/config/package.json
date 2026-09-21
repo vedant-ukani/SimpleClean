@@ -15,6 +15,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@simply-clean/contracts": "*",
     "zod": "^4.1.11"
   },
   "devDependencies": {

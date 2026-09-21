@@ -10,6 +10,7 @@ async function bootstrap(): Promise<void> {
   const config = parseServerEnvironment(process.env);
   const app = await NestFactory.create(AppModule.register(config), {
     bufferLogs: true,
+    bodyParser: false,
   });
   app.useLogger(app.get(StructuredLogger));
   app.enableShutdownHooks();

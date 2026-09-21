@@ -1,17 +1,32 @@
 import { PGlite } from "@electric-sql/pglite";
 import type { ServerConfig } from "@simply-clean/config";
-import { sql } from "drizzle-orm";
+import { sql, type SQL } from "drizzle-orm";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
+import type { PgliteDatabase } from "drizzle-orm/pglite";
 import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import * as schema from "./schema.js";
+
+export type DatabaseHandle =
+  PgliteDatabase<typeof schema> | PostgresJsDatabase<typeof schema>;
+
+export interface DatabaseExecutor {
+  execute(query: SQL): Promise<unknown>;
+}
+
 export interface DatabaseConnection {
   readonly driver: "pglite" | "postgres";
+  readonly database: DatabaseHandle;
+  transaction<T>(
+    operation: (database: DatabaseExecutor) => Promise<T>,
+  ): Promise<T>;
   migrate(): Promise<void>;
   isReady(): Promise<boolean>;
   close(): Promise<void>;
@@ -26,9 +41,15 @@ export function createDatabase(config: ServerConfig): DatabaseConnection {
     }
 
     const client = postgres(config.databaseUrl, { max: 10 });
-    const database = drizzlePostgres(client);
+    const database = drizzlePostgres(client, { schema });
     return {
       driver: "postgres",
+      database,
+      async transaction(operation) {
+        return database.transaction(async (transaction) =>
+          operation(transaction),
+        );
+      },
       async migrate() {
         await migratePostgres(database, { migrationsFolder });
       },
@@ -53,9 +74,15 @@ export function createDatabase(config: ServerConfig): DatabaseConnection {
     config.pgliteDataDir === ":memory:"
       ? new PGlite()
       : new PGlite(config.pgliteDataDir);
-  const database = drizzlePglite(client);
+  const database = drizzlePglite(client, { schema });
   return {
     driver: "pglite",
+    database,
+    async transaction(operation) {
+      return database.transaction(async (transaction) =>
+        operation(transaction),
+      );
+    },
     async migrate() {
       await migratePglite(database, { migrationsFolder });
     },

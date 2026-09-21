@@ -1,3 +1,7 @@
+import {
+  ApplicationRoleSchema,
+  type ApplicationRole,
+} from "@simply-clean/contracts";
 import { z } from "zod";
 
 const booleanFromString = z.union([
@@ -23,6 +27,15 @@ const serverEnvironmentSchema = z
     LOG_LEVEL: z
       .enum(["silent", "fatal", "error", "warn", "info", "debug", "trace"])
       .default("info"),
+    AUTH_SECRET: z.string().min(32),
+    AUTH_BASE_URL: z.url().default("http://localhost:3001"),
+    AUTH_TRUSTED_ORIGIN: z.url().default("http://localhost:3000"),
+    AUTH_SESSION_DURATION_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(300)
+      .max(86_400)
+      .default(28_800),
   })
   .superRefine((environment, context) => {
     if (
@@ -51,7 +64,36 @@ const serverEnvironmentSchema = z
           "pglite in staging or production requires ALLOW_PGLITE_IN_DEPLOYED=true",
       });
     }
+
+    if (isDeployed) {
+      if (
+        /change-me|replace-me|test-only/i.test(environment.AUTH_SECRET) ||
+        new Set(environment.AUTH_SECRET).size < 10
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["AUTH_SECRET"],
+          message: "must be a high-entropy deployed secret",
+        });
+      }
+      for (const key of ["AUTH_BASE_URL", "AUTH_TRUSTED_ORIGIN"] as const) {
+        if (!environment[key].startsWith("https://")) {
+          context.addIssue({
+            code: "custom",
+            path: [key],
+            message: "must use HTTPS in staging or production",
+          });
+        }
+      }
+    }
   });
+
+const bootstrapEnvironmentSchema = z.object({
+  AUTH_BOOTSTRAP_EMAIL: z.email(),
+  AUTH_BOOTSTRAP_NAME: z.string().trim().min(1).max(120),
+  AUTH_BOOTSTRAP_PASSWORD: z.string().min(8).max(128),
+  AUTH_BOOTSTRAP_ROLE: ApplicationRoleSchema.default("owner_admin"),
+});
 
 const webServerEnvironmentSchema = z.object({
   API_BASE_URL: z.url().default("http://localhost:3001"),
@@ -65,10 +107,21 @@ export interface ServerConfig {
   allowPgliteInDeployed: boolean;
   apiPort: number;
   logLevel: "silent" | "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+  authSecret: string;
+  authBaseUrl: string;
+  authTrustedOrigin: string;
+  authSessionDurationSeconds: number;
 }
 
 export interface WebServerConfig {
   apiBaseUrl: string;
+}
+
+export interface BootstrapConfig {
+  email: string;
+  name: string;
+  password: string;
+  role: ApplicationRole;
 }
 
 export class EnvironmentValidationError extends Error {
@@ -99,6 +152,29 @@ export function parseServerEnvironment(
     allowPgliteInDeployed: result.data.ALLOW_PGLITE_IN_DEPLOYED,
     apiPort: result.data.API_PORT,
     logLevel: result.data.LOG_LEVEL,
+    authSecret: result.data.AUTH_SECRET,
+    authBaseUrl: result.data.AUTH_BASE_URL,
+    authTrustedOrigin: result.data.AUTH_TRUSTED_ORIGIN,
+    authSessionDurationSeconds: result.data.AUTH_SESSION_DURATION_SECONDS,
+  };
+}
+
+export function parseBootstrapEnvironment(
+  input: Record<string, string | undefined>,
+): { server: ServerConfig; bootstrap: BootstrapConfig } {
+  const server = parseServerEnvironment(input);
+  const result = bootstrapEnvironmentSchema.safeParse(input);
+  if (!result.success) {
+    throw new EnvironmentValidationError(result.error.issues);
+  }
+  return {
+    server,
+    bootstrap: {
+      email: result.data.AUTH_BOOTSTRAP_EMAIL.toLowerCase(),
+      name: result.data.AUTH_BOOTSTRAP_NAME,
+      password: result.data.AUTH_BOOTSTRAP_PASSWORD,
+      role: result.data.AUTH_BOOTSTRAP_ROLE,
+    },
   };
 }
 

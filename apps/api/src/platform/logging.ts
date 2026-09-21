@@ -27,7 +27,20 @@ export class StructuredLogger implements LoggerService {
       level: config.logLevel,
       base: { service: "api" },
       redact: {
-        paths: ["authorization", "cookie", "password", "token", "databaseUrl"],
+        paths: [
+          "authorization",
+          "cookie",
+          "password",
+          "token",
+          "databaseUrl",
+          "authSecret",
+          "*.authorization",
+          "*.cookie",
+          "*.password",
+          "*.token",
+          "*.databaseUrl",
+          "*.authSecret",
+        ],
         censor: "[REDACTED]",
       },
     });
@@ -63,6 +76,7 @@ export class RequestLoggingMiddleware implements NestMiddleware {
       logger: structuredLogger.logger,
       genReqId(_request, response) {
         const correlationId = randomUUID();
+        _request.headers["x-request-id"] = correlationId;
         response.setHeader("x-request-id", correlationId);
         return correlationId;
       },
