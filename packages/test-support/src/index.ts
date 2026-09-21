@@ -13,6 +13,9 @@ export function createTestEnvironment(
     AUTH_BASE_URL: "http://localhost:3001",
     AUTH_TRUSTED_ORIGIN: "http://localhost:3000",
     AUTH_SESSION_DURATION_SECONDS: "28800",
+    QR_SIGNING_SECRET:
+      "test-only-qr-signing-secret-distinct-and-at-least-32-characters",
+    PLATFORM_PUBLIC_ORIGIN: "http://localhost:3000",
     FILE_STORAGE_DRIVER: "local",
     FILE_LOCAL_DIRECTORY: ".local-data/test-files",
     ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED: "false",

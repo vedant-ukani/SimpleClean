@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { authClient } from "../../lib/auth-client";
+import { scanReturnPathFromLoginHash } from "../../lib/qr-client";
 
 export function LoginError({ message }: Readonly<{ message: string }>) {
   return (
@@ -34,7 +35,7 @@ export function LoginForm() {
         setPending(false);
         return;
       }
-      router.replace("/");
+      router.replace(scanReturnPathFromLoginHash(window.location.hash) ?? "/");
       router.refresh();
     } catch {
       setError("Email or password was not accepted.");

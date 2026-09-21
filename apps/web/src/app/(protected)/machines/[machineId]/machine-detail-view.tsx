@@ -5,6 +5,7 @@ import type {
   InventoryLocation,
   Machine,
   MachineDetail,
+  QrLabel,
 } from "@simply-clean/contracts";
 import { useState, type FormEvent } from "react";
 
@@ -16,6 +17,7 @@ import {
 } from "../../../../lib/inventory-client";
 import { MachineIdentityStatus, recorded } from "../machine-labels";
 import { AttachmentsPanel } from "../../attachments-panel";
+import { MachineQrPanel } from "./machine-qr-panel";
 
 export function MachineDetailView({
   initialDetail,
@@ -25,6 +27,8 @@ export function MachineDetailView({
   canRelocate,
   initialFiles,
   canUploadFiles,
+  initialQrLabels,
+  canManageQrLabels,
 }: Readonly<{
   initialDetail: MachineDetail;
   locations: InventoryLocation[];
@@ -33,6 +37,8 @@ export function MachineDetailView({
   canRelocate: boolean;
   initialFiles: FileAttachment[];
   canUploadFiles: boolean;
+  initialQrLabels: QrLabel[];
+  canManageQrLabels: boolean;
 }>) {
   const [machine, setMachine] = useState(initialDetail.machine);
   const [message, setMessage] = useState<string>();
@@ -160,6 +166,11 @@ export function MachineDetailView({
         target={{ type: "machine", id: machine.id }}
         initialFiles={initialFiles}
         canUpload={canUploadFiles}
+      />
+      <MachineQrPanel
+        machineId={machine.id}
+        initialLabels={initialQrLabels}
+        canManage={canManageQrLabels}
       />
       {canManage ? (
         <section className="panel">

@@ -15,6 +15,14 @@ export const IDENTITY_SOURCE_KINDS = [
   "other",
   "spreadsheet_import",
 ] as const;
+export const QR_LABEL_STATES = ["active", "revoked"] as const;
+export const QR_LABEL_ACTIVITY_ACTIONS = [
+  "created",
+  "printed",
+  "resolved",
+  "revoked",
+  "reissued",
+] as const;
 
 export const MachineTypeSchema = z.enum(MACHINE_TYPES);
 export const MachinePhaseSchema = z.enum(MACHINE_PHASES);
@@ -25,11 +33,22 @@ export const IdentityVerificationStateSchema = z.enum(
 export const InventoryStateSchema = z.enum(INVENTORY_STATES);
 export const ProductionStateSchema = z.enum(PRODUCTION_STATES);
 export const IdentitySourceKindSchema = z.enum(IDENTITY_SOURCE_KINDS);
+export const QrLabelStateSchema = z.enum(QR_LABEL_STATES);
+export const QrLabelActivityActionSchema = z.enum(QR_LABEL_ACTIVITY_ACTIONS);
 
 export const InventoryIdSchema = z.uuid();
 const VersionSchema = z.number().int().positive();
 const TimestampSchema = z.iso.datetime();
 const NullableFactSchema = z.string().max(240).nullable();
+export const QrFallbackCodeSchema = z
+  .string()
+  .regex(/^[0-9A-HJKMNP-TV-Z]{16}$/);
+export const QrTokenSchema = z
+  .string()
+  .max(200)
+  .regex(
+    /^v1\.[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.[A-Za-z0-9_-]{43}$/,
+  );
 
 export const AcquisitionLoadSchema = z.object({
   id: InventoryIdSchema,
@@ -122,6 +141,45 @@ export const MachineDetailSchema = z.object({
   locationHistory: z.array(MachineLocationHistorySchema),
 });
 
+export const QrLabelSchema = z
+  .object({
+    id: InventoryIdSchema,
+    machineId: InventoryIdSchema,
+    fallbackCode: QrFallbackCodeSchema,
+    state: QrLabelStateSchema,
+    version: VersionSchema,
+    issuedByUserId: z.string().min(1),
+    revokedByUserId: z.string().min(1).nullable(),
+    issuedAt: TimestampSchema,
+    revokedAt: TimestampSchema.nullable(),
+  })
+  .superRefine((label, context) => {
+    const isConsistentlyActive =
+      label.state === "active" &&
+      label.revokedByUserId === null &&
+      label.revokedAt === null;
+    const isConsistentlyRevoked =
+      label.state === "revoked" &&
+      label.revokedByUserId !== null &&
+      label.revokedAt !== null;
+    if (!isConsistentlyActive && !isConsistentlyRevoked) {
+      context.addIssue({
+        code: "custom",
+        message: "Label state and revocation fields are inconsistent",
+      });
+    }
+  });
+
+export const QrLabelActivitySchema = z.object({
+  id: InventoryIdSchema,
+  labelId: InventoryIdSchema,
+  machineId: InventoryIdSchema,
+  action: QrLabelActivityActionSchema,
+  actorUserId: z.string().min(1),
+  requestId: z.string().min(1).max(200),
+  createdAt: TimestampSchema,
+});
+
 const OptionalNullableTextSchema = z.string().max(240).nullable().optional();
 const OptionalNullableTimestampSchema = TimestampSchema.nullable().optional();
 
@@ -209,6 +267,14 @@ export const RelocateMachineRequestSchema = z.object({
   expectedVersion: VersionSchema,
 });
 
+export const CreateQrLabelRequestSchema = z.object({}).strict();
+export const ReissueQrLabelRequestSchema = VersionedRequestSchema;
+export const RevokeQrLabelRequestSchema = VersionedRequestSchema;
+export const ResolveQrLabelRequestSchema = z.union([
+  z.object({ token: QrTokenSchema }).strict(),
+  z.object({ fallbackCode: QrFallbackCodeSchema }).strict(),
+]);
+
 export const MachineSearchQuerySchema = z.object({
   query: z.string().trim().max(160).default(""),
   page: z.coerce.number().int().positive().default(1),
@@ -235,6 +301,11 @@ export const MachineSearchResponseSchema = z.object({
   pageSize: z.number().int().positive(),
   total: z.number().int().nonnegative(),
 });
+export const QrLabelResponseSchema = z.object({ label: QrLabelSchema });
+export const QrLabelListResponseSchema = z.object({
+  labels: z.array(QrLabelSchema),
+});
+export const ResolveQrLabelResponseSchema = MachineDetailSchema;
 export const IdentityConflictResponseSchema = z.object({
   statusCode: z.literal(409),
   code: z.literal("identity_conflict"),
@@ -256,6 +327,10 @@ export type MachineIdentityVerificationHistory = z.infer<
   typeof MachineIdentityVerificationHistorySchema
 >;
 export type MachineDetail = z.infer<typeof MachineDetailSchema>;
+export type QrLabelState = z.infer<typeof QrLabelStateSchema>;
+export type QrLabelActivityAction = z.infer<typeof QrLabelActivityActionSchema>;
+export type QrLabel = z.infer<typeof QrLabelSchema>;
+export type QrLabelActivity = z.infer<typeof QrLabelActivitySchema>;
 export type CreateAcquisitionLoadRequest = z.infer<
   typeof CreateAcquisitionLoadRequestSchema
 >;
@@ -275,5 +350,9 @@ export type UpdateMachineIdentityRequest = z.infer<
 export type RelocateMachineRequest = z.infer<
   typeof RelocateMachineRequestSchema
 >;
+export type CreateQrLabelRequest = z.infer<typeof CreateQrLabelRequestSchema>;
+export type ReissueQrLabelRequest = z.infer<typeof ReissueQrLabelRequestSchema>;
+export type RevokeQrLabelRequest = z.infer<typeof RevokeQrLabelRequestSchema>;
+export type ResolveQrLabelRequest = z.infer<typeof ResolveQrLabelRequestSchema>;
 export type MachineSearchQuery = z.infer<typeof MachineSearchQuerySchema>;
 export type MachineSearchResponse = z.infer<typeof MachineSearchResponseSchema>;

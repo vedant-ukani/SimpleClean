@@ -24,6 +24,10 @@ export function canManageMachines(role: ApplicationRole): boolean {
   return roleHasPermission(role, "inventory.machines.manage");
 }
 
+export function canManageQrLabels(role: ApplicationRole): boolean {
+  return roleHasPermission(role, "inventory.qr_labels.manage");
+}
+
 export function canManageFiles(role: ApplicationRole): boolean {
   return roleHasPermission(role, "files.manage");
 }
@@ -57,6 +61,7 @@ export function navigationForRole(
   }
   if (roleHasPermission(role, "inventory.machines.read")) {
     navigation.push({ href: "/machines", label: "Machines" });
+    navigation.push({ href: "/scan", label: "Scan" });
   }
   if (roleHasPermission(role, "inventory.locations.read")) {
     navigation.push({ href: "/locations", label: "Locations" });

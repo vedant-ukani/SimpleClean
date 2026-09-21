@@ -111,6 +111,7 @@ describe("identity authentication", () => {
             "inventory.machines.relocate",
             "inventory.locations.read",
             "inventory.locations.manage",
+            "inventory.qr_labels.manage",
             "files.read",
             "files.write",
             "files.manage",

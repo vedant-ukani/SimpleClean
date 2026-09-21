@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { getCurrentIdentity } from "../../../../lib/identity-client";
 import { getFiles } from "../../../../lib/files-client";
 import { getLocations, getMachine } from "../../../../lib/inventory-client";
+import { canManageQrLabels } from "../../../../lib/navigation";
+import { listMachineQrLabels } from "../../../../lib/qr-client";
 import { MachineDetailView } from "./machine-detail-view";
 
 export default async function MachineDetailPage({
@@ -14,11 +16,12 @@ export default async function MachineDetailPage({
     headers(),
   ]);
   const cookie = requestHeaders.get("cookie") ?? undefined;
-  const [identity, detail, locations, files] = await Promise.all([
+  const [identity, detail, locations, files, qrLabels] = await Promise.all([
     getCurrentIdentity(fetch, process.env, cookie),
     getMachine(machineId, fetch, process.env, cookie),
     getLocations(fetch, process.env, cookie),
     getFiles({ type: "machine", id: machineId }, fetch, process.env, cookie),
+    listMachineQrLabels(machineId, fetch, process.env, cookie),
   ]);
   return (
     <main className="page-main page-main--wide">
@@ -39,6 +42,8 @@ export default async function MachineDetailPage({
         )}
         initialFiles={files}
         canUploadFiles={roleHasPermission(identity.user.role, "files.write")}
+        initialQrLabels={qrLabels}
+        canManageQrLabels={canManageQrLabels(identity.user.role)}
       />
     </main>
   );

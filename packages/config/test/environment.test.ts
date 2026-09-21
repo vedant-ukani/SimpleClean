@@ -61,6 +61,64 @@ describe("server environment", () => {
     ).toThrow("AUTH_SESSION_DURATION_SECONDS");
   });
 
+  it("validates the dedicated QR signing secret and public origin", () => {
+    const config = parseServerEnvironment(createTestEnvironment());
+    expect(config.platformPublicOrigin).toBe("http://localhost:3000");
+    expect(config.qrSigningSecret).not.toBe(config.authSecret);
+
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ QR_SIGNING_SECRET: "too-short" }),
+      ),
+    ).toThrow("QR_SIGNING_SECRET");
+    const sharedSecret = "shared-secret-value-with-at-least-32-characters";
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          AUTH_SECRET: sharedSecret,
+          QR_SIGNING_SECRET: sharedSecret,
+        }),
+      ),
+    ).toThrow("distinct from AUTH_SECRET");
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          PLATFORM_PUBLIC_ORIGIN: "https://app.example.test/scan?token=bad",
+        }),
+      ),
+    ).toThrow("must be an HTTP(S) origin");
+  });
+
+  it("requires an HTTPS public origin and high-entropy QR secret when deployed", () => {
+    const deployed = {
+      NODE_ENV: "production",
+      DATABASE_DRIVER: "postgres",
+      DATABASE_URL: "postgres://database.example/simply_clean",
+      AUTH_SECRET: "unique-production-auth-secret-with-entropy-42!",
+      AUTH_BASE_URL: "https://api.example.test",
+      AUTH_TRUSTED_ORIGIN: "https://app.example.test",
+      FILE_STORAGE_DRIVER: "local",
+      ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED: "true",
+    };
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          ...deployed,
+          PLATFORM_PUBLIC_ORIGIN: "http://app.example.test",
+        }),
+      ),
+    ).toThrow("PLATFORM_PUBLIC_ORIGIN: must use HTTPS");
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          ...deployed,
+          PLATFORM_PUBLIC_ORIGIN: "https://app.example.test",
+          QR_SIGNING_SECRET: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        }),
+      ),
+    ).toThrow("QR_SIGNING_SECRET: must be a high-entropy");
+  });
+
   it("requires HTTPS auth URLs in deployed environments", () => {
     expect(() =>
       parseServerEnvironment(

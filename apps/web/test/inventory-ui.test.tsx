@@ -44,10 +44,14 @@ describe("inventory UI", () => {
         canRelocate={false}
         initialFiles={[]}
         canUploadFiles={false}
+        initialQrLabels={[]}
+        canManageQrLabels={false}
       />,
     );
     expect(markup).toContain("Not recorded");
     expect(markup).toContain("Provisional identity — not verified");
+    expect(markup).toContain("QR label");
+    expect(markup).toContain("No active QR label");
     expect(markup).not.toContain("Save identity evidence");
   });
 
@@ -75,6 +79,8 @@ describe("inventory UI", () => {
           canRelocate
           initialFiles={[]}
           canUploadFiles
+          initialQrLabels={[]}
+          canManageQrLabels
         />
       </>,
     );

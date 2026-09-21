@@ -22,6 +22,7 @@ describe("authorization policy", () => {
       "inventory.machines.relocate",
       "inventory.locations.read",
       "inventory.locations.manage",
+      "inventory.qr_labels.manage",
       "files.read",
       "files.write",
       "files.manage",
@@ -40,6 +41,7 @@ describe("authorization policy", () => {
       "inventory.machines.verify",
       "inventory.machines.relocate",
       "inventory.locations.read",
+      "inventory.qr_labels.manage",
       "files.read",
       "files.write",
     ]);
@@ -69,6 +71,12 @@ describe("authorization policy", () => {
       roleHasPermission("technician_cleaner", "inventory.machines.manage"),
     ).toBe(false);
     expect(roleHasPermission("warehouse", "files.manage")).toBe(false);
+    expect(roleHasPermission("warehouse", "inventory.qr_labels.manage")).toBe(
+      true,
+    );
+    expect(
+      roleHasPermission("technician_cleaner", "inventory.qr_labels.manage"),
+    ).toBe(false);
     expect(roleHasPermission("technician_cleaner", "files.write")).toBe(true);
     expect(roleHasPermission("owner_admin", "imports.manage")).toBe(true);
     expect(roleHasPermission("warehouse", "imports.read")).toBe(false);

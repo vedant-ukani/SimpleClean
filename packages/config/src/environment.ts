@@ -36,6 +36,8 @@ const serverEnvironmentSchema = z
       .min(300)
       .max(86_400)
       .default(28_800),
+    QR_SIGNING_SECRET: z.string().min(32),
+    PLATFORM_PUBLIC_ORIGIN: z.url().default("http://localhost:3000"),
     FILE_STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
     FILE_LOCAL_DIRECTORY: z.string().min(1).default(".local-data/files"),
     ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED: booleanFromString.default(false),
@@ -162,6 +164,31 @@ const serverEnvironmentSchema = z
       });
     }
 
+    if (environment.QR_SIGNING_SECRET === environment.AUTH_SECRET) {
+      context.addIssue({
+        code: "custom",
+        path: ["QR_SIGNING_SECRET"],
+        message: "must be distinct from AUTH_SECRET",
+      });
+    }
+
+    const publicOrigin = new URL(environment.PLATFORM_PUBLIC_ORIGIN);
+    if (
+      !["http:", "https:"].includes(publicOrigin.protocol) ||
+      publicOrigin.username !== "" ||
+      publicOrigin.password !== "" ||
+      publicOrigin.pathname !== "/" ||
+      publicOrigin.search !== "" ||
+      publicOrigin.hash !== ""
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["PLATFORM_PUBLIC_ORIGIN"],
+        message:
+          "must be an HTTP(S) origin without credentials, path, query, or fragment",
+      });
+    }
+
     if (isDeployed) {
       if (
         /change-me|replace-me|test-only/i.test(environment.AUTH_SECRET) ||
@@ -181,6 +208,23 @@ const serverEnvironmentSchema = z
             message: "must use HTTPS in staging or production",
           });
         }
+      }
+      if (
+        /change-me|replace-me|test-only/i.test(environment.QR_SIGNING_SECRET) ||
+        new Set(environment.QR_SIGNING_SECRET).size < 10
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["QR_SIGNING_SECRET"],
+          message: "must be a high-entropy deployed secret",
+        });
+      }
+      if (publicOrigin.protocol !== "https:") {
+        context.addIssue({
+          code: "custom",
+          path: ["PLATFORM_PUBLIC_ORIGIN"],
+          message: "must use HTTPS in staging or production",
+        });
       }
     }
   });
@@ -208,6 +252,8 @@ export interface ServerConfig {
   authBaseUrl: string;
   authTrustedOrigin: string;
   authSessionDurationSeconds: number;
+  qrSigningSecret: string;
+  platformPublicOrigin: string;
   fileStorageDriver: "local" | "s3";
   fileLocalDirectory: string;
   allowLocalFileStorageInDeployed: boolean;
@@ -270,6 +316,8 @@ export function parseServerEnvironment(
     authBaseUrl: result.data.AUTH_BASE_URL,
     authTrustedOrigin: result.data.AUTH_TRUSTED_ORIGIN,
     authSessionDurationSeconds: result.data.AUTH_SESSION_DURATION_SECONDS,
+    qrSigningSecret: result.data.QR_SIGNING_SECRET,
+    platformPublicOrigin: new URL(result.data.PLATFORM_PUBLIC_ORIGIN).origin,
     fileStorageDriver: result.data.FILE_STORAGE_DRIVER,
     fileLocalDirectory: result.data.FILE_LOCAL_DIRECTORY,
     allowLocalFileStorageInDeployed:

@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 
 import { LoginError } from "../src/app/login/login-form";
 import { TeamManagement } from "../src/app/(protected)/admin/users/team-management";
-import { canManageUsers, navigationForRole } from "../src/lib/navigation";
+import {
+  canManageQrLabels,
+  canManageUsers,
+  navigationForRole,
+} from "../src/lib/navigation";
 
 describe("role-aware identity UI", () => {
   it("shows team management only to the Owner Admin", () => {
@@ -15,19 +19,24 @@ describe("role-aware identity UI", () => {
       "/admin/imports",
       "/loads",
       "/machines",
+      "/scan",
       "/locations",
     ]);
     expect(navigationForRole("warehouse").map((item) => item.href)).toEqual([
       "/",
       "/loads",
       "/machines",
+      "/scan",
       "/locations",
     ]);
     expect(
       navigationForRole("technician_cleaner").map((item) => item.href),
-    ).toEqual(["/", "/machines", "/locations"]);
+    ).toEqual(["/", "/machines", "/scan", "/locations"]);
     expect(canManageUsers("owner_admin")).toBe(true);
     expect(canManageUsers("warehouse")).toBe(false);
+    expect(canManageQrLabels("owner_admin")).toBe(true);
+    expect(canManageQrLabels("warehouse")).toBe(true);
+    expect(canManageQrLabels("technician_cleaner")).toBe(false);
   });
 
   it("renders login failures as an accessible alert", () => {

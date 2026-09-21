@@ -4,6 +4,7 @@ import {
   AuditEntrySchema,
   AuditListQuerySchema,
   OperationsActionSchema,
+  OperationsTargetTypeSchema,
   OutboxJobSchema,
   SafeMutationSummarySchema,
 } from "../src/index.js";
@@ -13,6 +14,10 @@ describe("operations contracts", () => {
     expect(OperationsActionSchema.parse("inventory.machine.created")).toBe(
       "inventory.machine.created",
     );
+    expect(OperationsActionSchema.parse("inventory.qr_label.reissued")).toBe(
+      "inventory.qr_label.reissued",
+    );
+    expect(OperationsTargetTypeSchema.parse("qr_label")).toBe("qr_label");
     expect(
       SafeMutationSummarySchema.parse({
         changedFields: ["identity_verification_state"],

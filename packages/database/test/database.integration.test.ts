@@ -50,10 +50,148 @@ describe("PGlite integration", () => {
             ,'inventory_import_approval'
             ,'inventory_import_approval_row'
             ,'inventory_import_machine_mapping'
+            ,'inventory_qr_label'
+            ,'inventory_qr_label_activity'
           )
       `);
       const rows = "rows" in result ? result.rows : result;
-      expect(rows).toHaveLength(24);
+      expect(rows).toHaveLength(26);
+    } finally {
+      await connection.close();
+    }
+  });
+
+  it("enforces QR label identity, lifecycle, one-active, and immutable activity", async () => {
+    const connection = createDatabase(
+      parseServerEnvironment(createTestEnvironment()),
+    );
+    try {
+      await connection.migrate();
+      await connection.database.execute(sql`
+        insert into "user" (id, name, email)
+        values ('qr-user', 'QR User', 'qr-user@example.test')
+      `);
+      await connection.database.execute(sql`
+        insert into inventory_load (id, display_name)
+        values ('qr-load', 'QR fixture load')
+      `);
+      await connection.database.execute(sql`
+        insert into inventory_machine (id, machine_type, source_load_id)
+        values
+          ('qr-machine-1', 'washer', 'qr-load'),
+          ('qr-machine-2', 'dryer', 'qr-load')
+      `);
+      await connection.database.execute(sql`
+        insert into inventory_qr_label (
+          id, machine_id, fallback_code, issued_by_user_id
+        ) values (
+          '4498c172-93d8-4eca-b0f6-0e70fe03516c',
+          'qr-machine-1',
+          '0123456789ABCDEF',
+          'qr-user'
+        )
+      `);
+
+      await expect(
+        connection.database.execute(sql`
+          insert into inventory_qr_label (
+            id, machine_id, fallback_code, issued_by_user_id
+          ) values (
+            '4598c172-93d8-4eca-b0f6-0e70fe03516c',
+            'qr-machine-1',
+            '12345678ABCDEFGH',
+            'qr-user'
+          )
+        `),
+      ).rejects.toThrow();
+      await expect(
+        connection.database.execute(sql`
+          insert into inventory_qr_label (
+            id, machine_id, fallback_code, issued_by_user_id
+          ) values (
+            '4698c172-93d8-4eca-b0f6-0e70fe03516c',
+            'qr-machine-2',
+            '0123456789ABCDEF',
+            'qr-user'
+          )
+        `),
+      ).rejects.toThrow();
+      await expect(
+        connection.database.execute(sql`
+          update inventory_qr_label
+          set fallback_code = '12345678ABCDEFGH', version = 2
+          where id = '4498c172-93d8-4eca-b0f6-0e70fe03516c'
+        `),
+      ).rejects.toThrow();
+
+      await connection.database.execute(sql`
+        update inventory_qr_label
+        set state = 'revoked', version = 2,
+            revoked_by_user_id = 'qr-user', revoked_at = now()
+        where id = '4498c172-93d8-4eca-b0f6-0e70fe03516c'
+      `);
+      await connection.database.execute(sql`
+        insert into inventory_qr_label (
+          id, machine_id, fallback_code, issued_by_user_id
+        ) values (
+          '4598c172-93d8-4eca-b0f6-0e70fe03516c',
+          'qr-machine-1',
+          '12345678ABCDEFGH',
+          'qr-user'
+        )
+      `);
+      await expect(
+        connection.database.execute(sql`
+          delete from inventory_qr_label
+          where id = '4498c172-93d8-4eca-b0f6-0e70fe03516c'
+        `),
+      ).rejects.toThrow();
+      await expect(
+        connection.database.execute(sql`
+          insert into inventory_qr_label_activity (
+            id, label_id, machine_id, action, actor_user_id, request_id
+          ) values (
+            'activity-wrong-machine',
+            '4598c172-93d8-4eca-b0f6-0e70fe03516c',
+            'qr-machine-2',
+            'resolved',
+            'qr-user',
+            'request-wrong-machine'
+          )
+        `),
+      ).rejects.toThrow();
+      await connection.database.execute(sql`
+        insert into inventory_qr_label_activity (
+          id, label_id, machine_id, action, actor_user_id, request_id
+        ) values (
+          'activity-1',
+          '4598c172-93d8-4eca-b0f6-0e70fe03516c',
+          'qr-machine-1',
+          'printed',
+          'qr-user',
+          'request-1'
+        )
+      `);
+      await expect(
+        connection.database.execute(sql`
+          update inventory_qr_label_activity
+          set action = 'resolved'
+          where id = 'activity-1'
+        `),
+      ).rejects.toThrow();
+
+      await expect(
+        connection.database.execute(sql`
+          insert into operations_idempotency_record (
+            id, scope, actor_user_id, key_hash, request_fingerprint,
+            state, target_type, target_id, completed_at
+          ) values (
+            'qr-idempotency', 'inventory.qr_label.create', 'qr-user',
+            repeat('a', 64), repeat('b', 64), 'completed', 'qr_label',
+            '4598c172-93d8-4eca-b0f6-0e70fe03516c', now()
+          )
+        `),
+      ).resolves.toBeDefined();
     } finally {
       await connection.close();
     }

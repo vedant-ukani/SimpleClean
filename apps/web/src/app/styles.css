@@ -204,6 +204,7 @@ a:focus-visible {
 .app-header nav {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .app-header nav a {
@@ -493,6 +494,110 @@ a:focus-visible {
   flex-wrap: wrap;
 }
 
+.qr-label-panel,
+.qr-label-history,
+.scan-panel,
+.scan-result-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.qr-label-current {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: #fbfdfc;
+}
+
+.qr-label-current > div:first-child {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.fallback-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.08em;
+}
+
+.qr-label-history h3 {
+  margin: 0;
+}
+
+.qr-label-history .history-row {
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.scan-layout {
+  width: min(100%, 42rem);
+  margin: 0 auto;
+}
+
+.scan-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.scan-form label {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.scan-form input,
+.scan-form button {
+  min-height: 3.5rem;
+  font-size: 1.05rem;
+}
+
+.scan-form input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scan-result {
+  min-height: 4rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.scan-status {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.scan-result-card dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.scan-result-card dl div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.scan-result-card dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scan-result-card dd {
+  margin: 0;
+}
+
+.scan-result-card .button-link {
+  width: fit-content;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -525,5 +630,14 @@ a:focus-visible {
   .inventory-row,
   .search-form {
     grid-template-columns: 1fr;
+  }
+
+  .qr-label-current {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .qr-label-current .row-actions button {
+    flex: 1 1 10rem;
   }
 }

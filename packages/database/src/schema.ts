@@ -422,6 +422,98 @@ export const machineLocationHistory = pgTable(
   ],
 );
 
+export const inventoryQrLabel = pgTable(
+  "inventory_qr_label",
+  {
+    id: text("id").primaryKey(),
+    machineId: text("machine_id")
+      .notNull()
+      .references(() => inventoryMachine.id, { onDelete: "restrict" }),
+    fallbackCode: text("fallback_code").notNull(),
+    state: text("state").notNull().default("active"),
+    version: integer("version").notNull().default(1),
+    issuedByUserId: text("issued_by_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    revokedByUserId: text("revoked_by_user_id").references(() => authUser.id, {
+      onDelete: "restrict",
+    }),
+    issuedAt: timestamp("issued_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("inventory_qr_label_fallback_unique").on(table.fallbackCode),
+    uniqueIndex("inventory_qr_label_id_machine_unique").on(
+      table.id,
+      table.machineId,
+    ),
+    uniqueIndex("inventory_qr_label_one_active_machine_unique")
+      .on(table.machineId)
+      .where(sql`${table.state} = 'active'`),
+    check(
+      "inventory_qr_label_id_check",
+      sql`${table.id} ~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'`,
+    ),
+    check(
+      "inventory_qr_label_fallback_check",
+      sql`${table.fallbackCode} ~ '^[0-9A-HJKMNP-TV-Z]{16}$'`,
+    ),
+    check(
+      "inventory_qr_label_state_check",
+      sql`${table.state} in ('active', 'revoked')`,
+    ),
+    check(
+      "inventory_qr_label_lifecycle_check",
+      sql`(${table.state} = 'active' and ${table.revokedByUserId} is null and ${table.revokedAt} is null) or (${table.state} = 'revoked' and ${table.revokedByUserId} is not null and ${table.revokedAt} is not null)`,
+    ),
+    check("inventory_qr_label_version_check", sql`${table.version} > 0`),
+    index("inventory_qr_label_machine_history_index").on(
+      table.machineId,
+      table.issuedAt,
+    ),
+  ],
+);
+
+export const inventoryQrLabelActivity = pgTable(
+  "inventory_qr_label_activity",
+  {
+    id: text("id").primaryKey(),
+    labelId: text("label_id").notNull(),
+    machineId: text("machine_id")
+      .notNull()
+      .references(() => inventoryMachine.id, { onDelete: "restrict" }),
+    action: text("action").notNull(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    requestId: text("request_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.labelId, table.machineId],
+      foreignColumns: [inventoryQrLabel.id, inventoryQrLabel.machineId],
+      name: "inventory_qr_label_activity_label_machine_fk",
+    }).onDelete("restrict"),
+    check(
+      "inventory_qr_label_activity_action_check",
+      sql`${table.action} in ('created', 'printed', 'resolved', 'revoked', 'reissued')`,
+    ),
+    index("inventory_qr_label_activity_label_index").on(
+      table.labelId,
+      table.createdAt,
+    ),
+    index("inventory_qr_label_activity_machine_index").on(
+      table.machineId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const inventoryImportRun = pgTable(
   "inventory_import_run",
   {
@@ -790,11 +882,11 @@ export const operationsAuditEntry = pgTable(
     ),
     check(
       "operations_audit_action_check",
-      sql`${table.action} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed')`,
+      sql`${table.action} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'inventory.qr_label.created', 'inventory.qr_label.revoked', 'inventory.qr_label.reissued', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed')`,
     ),
     check(
       "operations_audit_target_type_check",
-      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job', 'import_run')`,
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'qr_label', 'file', 'outbox_job', 'import_run')`,
     ),
     index("operations_audit_created_index").on(table.createdAt),
     index("operations_audit_action_index").on(table.action, table.createdAt),
@@ -848,11 +940,11 @@ export const platformOutboxJob = pgTable(
     ),
     check(
       "platform_outbox_event_type_check",
-      sql`${table.eventType} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed')`,
+      sql`${table.eventType} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'inventory.qr_label.created', 'inventory.qr_label.revoked', 'inventory.qr_label.reissued', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed')`,
     ),
     check(
       "platform_outbox_target_type_check",
-      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'file', 'outbox_job', 'import_run')`,
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'qr_label', 'file', 'outbox_job', 'import_run')`,
     ),
     check(
       "platform_outbox_state_check",
@@ -912,7 +1004,7 @@ export const operationsIdempotencyRecord = pgTable(
     ),
     check(
       "operations_idempotency_target_type_check",
-      sql`${table.targetType} is null or ${table.targetType} in ('load', 'location', 'machine', 'import_run')`,
+      sql`${table.targetType} is null or ${table.targetType} in ('load', 'location', 'machine', 'qr_label', 'import_run')`,
     ),
     index("operations_idempotency_target_index").on(
       table.targetType,

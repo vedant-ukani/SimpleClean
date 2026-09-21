@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CreateQrLabelRequestSchema,
   CreateMachineRequestSchema,
   MachineSchema,
   MachineSearchQuerySchema,
+  QrLabelActivitySchema,
+  QrLabelSchema,
+  ResolveQrLabelRequestSchema,
   UpdateMachineIdentityRequestSchema,
 } from "../src/index.js";
 
@@ -41,6 +45,66 @@ describe("inventory contracts", () => {
       MachineSchema.safeParse({
         id: "not-a-uuid",
         productionState: "testing",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates privacy-safe QR label lifecycle and lookup contracts", () => {
+    expect(CreateQrLabelRequestSchema.parse({})).toEqual({});
+    expect(
+      CreateQrLabelRequestSchema.safeParse({ machineId: "not-in-body" })
+        .success,
+    ).toBe(false);
+    const activeLabel = {
+      id: "4498c172-93d8-4eca-b0f6-0e70fe03516c",
+      machineId: "3498c172-93d8-4eca-b0f6-0e70fe03516c",
+      fallbackCode: "0123456789ABCDEF",
+      state: "active",
+      version: 1,
+      issuedByUserId: "user-1",
+      revokedByUserId: null,
+      issuedAt: new Date().toISOString(),
+      revokedAt: null,
+    };
+    expect(QrLabelSchema.parse(activeLabel)).toMatchObject({
+      state: "active",
+      fallbackCode: "0123456789ABCDEF",
+    });
+    expect(
+      QrLabelSchema.safeParse({
+        ...activeLabel,
+        state: "revoked",
+      }).success,
+    ).toBe(false);
+    expect(
+      QrLabelActivitySchema.parse({
+        id: "5498c172-93d8-4eca-b0f6-0e70fe03516c",
+        labelId: activeLabel.id,
+        machineId: activeLabel.machineId,
+        action: "resolved",
+        actorUserId: "user-2",
+        requestId: "request-1",
+        createdAt: new Date().toISOString(),
+      }),
+    ).toMatchObject({ action: "resolved" });
+
+    const token =
+      "v1.4498c172-93d8-4eca-b0f6-0e70fe03516c.ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq";
+    expect(ResolveQrLabelRequestSchema.parse({ token })).toEqual({ token });
+    expect(
+      ResolveQrLabelRequestSchema.parse({
+        fallbackCode: activeLabel.fallbackCode,
+      }),
+    ).toEqual({ fallbackCode: activeLabel.fallbackCode });
+    expect(
+      ResolveQrLabelRequestSchema.safeParse({
+        token,
+        fallbackCode: activeLabel.fallbackCode,
+      }).success,
+    ).toBe(false);
+    expect(
+      ResolveQrLabelRequestSchema.safeParse({
+        fallbackCode: "O0I1-L2",
       }).success,
     ).toBe(false);
   });

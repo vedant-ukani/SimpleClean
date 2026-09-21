@@ -41,6 +41,7 @@ export class OperationsModule {
         { provide: OPERATIONS_CLOCK, useValue: { now: () => new Date() } },
       ],
       exports: [
+        SERVER_CONFIG,
         MUTATION_RECORDER,
         IDEMPOTENCY_COORDINATOR,
         INTERNAL_EVENT_DISPATCHER,
