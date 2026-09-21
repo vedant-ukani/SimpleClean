@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-21 — Atomic audit, idempotency, and PostgreSQL outbox delivery
+
+Record a privacy-safe central audit entry and a durable outbox job through one Operations port using the owning domain repository's active PostgreSQL transaction. Keep specialized Identity, Inventory, and Files histories for domain evidence. Require retry-prone Inventory creates to hash their idempotency keys, compare canonical request fingerprints, and store only the completed target reference.
+
+Consequences: a domain mutation, audit entry, and outbox job commit together or not at all; duplicate accepted creates resolve to one record; and cross-domain history remains searchable without copying sensitive payloads. The API-hosted worker provides at-least-once internal delivery through bounded leases, attempt-on-claim, stale-lease rejection, finite backoff, dead-letter visibility, and versioned Owner requeue. Future event handlers must use the stable job ID for side-effect idempotency. External brokers and provider handlers remain later adapter decisions.
+
 ## 2026-09-21 — Private file metadata, storage adapters, and one-time access
 
 Keep Machine/Load attachment metadata and relationships in PostgreSQL while storing bytes behind a provider-neutral Files module `StorageAdapter`. Use generated opaque object keys, byte-signature/media/size/checksum validation, and private local or S3-compatible storage. Issue only short-lived one-time grants whose SHA-256 hashes are persisted and whose use is bound to the issuing user, exact session, file, and operation.

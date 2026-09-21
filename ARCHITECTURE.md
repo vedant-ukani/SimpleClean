@@ -744,7 +744,8 @@ This map describes the canonical home for reusable product decisions. The applic
 | Authentication and staff identity | `apps/api/src/modules/identity`; Better Auth owns credentials/sessions and the platform profile owns role/active state |
 | Authorization policy | `packages/contracts/src/authorization.ts` for role/permission decisions; enforced by the Identity module's global API guard |
 | Authenticated web API access | Same-origin `/api/*` proxy in `apps/web/next.config.ts`; validated clients in `apps/web/src/lib` |
-| Audit, idempotency, outbox, and durable jobs | Platform infrastructure modules with small domain-facing interfaces |
+| Audit, idempotency, outbox, and durable jobs | `apps/api/src/modules/operations`; domains call its mutation-recorder/idempotency ports with their active database executor, and its worker dispatches the PostgreSQL outbox |
+| Operations contracts and Owner review | `packages/contracts/src/operations.ts`, `/operations/*`, and `apps/web/src/app/(protected)/admin/operations` |
 
 ### Conventions (rules no keyword search will find)
 
@@ -765,6 +766,9 @@ This map describes the canonical home for reusable product decisions. The applic
 - Operational mutations use expected versions. Current location changes only through the Inventory relocation use case, in the same transaction as location history.
 - Inventory, production, listing, sales, payment, and shipment states remain independent axes.
 - Domain changes and their outbox records commit atomically. Retried handlers use idempotency keys or provider event IDs.
+- Cross-domain audit is a privacy-safe index, not a replacement for detailed domain history. Owning repositories record the domain change, audit entry, and outbox job in one transaction.
+- Retry-prone create commands hash their idempotency keys, compare canonical parsed-input fingerprints, and replay target references. Raw keys and request bodies are never persisted.
+- Outbox delivery is at least once. Workers claim bounded leases, increment attempts on claim, reject stale completion, back off finitely, and dead-letter exhausted work. Future handlers must deduplicate with the stable job ID.
 - Files are private by default. PostgreSQL holds metadata and relationships; object storage holds bytes; access uses short-lived grants.
 - File storage keys are generated IDs, never client filenames. Upload/download grants are stored only as hashes, bound to the exact user/session/file/operation, expire quickly, and are consumed once.
 - File readiness requires detected byte signature, size, media type, checksum, and stored-object metadata to agree. Upload leases plus optimistic versions prevent cleanup from racing an in-flight write.
