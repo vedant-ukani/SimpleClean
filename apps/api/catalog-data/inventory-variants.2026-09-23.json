@@ -1,0 +1,127 @@
+{
+  "datasetId": "inventory-variants-2026-09-23",
+  "snapshotDate": "2026-09-23",
+  "checksum": "cdb85936e31b4a877ef4b39177b92a72c6b799ecbe25609c1fc809c109dfdf34",
+  "manufacturers": [
+    {
+      "id": "huebsch",
+      "name": "Huebsch",
+      "aliases": [],
+      "sources": [
+        {
+          "id": "inventory-huebsch-806117",
+          "url": "https://docs.alliancelaundry.com/tech_pdf/partsservice/806117.pdf",
+          "title": "Huebsch 806117 Parts Manual",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": "806117R14",
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        }
+      ],
+      "models": [
+        {
+          "id": "huebsch-hfnkcasg115tw01",
+          "family": "Huebsch front-load washers",
+          "model": "HFNKCASG115TW01",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "huebsch-hfnkcasg115tw01-r1",
+            "revision": 1,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "inventory-huebsch-806117",
+                "locator": "PDF p. 4, Model Identification",
+                "officialValue": "HFNKCASG115TW01",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "inventory-huebsch-806117",
+                "locator": "PDF p. 4, Model Identification, washer model table",
+                "officialValue": "washer",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "maytag-commercial",
+      "name": "Maytag Commercial",
+      "aliases": ["Maytag"],
+      "sources": [
+        {
+          "id": "inventory-maytag-mah21pddww",
+          "url": "https://www.maytag.com/content/dam/global/documents/201102/parts-list-MAH21PDDWW.pdf",
+          "title": "Maytag MAH21PDDWW Repair Parts List",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        }
+      ],
+      "models": [
+        {
+          "id": "maytag-commercial-mah21pddww",
+          "family": "Maytag commercial washers",
+          "model": "MAH21PDDWW",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-mah21pddww-r1",
+            "revision": 1,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "inventory-maytag-mah21pddww",
+                "locator": "Repair parts list model header: MAH21PDDWW",
+                "officialValue": "MAH21PDDWW",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "inventory-maytag-mah21pddww",
+                "locator": "Repair parts list washer model: MAH21PDDWW",
+                "officialValue": "washer",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        }
+      ]
+    }
+  ]
+}

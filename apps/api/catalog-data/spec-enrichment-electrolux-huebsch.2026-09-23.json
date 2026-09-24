@@ -1,0 +1,1636 @@
+{
+  "datasetId": "catalog-spec-enrichment-electrolux-huebsch-2026-09-23",
+  "snapshotDate": "2026-09-23",
+  "checksum": "c9babd0f56583e123e854c52d98b4c8274ab27c173cfb96f811130889ab5f1d4",
+  "manufacturers": [
+    {
+      "id": "electrolux-professional",
+      "name": "Electrolux Professional",
+      "aliases": ["Electrolux"],
+      "sources": [
+        {
+          "id": "electrolux-ep01",
+          "url": "https://www.electroluxprofessional.com/jp/download/errorsearch/",
+          "title": "Washer/Dryer/Wash-Dryer Error Code Search",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "electrolux-enrichment-ep06-2026-09-23",
+          "url": "https://www.electroluxprofessional.com/gb/wp-content/uploads/2017/05/Facility-Management-Range-Overview-2017.pdf",
+          "title": "Facility Management Range Overview 2017 — exact model specification tables",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "ceed06fb3976c1804db9c71850a8efa45153abf989a34f650f7da597d3cabedc"
+        },
+        {
+          "id": "electrolux-enrichment-t5300s-2026-09-23",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PS_438919518EN_T5300S_EN.pdf",
+          "title": "T5300S product datasheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official manufacturer datasheet reviewed through public document extraction; source bytes were not retained for a content checksum."
+        }
+      ],
+      "models": [
+        {
+          "id": "electrolux-professional-td6-6",
+          "family": "Line6000 single dryers",
+          "model": "TD6-6",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-6-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 23.5039,
+              "depthIn": 28.5433,
+              "heightIn": 33.0315,
+              "weightLb": null,
+              "capacityLb": 13.2,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating option: electric"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-6",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-6 exact model row",
+                "officialValue": "597",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-6 exact model row",
+                "officialValue": "725",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-6 exact model row",
+                "officialValue": "839",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-6 exact model row",
+                "officialValue": "6",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-6 exact model row",
+                "officialValue": "Heating option: electric",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-7",
+          "family": "Line6000 single dryers",
+          "model": "TD6-7",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-7-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 23.622,
+              "depthIn": 33.2677,
+              "heightIn": 41.3386,
+              "weightLb": null,
+              "capacityLb": 15.4,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric and gas"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-7",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-7 exact model row",
+                "officialValue": "600",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-7 exact model row",
+                "officialValue": "845",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-7 exact model row",
+                "officialValue": "1050",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-7 exact model row",
+                "officialValue": "7",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-7 exact model row",
+                "officialValue": "Heating options: electric and gas",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-14",
+          "family": "Line6000 single dryers",
+          "model": "TD6-14",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-14-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 31.2205,
+              "depthIn": 37.9921,
+              "heightIn": 69.7244,
+              "weightLb": null,
+              "capacityLb": 30.9,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": [
+                "Heating options: electric, gas, steam, and heat pump"
+              ]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-14",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-14 exact model row",
+                "officialValue": "793",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-14 exact model row",
+                "officialValue": "965",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-14 exact model row",
+                "officialValue": "1771",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-14 exact model row",
+                "officialValue": "14",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-14 exact model row",
+                "officialValue": "Heating options: electric, gas, steam, and heat pump",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-20",
+          "family": "Line6000 single dryers",
+          "model": "TD6-20",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-20-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 31.2205,
+              "depthIn": 47.3228,
+              "heightIn": 69.7244,
+              "weightLb": null,
+              "capacityLb": 44.1,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": [
+                "Heating options: electric, gas, steam, and heat pump"
+              ]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-20 exact model row",
+                "officialValue": "793",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-20 exact model row",
+                "officialValue": "1202",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-20 exact model row",
+                "officialValue": "1771",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-20 exact model row",
+                "officialValue": "20",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 12, TD6-20 exact model row",
+                "officialValue": "Heating options: electric, gas, steam, and heat pump",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-w5130n",
+          "family": "Line5000 washers",
+          "model": "W5130N",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-w5130n-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 28.3465,
+              "depthIn": 30.9843,
+              "heightIn": 47.874,
+              "weightLb": null,
+              "capacityLb": 30.9,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating alternatives shown in exact model row"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "W5130N",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5130N exact model row",
+                "officialValue": "720",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5130N exact model row",
+                "officialValue": "787",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5130N exact model row",
+                "officialValue": "1216",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5130N exact model row",
+                "officialValue": "14",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5130N exact model row",
+                "officialValue": "Heating alternatives shown in exact model row",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-w5250n",
+          "family": "Line5000 washers",
+          "model": "W5250N",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-w5250n-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 32.6772,
+              "depthIn": 40.5118,
+              "heightIn": 56.1417,
+              "weightLb": null,
+              "capacityLb": 61.7,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating alternatives shown in exact model row"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "W5250N",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5250N exact model row",
+                "officialValue": "830",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5250N exact model row",
+                "officialValue": "1029",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5250N exact model row",
+                "officialValue": "1426",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5250N exact model row",
+                "officialValue": "28",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5250N exact model row",
+                "officialValue": "Heating alternatives shown in exact model row",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-w5330n",
+          "family": "Line5000 washers",
+          "model": "W5330N",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-w5330n-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 35.8268,
+              "depthIn": 43.8583,
+              "heightIn": 57.6772,
+              "weightLb": null,
+              "capacityLb": 77.2,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating alternatives shown in exact model row"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "W5330N",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5330N exact model row",
+                "officialValue": "910",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5330N exact model row",
+                "officialValue": "1114",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5330N exact model row",
+                "officialValue": "1465",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5330N exact model row",
+                "officialValue": "35",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 8, W5330N exact model row",
+                "officialValue": "Heating alternatives shown in exact model row",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t5190",
+          "family": "Line5000 dryers",
+          "model": "T5190",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t5190-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 28.3858,
+              "depthIn": 30.6299,
+              "heightIn": 43.8583,
+              "weightLb": null,
+              "capacityLb": 23.4,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric and gas"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "T5190",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190 exact model row",
+                "officialValue": "721",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190 exact model row",
+                "officialValue": "778",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190 exact model row",
+                "officialValue": "1114",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190 exact model row",
+                "officialValue": "10.6",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190 exact model row",
+                "officialValue": "Heating options: electric and gas",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t5190le",
+          "family": "Line5000 dryers",
+          "model": "T5190LE",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t5190le-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 28.4252,
+              "depthIn": 30.5906,
+              "heightIn": 66.3386,
+              "weightLb": null,
+              "capacityLb": 19,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric and heat pump"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "T5190LE",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190LE exact model row",
+                "officialValue": "722",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190LE exact model row",
+                "officialValue": "777",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190LE exact model row",
+                "officialValue": "1685",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190LE exact model row",
+                "officialValue": "8.6",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5190LE exact model row",
+                "officialValue": "Heating options: electric and heat pump",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t5290",
+          "family": "Line5000 dryers",
+          "model": "T5290",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t5290-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 28.0709,
+              "depthIn": 47.6378,
+              "heightIn": 66.4567,
+              "weightLb": null,
+              "capacityLb": 35.5,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric, gas, and steam"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "T5290",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5290 exact model row",
+                "officialValue": "713",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5290 exact model row",
+                "officialValue": "1210",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5290 exact model row",
+                "officialValue": "1688",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5290 exact model row",
+                "officialValue": "16.1",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5290 exact model row",
+                "officialValue": "Heating options: electric, gas, and steam",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t5300s",
+          "family": "Line5000 dryers",
+          "model": "T5300S",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t5300s-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 31.1024,
+              "depthIn": 43.8976,
+              "heightIn": 76.378,
+              "weightLb": 637.1,
+              "capacityLb": 36.8,
+              "voltage": [
+                "120V 1~",
+                "208–240V 1~",
+                "200V 3~",
+                "220–240V 1~",
+                "380–480V 3~"
+              ],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": ["electric", "gas"],
+              "configuration": [
+                "Two pockets; rated capacity 16.7 kg / 37 lb per pocket; electric or gas heating"
+              ]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "T5300S",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 1, Main specifications and capacity; PDF p. 2, Electrical connections",
+                "officialValue": "790",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 1, Main specifications and capacity; PDF p. 2, Electrical connections",
+                "officialValue": "1115",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 1, Main specifications and capacity; PDF p. 2, Electrical connections",
+                "officialValue": "1940",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 1, Main specifications and capacity; PDF p. 2, Electrical connections",
+                "officialValue": "2 x 16.7",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 1, Main specifications and capacity; PDF p. 2, Electrical connections",
+                "officialValue": "Two pockets; rated capacity 16.7 kg / 37 lb per pocket; electric or gas heating",
+                "officialUnit": null
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 1, Main specifications, net weight",
+                "officialValue": "289",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 2, Electrical connections, voltage options",
+                "officialValue": "120V 1~; 208–240V 1~; 200V 3~; 220–240V 1~; 380–480V 3~",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 2, Electrical connections, voltage options",
+                "officialValue": "1 phase; 3 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "fuel",
+                "sourceId": "electrolux-enrichment-t5300s-2026-09-23",
+                "locator": "PDF p. 1, Main specifications, heating",
+                "officialValue": "Electric; gas",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t5425s",
+          "family": "Line5000 dryers",
+          "model": "T5425S",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t5425s-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 34.1732,
+              "depthIn": 52.1654,
+              "heightIn": 82.126,
+              "weightLb": null,
+              "capacityLb": 51.8,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating option: gas"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "T5425S",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5425S exact model row",
+                "officialValue": "868",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5425S exact model row",
+                "officialValue": "1325",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5425S exact model row",
+                "officialValue": "2086",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5425S exact model row",
+                "officialValue": "23.5",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5425S exact model row",
+                "officialValue": "Heating option: gas",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t5550",
+          "family": "Line5000 dryers",
+          "model": "T5550",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t5550-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 37.8346,
+              "depthIn": 53.7402,
+              "heightIn": 73.5827,
+              "weightLb": null,
+              "capacityLb": 67.2,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric, gas, and steam"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "T5550",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5550 exact model row",
+                "officialValue": "961",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5550 exact model row",
+                "officialValue": "1365",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5550 exact model row",
+                "officialValue": "1869",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5550 exact model row",
+                "officialValue": "30.5",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5550 exact model row",
+                "officialValue": "Heating options: electric, gas, and steam",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t5675",
+          "family": "Line5000 dryers",
+          "model": "T5675",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t5675-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2013,
+            "productionEndYear": 2019,
+            "specs": {
+              "widthIn": 37.8346,
+              "depthIn": 61.4173,
+              "heightIn": 73.1102,
+              "weightLb": null,
+              "capacityLb": 82.7,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric, gas, and steam"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "T5675",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line5000 (2013–2019) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5675 exact model row",
+                "officialValue": "961",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5675 exact model row",
+                "officialValue": "1560",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5675 exact model row",
+                "officialValue": "1857",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5675 exact model row",
+                "officialValue": "37.5",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T5675 exact model row",
+                "officialValue": "Heating options: electric, gas, and steam",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t4900",
+          "family": "G4000 dryers",
+          "model": "T4900",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t4900-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2007,
+            "productionEndYear": 2013,
+            "specs": {
+              "widthIn": 50.7874,
+              "depthIn": 50.9843,
+              "heightIn": 97.0472,
+              "weightLb": null,
+              "capacityLb": 110.2,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric, gas, and steam"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "T4900",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "2007",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T4900 exact model row",
+                "officialValue": "1290",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T4900 exact model row",
+                "officialValue": "1295",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T4900 exact model row",
+                "officialValue": "2465",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T4900 exact model row",
+                "officialValue": "50",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T4900 exact model row",
+                "officialValue": "Heating options: electric, gas, and steam",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-t41200",
+          "family": "G4000 dryers",
+          "model": "T41200",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-t41200-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": 2007,
+            "productionEndYear": 2013,
+            "specs": {
+              "widthIn": 50.7874,
+              "depthIn": 58.4646,
+              "heightIn": 97.0472,
+              "weightLb": null,
+              "capacityLb": 147,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["Heating options: electric, gas, and steam"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "T41200",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "2007",
+                "officialUnit": "year"
+              },
+              {
+                "field": "productionEndYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "G4000 (2007–2013) dryer list",
+                "officialValue": "2013",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T41200 exact model row",
+                "officialValue": "1290",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T41200 exact model row",
+                "officialValue": "1485",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T41200 exact model row",
+                "officialValue": "2465",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T41200 exact model row",
+                "officialValue": "66.7",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "electrolux-enrichment-ep06-2026-09-23",
+                "locator": "PDF p. 13, T41200 exact model row",
+                "officialValue": "Heating options: electric, gas, and steam",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "huebsch",
+      "name": "Huebsch",
+      "aliases": [],
+      "sources": [
+        {
+          "id": "inventory-huebsch-806117",
+          "url": "https://docs.alliancelaundry.com/tech_pdf/partsservice/806117.pdf",
+          "title": "Huebsch 806117 Parts Manual",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": "806117R14",
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "huebsch-enrichment-ah18-0025-2026-09-23",
+          "url": "https://docs.alliancelaundry.com/adv_pdf/AH18-0025_Vended%20Front%20Load%20Washer.pdf",
+          "title": "Vended Front Load Washer — Galaxy 600 specifications",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": "AH18-0025",
+          "checksum": "6da218e3a534a05386f5253b58c409ae4cde0e6d490eef2355da97ec6fee31b8"
+        }
+      ],
+      "models": [
+        {
+          "id": "huebsch-hfnkcasg115tw01",
+          "family": "Huebsch front-load washers",
+          "model": "HFNKCASG115TW01",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "huebsch-hfnkcasg115tw01-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 26.875,
+              "depthIn": 27.75,
+              "heightIn": 44.38,
+              "weightLb": 270,
+              "capacityLb": 21.5,
+              "voltage": ["120V"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": [
+                "Galaxy 600 controls; Slate - White; Front control"
+              ]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "inventory-huebsch-806117",
+                "locator": "PDF p. 4, Model Identification",
+                "officialValue": "HFNKCASG115TW01",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "inventory-huebsch-806117",
+                "locator": "PDF p. 4, Model Identification, washer model table",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "26.875",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "27.75",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "44.38",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "270",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "21.5",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "120/60/1 - 15 Amp",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "single phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "huebsch-enrichment-ah18-0025-2026-09-23",
+                "locator": "PDF p. 2, Specifications, Front Control / Galaxy 600 Controls / Slate - White model group",
+                "officialValue": "Galaxy 600 controls; Slate - White; Front control",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        }
+      ]
+    }
+  ]
+}

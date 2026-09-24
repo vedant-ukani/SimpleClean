@@ -1,0 +1,81 @@
+{
+  "datasetId": "catalog-dexter-wcvd18kcs-10-2026-09-24",
+  "snapshotDate": "2026-09-24",
+  "checksum": "1eb0eebfc633dd3ae421374955504a378b7484eda534841e06809853a3490d50",
+  "manufacturers": [
+    {
+      "id": "dexter",
+      "name": "Dexter",
+      "aliases": [],
+      "sources": [
+        {
+          "id": "dexter-wcvd18kcs-10-manual-20260924",
+          "url": "https://www.dexter.com/upl/downloads/products/vended/documents/t-600-wcvd-coin-washer-parts-no-stop-button.pdf",
+          "title": "Dexter V-Series Coin Washer Service Procedures and Parts Data",
+          "retrievedAt": "2026-09-24T00:00:00.000Z",
+          "documentRevision": "12-04",
+          "checksum": "8c0015193579e4324a265fab15d46a7dba7ecbabd47d78f7c71e2899cfb13e3f",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "dexter-wcvd18kcs-10",
+          "family": "WCVD washer variants",
+          "model": "WCVD18KCS-10",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "dexter-wcvd18kcs-10-r1",
+            "revision": 1,
+            "approvedAt": "2026-09-24T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": ["120V/60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "dexter-wcvd18kcs-10-manual-20260924",
+                "locator": "PDF p.1 (printed p.76), V-Series Accessories model list",
+                "officialValue": "WCVD18KCS-10",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "dexter-wcvd18kcs-10-manual-20260924",
+                "locator": "PDF title and p.1 V-Series Accessories model list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "voltage",
+                "sourceId": "dexter-wcvd18kcs-10-manual-20260924",
+                "locator": "PDF p.1 (printed p.76), WCVD18KCS-10 electrical row",
+                "officialValue": "120 volts 60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "dexter-wcvd18kcs-10-manual-20260924",
+                "locator": "PDF p.1 (printed p.76), WCVD18KCS-10 electrical row",
+                "officialValue": "Single Phase",
+                "officialUnit": null
+              }
+            ]
+          },
+          "serialRules": []
+        }
+      ]
+    }
+  ]
+}

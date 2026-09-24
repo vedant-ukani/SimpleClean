@@ -1,0 +1,1691 @@
+{
+  "datasetId": "spec-enrichment-dexter-continental.2026-09-23",
+  "snapshotDate": "2026-09-23",
+  "checksum": "0defbfcffbefbad10be38f4e1620ec476ffd405a08cfe1ee6319cdf0f6e697eb",
+  "manufacturers": [
+    {
+      "id": "dexter",
+      "name": "Dexter",
+      "aliases": [],
+      "sources": [
+        {
+          "id": "dexter-d01",
+          "url": "https://www.dexter.com/upl/downloads/library/dexter-model-identification.pdf",
+          "title": "Model Identification",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "945b7e850fe05aefd468e69b0ee3368d7ab7ad5b3522425a1ec54293b2d28bde"
+        },
+        {
+          "id": "dexter-d02",
+          "url": "https://www.dexter.com/support/technical-information/?industry=vended",
+          "title": "Technical Information — Vended",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "dexter-d03",
+          "url": "https://www.dexter.com/downloads/0995-134-001-Catalog-Vended-LR.pdf",
+          "title": "Dexter Laundry — Vended Catalog",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "c0a01045359cc2a269c3a64d62ed83837eb28b1118198fea0133cd5b112baa40"
+        },
+        {
+          "id": "dexter-d04",
+          "url": "https://www.dexter.com/upl/downloads/products/vended/documents/t-600-wcvd-coin-washer-parts-no-stop-button.pdf",
+          "title": "T-600 WCVD Coin Washer Parts — No Stop Button",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "8c0015193579e4324a265fab15d46a7dba7ecbabd47d78f7c71e2899cfb13e3f"
+        },
+        {
+          "id": "dexter-d05",
+          "url": "https://www.dexter.com/upl/downloads/VENDED-30LB-STACK-DRYER-PARTS.pdf",
+          "title": "Common 30LB Stack Dryer Parts",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "dexter-d06",
+          "url": "https://www.dexter.com/upl/downloads/products/documents/69d66b1b5e087257812e0.pdf",
+          "title": "T-1800 Express O-Series Washer Specifications",
+          "documentRevision": "Rev - 04/01/2026",
+          "checksum": "28b96ef01ed1db0e0fe3d4a68796b895c322e5f922fb6070afb00948e1a7c288",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "dexter-d07",
+          "url": "https://www.dexter.com/upl/downloads/products/documents/68228e5157fc302778bf6.pdf",
+          "title": "T-170 Express 6-Cycle Dryer Specifications",
+          "documentRevision": "Rev - 05/01/2025",
+          "checksum": "51165655a78ff158eb92dc71bc1142e35836f237a17e5b1b1456b2369215b53f",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "dexter-t-1800",
+          "family": "Dexter washer size families",
+          "model": "T-1800",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "dexter-t-1800-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 41.5,
+              "depthIn": 48.25,
+              "heightIn": 62.375,
+              "weightLb": 1415,
+              "capacityLb": 120,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["three_phase"],
+              "fuel": [],
+              "configuration": [
+                "Express O-Series washer; chemical injection standard; front soap box optional"
+              ]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "dexter-d01",
+                "locator": "Washer model and capacity table",
+                "officialValue": "T-1800",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "dexter-d01",
+                "locator": "Washer model and capacity table",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "41 1/2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "48 1/4",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "62 3/8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "1415",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "120",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "208-240 / 60 / 3",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "3 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "dexter-d06",
+                "locator": "PDF p.2, T-1800 Express Washer Specifications: capacity, dimensions, weight, electrical requirements, and options",
+                "officialValue": "Chemical injection standard; front soap box optional",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "dexter-t-170",
+          "family": "Dexter single-dryer size families",
+          "model": "T-170",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "dexter-t-170-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 53.125,
+              "depthIn": 63,
+              "heightIn": 94,
+              "weightLb": 1361,
+              "capacityLb": 170,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["three_phase"],
+              "fuel": ["gas"],
+              "configuration": [
+                "Reversing single dryer; gas model; 12-inch exhaust"
+              ]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "dexter-d01",
+                "locator": "Dryer model and capacity table",
+                "officialValue": "T-170",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "dexter-d01",
+                "locator": "Dryer model and capacity table",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "53 1/8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "63",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "94",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "1361",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "170",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "208-240 / 60 / 3",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "3 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "fuel",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "Gas Models",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "dexter-d07",
+                "locator": "PDF p.2, T-170 Express Dryer Specifications: capacity, dimensions, weight, gas requirements, electrical requirements, and options",
+                "officialValue": "Reversing model; 12-inch outlet",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "continental-girbau",
+      "name": "Continental Girbau",
+      "aliases": ["Continental"],
+      "sources": [
+        {
+          "id": "continental-c01",
+          "url": "https://continental-laundry.com/services-support/technical-service/equipment-manuals/",
+          "title": "Equipment Manuals",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "continental-c02",
+          "url": "https://continental-laundry.com/products/commercial-washers/gs-washers/",
+          "title": "GS Commercial Washers",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "continental-c03",
+          "url": "https://continental-laundry.com/products/commercial-dryers/",
+          "title": "Commercial Dryers",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "continental-c04",
+          "url": "https://continental-laundry.com/news/continental-unveils-new-competitively-positioned-ca-series-dryer-line-with-larger-capacities-and-flexible-configurations/",
+          "title": "Continental Unveils CA-Series Dryer Line",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "continental-c05",
+          "url": "https://continental-laundry.com/wp-content/uploads/2023/10/GeniusOPLBrochure.pdf",
+          "title": "Genius OPL Brochure",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "79b663abe52051a22873034b7a968d5647d4167baa393b26b1518aca3ecd5952"
+        },
+        {
+          "id": "continental-c06",
+          "url": "https://continental-laundry.com/wp-content/uploads/2023/10/ExpressWashBrochure.pdf",
+          "title": "ExpressWash E-Series Washer-Extractors Product Specifications",
+          "documentRevision": "Form No. B-CW-EH020-130 04/26",
+          "checksum": "4f3488f3e079f31b07edbcff605734641695bd9e402e94e56ad903219e6ba0ec",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-c07",
+          "url": "https://continental-laundry.com/wp-content/uploads/2024/04/EH070A-OPL.pdf",
+          "title": "EH070 E-Series Soft-Mount Washer-Extractor Product Specifications",
+          "documentRevision": "COMMERCIAL 08/25",
+          "checksum": "b83c93d9350def1328efc4766d179afdbf158432aa598683a8f8519ab1b72709",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-c08",
+          "url": "https://continental-laundry.com/wp-content/uploads/2023/10/GS023A.pdf",
+          "title": "GS023 Genius Series Soft-Mount Washer-Extractor Product Specifications",
+          "documentRevision": "COMMERCIAL 08/25",
+          "checksum": "f7874b8961e1742f929765b45a5e957b764c25e6489c6055d95fc0a8a3f104ef",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-c09",
+          "url": "https://continental-laundry.com/wp-content/uploads/2024/01/REM025A-SLS.pdf",
+          "title": "REM025 On-Premise Hard-Mount Washer-Extractor Product Specifications",
+          "documentRevision": "r1 03/16",
+          "checksum": "412e356e35717b473da7e8b187e7e629624d1defa4aef2d7eb8493de5fc5ac03",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-c10",
+          "url": "https://continental-laundry.com/wp-content/uploads/2025/05/RMG033A-PTC.pdf",
+          "title": "RMG033 G-Flex Hard-Mount Washer-Extractor Product Specifications",
+          "documentRevision": "08/25",
+          "checksum": "1ae09706db80ebbd311210796b084bd6150985b9ba507e26a2c56cfb9ff1825c",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-c11",
+          "url": "https://continental-laundry.com/wp-content/uploads/2025/05/RMG040A-PTC.pdf",
+          "title": "RMG040 G-Flex Hard-Mount Washer-Extractor Product Specifications",
+          "documentRevision": "08/25",
+          "checksum": "00ca191bba06ec6e3c13f51856be4ea0d8a6232fe3ed979291b40c9726be121e",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-c12",
+          "url": "https://continental-laundry.com/wp-content/uploads/2025/05/RMG055A-PTC.pdf",
+          "title": "RMG055 G-Flex Hard-Mount Washer-Extractor Product Specifications",
+          "documentRevision": "08/25",
+          "checksum": "addfd6f50fa532c5dd3333cda24b8cfb64a37cd0197329d09d254553377248cc",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-c13",
+          "url": "https://continental-laundry.com/wp-content/uploads/2023/10/RMG070A-OPL.pdf",
+          "title": "RMG070 G-Flex Hard-Mount Washer-Extractor Product Specifications",
+          "documentRevision": "COMMERCIAL 08/25",
+          "checksum": "170f0a99f036a5dcc6bb7ed827f1ceddf86a489ffc394c7ec4e1e3ad5ede5241",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "continental-girbau-eh020",
+          "family": "EH washer-extractors",
+          "model": "EH020",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh020-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 27.6,
+              "heightIn": 42.5,
+              "weightLb": 249,
+              "capacityLb": 20,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH020",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH020 column",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH020 column",
+                "officialValue": "27.6",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH020 column",
+                "officialValue": "42.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH020 column",
+                "officialValue": "249",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH020 column",
+                "officialValue": "20",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH020 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh030",
+          "family": "EH washer-extractors",
+          "model": "EH030",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh030-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 31.3,
+              "depthIn": 34.9,
+              "heightIn": 52.2,
+              "weightLb": 758,
+              "capacityLb": 30,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH030",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH030 column",
+                "officialValue": "31.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH030 column",
+                "officialValue": "34.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH030 column",
+                "officialValue": "52.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH030 column",
+                "officialValue": "758",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH030 column",
+                "officialValue": "30",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH030 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh040",
+          "family": "EH washer-extractors",
+          "model": "EH040",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh040-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 34.2,
+              "depthIn": 37.9,
+              "heightIn": 55.3,
+              "weightLb": 1049,
+              "capacityLb": 40,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH040",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH040 column",
+                "officialValue": "34.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH040 column",
+                "officialValue": "37.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH040 column",
+                "officialValue": "55.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH040 column",
+                "officialValue": "1049",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH040 column",
+                "officialValue": "40",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH040 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh060",
+          "family": "EH washer-extractors",
+          "model": "EH060",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh060-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 38.4,
+              "depthIn": 48.2,
+              "heightIn": 58.1,
+              "weightLb": 1289,
+              "capacityLb": 60,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH060",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH060 column",
+                "officialValue": "38.4",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH060 column",
+                "officialValue": "48.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH060 column",
+                "officialValue": "58.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH060 column",
+                "officialValue": "1289",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH060 column",
+                "officialValue": "60",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH060 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh080",
+          "family": "EH washer-extractors",
+          "model": "EH080",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh080-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 41.5,
+              "depthIn": 50.9,
+              "heightIn": 59.1,
+              "weightLb": 1499,
+              "capacityLb": 80,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH080",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH080 column",
+                "officialValue": "41.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH080 column",
+                "officialValue": "50.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH080 column",
+                "officialValue": "59.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH080 column",
+                "officialValue": "1499",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH080 column",
+                "officialValue": "80",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH080 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh090",
+          "family": "EH washer-extractors",
+          "model": "EH090",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh090-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 54.7,
+              "depthIn": 57.3,
+              "heightIn": 70.8,
+              "weightLb": 3106,
+              "capacityLb": 90,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH090",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH090 column",
+                "officialValue": "54.7",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH090 column",
+                "officialValue": "57.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH090 column",
+                "officialValue": "70.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH090 column",
+                "officialValue": "3106",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH090 column",
+                "officialValue": "90",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH090 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh130",
+          "family": "EH washer-extractors",
+          "model": "EH130",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh130-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 61.8,
+              "depthIn": 58.8,
+              "heightIn": 75.8,
+              "weightLb": 4260,
+              "capacityLb": 130,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH130",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH130 column",
+                "officialValue": "61.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH130 column",
+                "officialValue": "58.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH130 column",
+                "officialValue": "75.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH130 column",
+                "officialValue": "4260",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH130 column",
+                "officialValue": "130",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c06",
+                "locator": "PDF p.3, Product Specifications table, EH130 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh070",
+          "family": "EH washer-extractors",
+          "model": "EH070",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh070-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 41.5,
+              "depthIn": 50.9,
+              "heightIn": 59.1,
+              "weightLb": 1401,
+              "capacityLb": 70,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": ["E-Series soft-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH070",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c07",
+                "locator": "Product Specifications table, EH070 column",
+                "officialValue": "41.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c07",
+                "locator": "Product Specifications table, EH070 column",
+                "officialValue": "50.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c07",
+                "locator": "Product Specifications table, EH070 column",
+                "officialValue": "59.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c07",
+                "locator": "Product Specifications table, EH070 column",
+                "officialValue": "1401",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c07",
+                "locator": "Product Specifications table, EH070 column",
+                "officialValue": "70",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c07",
+                "locator": "Product Specifications table, EH070 column",
+                "officialValue": "E-Series soft-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-gs023",
+          "family": "GS washer-extractors",
+          "model": "GS023",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-gs023-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 31.6,
+              "heightIn": 46.3,
+              "weightLb": 377,
+              "capacityLb": 23,
+              "voltage": ["120V"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": ["electric"],
+              "configuration": ["Hot water with gravity drain or pump"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c02",
+                "locator": "Published GS model list",
+                "officialValue": "GS023",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c02",
+                "locator": "Published GS model list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c05",
+                "locator": "PDF p.4, Product Specifications, GS023 column",
+                "officialValue": "23",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c05",
+                "locator": "PDF p.4, Product Specifications, GS023 column",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c05",
+                "locator": "PDF p.4, Product Specifications, GS023 column",
+                "officialValue": "31.6",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c05",
+                "locator": "PDF p.4, Product Specifications, GS023 column",
+                "officialValue": "46.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c05",
+                "locator": "PDF p.4, Product Specifications, GS023 column",
+                "officialValue": "377",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "continental-c05",
+                "locator": "PDF p.4, Product Specifications, GS023 column",
+                "officialValue": "120V",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c05",
+                "locator": "PDF p.4, Product Specifications, GS023 column",
+                "officialValue": "Hot water with gravity drain or pump",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "continental-c08",
+                "locator": "Product Specifications table, GS023 exact model",
+                "officialValue": "1 phase; 3 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "fuel",
+                "sourceId": "continental-c08",
+                "locator": "Product Specifications table, GS023 exact model",
+                "officialValue": "Electric auxiliary heat",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-rem025",
+          "family": "REM washer-extractors",
+          "model": "REM025",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-rem025-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 31.4,
+              "heightIn": 42.5,
+              "weightLb": 317,
+              "capacityLb": 25,
+              "voltage": ["120V/60Hz", "208-240V/60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["REM hard-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "REM025",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "31.4",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "42.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "317",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "25",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "120V/60Hz; 208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "1 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c09",
+                "locator": "Product Specifications table, REM025 exact model",
+                "officialValue": "REM hard-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-rmg033",
+          "family": "RMG washer-extractors",
+          "model": "RMG033",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-rmg033-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 29.5,
+              "depthIn": 32.25,
+              "heightIn": 52.9,
+              "weightLb": 525,
+              "capacityLb": 33,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["G-Flex hard-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "RMG033",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "29.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "32.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "52.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "525",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "33",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "1 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c10",
+                "locator": "Product Specifications table, RMG033 exact model",
+                "officialValue": "G-Flex hard-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-rmg040",
+          "family": "RMG washer-extractors",
+          "model": "RMG040",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-rmg040-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 29.5,
+              "depthIn": 41.8,
+              "heightIn": 52.9,
+              "weightLb": 562,
+              "capacityLb": 40,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["G-Flex hard-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "RMG040",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "29.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "41.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "52.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "562",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "40",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "1 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c11",
+                "locator": "Product Specifications table, RMG040 exact model",
+                "officialValue": "G-Flex hard-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-rmg055",
+          "family": "RMG washer-extractors",
+          "model": "RMG055",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-rmg055-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 34.3,
+              "depthIn": 44.8,
+              "heightIn": 56.1,
+              "weightLb": 741,
+              "capacityLb": 55,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["G-Flex hard-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "RMG055",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "34.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "44.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "56.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "741",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "55",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "1 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c12",
+                "locator": "Product Specifications table, RMG055 exact model",
+                "officialValue": "G-Flex hard-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-rmg070",
+          "family": "RMG washer-extractors",
+          "model": "RMG070",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-rmg070-r2",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 34.3,
+              "depthIn": 45,
+              "heightIn": 57.7,
+              "weightLb": 899,
+              "capacityLb": 70,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": [],
+              "configuration": ["G-Flex hard-mount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "RMG070",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "34.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "45",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "57.7",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "899",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "70",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "1 phase; 3 phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "continental-c13",
+                "locator": "Product Specifications table, RMG070 exact model",
+                "officialValue": "G-Flex hard-mount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    }
+  ]
+}

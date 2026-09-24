@@ -1,0 +1,52 @@
+{
+  "datasetId": "manufacturer-aliases.2026-09-24",
+  "snapshotDate": "2026-09-24",
+  "checksum": "f4c4cc7545bf99655b4c9e31b9f0b0839203313f29a623b3f400ce4e10294dcd",
+  "manufacturers": [
+    {
+      "id": "dexter",
+      "name": "Dexter",
+      "aliases": [
+        "THE DEXTER COMPANY",
+        "THE DEXTER COMPANY.",
+        "DEXTER LAUNDRY, INC.",
+        "DEXTER LAUNDRY, INC",
+        "DEXTER LAUNDRY INC.",
+        "THE DEXTER CO",
+        "THE DEXTER CO."
+      ],
+      "sources": [
+        {
+          "id": "dexter-d01",
+          "url": "https://www.dexter.com/upl/downloads/library/dexter-model-identification.pdf",
+          "title": "Model Identification",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "945b7e850fe05aefd468e69b0ee3368d7ab7ad5b3522425a1ec54293b2d28bde"
+        }
+      ],
+      "models": []
+    },
+    {
+      "id": "continental-girbau",
+      "name": "Continental Girbau",
+      "aliases": [
+        "Continental Girbau, Inc.",
+        "Continental Girbau, Inc",
+        "Continental Girbau Inc."
+      ],
+      "sources": [
+        {
+          "id": "continental-c01",
+          "url": "https://continental-laundry.com/services-support/technical-service/equipment-manuals/",
+          "title": "Equipment Manuals",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        }
+      ],
+      "models": []
+    }
+  ]
+}

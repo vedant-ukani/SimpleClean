@@ -1,0 +1,2113 @@
+{
+  "datasetId": "spec-enrichment-speedqueen-maytag.2026-09-23",
+  "snapshotDate": "2026-09-23",
+  "checksum": "bf5299abcf0b74be8407032a7fe2a66971b704708a7380ffdf2350fb848fb97a",
+  "manufacturers": [
+    {
+      "id": "speed-queen",
+      "name": "Speed Queen",
+      "aliases": ["Speedqueen"],
+      "sources": [
+        {
+          "id": "speed-queen-sq01",
+          "url": "https://speedqueencommercial.com/en-us/manuals-brochures/",
+          "title": "Literature Archive",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq02",
+          "url": "https://speedqueencommercial.com/en-us/products/hardmount-washer-extractor-commercial/",
+          "title": "Hardmount Washer-Extractor — Commercial",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq03",
+          "url": "https://speedqueencommercial.com/en-us/products/hardmount-washer-extractor-laundromats/",
+          "title": "Hardmount Washer-Extractor — Laundromats",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq04",
+          "url": "https://speedqueencommercial.com/en-us/products/softmount-washer-extractor-commercial/",
+          "title": "Softmount Washer-Extractor — Commercial",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq05",
+          "url": "https://speedqueencommercial.com/en-us/products/softmount-washer-extractor-laundromats/",
+          "title": "Softmount Washer-Extractor — Laundromats",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq06",
+          "url": "https://speedqueencommercial.com/en-us/products/stack-tumble-dryers-commercial/",
+          "title": "Stack Tumble Dryers — Commercial",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq07",
+          "url": "https://speedqueencommercial.com/en-us/products/stacked-washer-extractor-tumble-dryers-laundromats/",
+          "title": "Stacked Washer-Extractor/Tumble Dryers — Laundromats",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq08",
+          "url": "https://go.speedqueencommercial.com/power-on-profit-more",
+          "title": "Power On. Profit More.",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speed-queen-sq09",
+          "url": "https://speedqueencommercial.com/SpeedQueenCommercial/media/SpeedQueen/Product20Brochures/AO18-0036_OPL_HardmountWX_Brochure.pdf?ext=.pdf",
+          "title": "On Premises Quantum Washer-Extractor Specifications",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "5280cdc47735feef17c809ab48f6463dfee00dbda075a0c5bd09fba07ddd49df"
+        },
+        {
+          "id": "speed-queen-sq10",
+          "url": "https://speedqueencommercial.com/wp-content/uploads/2019/10/DL_AM19-0050_SpecSheet_SCT020_en-US.pdf",
+          "title": "SCT020 Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "eebab7e4a2b844db5a8ad29cc7ec07ec57f4ea49a2046472ebf80353624a8adc"
+        },
+        {
+          "id": "speed-queen-sq11",
+          "url": "https://speedqueencommercial.com/wp-content/uploads/2019/10/DL_AM19-0051_SpecSheet_SCT030_en-US.pdf",
+          "title": "SCT030 Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "0478e866799a8a6244cb6bedf490250006029c95abc36a43e57df805481ab68e"
+        },
+        {
+          "id": "speed-queen-sq12",
+          "url": "https://speedqueencommercial.com/wp-content/uploads/2019/10/DL_AO19-0008_SpecSheet_OPL_Classic_STT30_en-US.pdf",
+          "title": "OPL Classic STT30 Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "703731933298430cbd77ab01d087740d1cedc99268890e688649b1444a812eb6"
+        },
+        {
+          "id": "speed-queen-sq13",
+          "url": "https://speedqueencommercial.com/SpeedQueenCommercial/media/SpeedQueen/Product20Brochures/AC18-0007_SQ_Vend_TumbleDryer_Stack30-45lb_Brochure.pdf?ext=.pdf",
+          "title": "Vended Tumble Dryer — Stack 30/45 lb",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "1b5a6eded56a94b52a27293a194ce2da07213b57914e61434bba75cf54ef6f57"
+        },
+        {
+          "id": "speed-queen-sq14",
+          "url": "https://speedqueencommercial.com/SpeedQueenCommercial/media/SpeedQueen/Product20Brochures/AC18-0005_Vend_TumbleDryer_25-55lb_Brochure.pdf?ext=.pdf",
+          "title": "Vended Tumble Dryer — 25/55 lb",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "484f7d1aeee86d26c92c8634f1f1b951d14f6f64cfe3340da3bc02ab76c5f0aa"
+        },
+        {
+          "id": "speed-queen-sq15",
+          "url": "https://speedqueencommercial.com/SpeedQueenCommercial/media/SpeedQueen/Product20Brochures/AC18-0006_Vend_TumbleDryer_50-75lb_Brochure.pdf?ext=.pdf",
+          "title": "Vended Tumble Dryer — 50/75 lb",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "b5cd285ba2cb10c52e42c9d20575ef3a326bb07c5872bb8bde6f226018c6287d"
+        },
+        {
+          "id": "speed-queen-sq16",
+          "url": "https://speedqueencommercial.com/wp-content/uploads/sites/37/2019/10/DL_AO19-0028_SpecSheet_OPL_Premium_ST075_en-US.pdf",
+          "title": "OPL Premium ST075 Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "36faa8925df65b6a378935118ede66ad0477232cfb0e54a0f3130a1a7d497ada"
+        },
+        {
+          "id": "speed-queen-sq17",
+          "url": "https://speedqueencommercial.com/SpeedQueenCommercial/media/SpeedQueen/Product20Brochures/DL_AM19-0067_SpecSheet_QT-SWXTD_en-US.pdf",
+          "title": "Quantum Stacked Washer-Extractor/Tumble Dryer Specification",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "c3a822ce3ac069ff0f13ee69c9b67372dc1f719c5f64c64942914f3184e3f082"
+        },
+        {
+          "id": "speed-queen-sq18",
+          "url": "https://speedqueencommercial.com/SpeedQueenCommercial/media/SpeedQueen/Product20Brochures/AO18-0003_OPL_SmallChassis_Brochure.pdf?ext=.pdf",
+          "title": "OPL Small Chassis Brochure",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "9bd1d8ae23dce5a5a94542d7a892288bf78ffbf21a511ff5bd40603dc4fbfa5d"
+        },
+        {
+          "id": "speed-queen-sq19",
+          "url": "https://speedqueencommercial.com/en-us/wp-content/uploads/2020/02/sq-vended-construction-drawing.pdf",
+          "title": "Vended Construction Drawing and Utility Schedule",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "d16ca959f8633bed8de27b52ba622a6fff34ea7af1037b3c0fb9dafba6167b4d"
+        },
+        {
+          "id": "speed-queen-enrichment-sct040",
+          "url": "https://distribution.alliancelaundry.com/wp-content/uploads/2023/08/DL_AO21-0042_SpecSheet_SCT040_en-US.pdf",
+          "title": "Speed Queen SCT040 Hardmount Washer-Extractor Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "speed-queen-enrichment-sct060",
+          "url": "https://distribution.alliancelaundry.com/wp-content/uploads/2023/08/DL_AO21-0043_SpecSheet_SCT060_en-US.pdf",
+          "title": "Speed Queen SCT060 Hardmount Washer-Extractor Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "speed-queen-enrichment-sct080",
+          "url": "https://distribution.alliancelaundry.com/wp-content/uploads/2023/08/DL_AO21-0044_SpecSheet_SCT080_en-US.pdf",
+          "title": "Speed Queen SCT080 Hardmount Washer-Extractor Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "speed-queen-enrichment-sct100",
+          "url": "https://distribution.alliancelaundry.com/wp-content/uploads/2023/08/DL_AO21-0045_SpecSheet_SCT100_en-US.pdf",
+          "title": "Speed Queen SCT100 Hardmount Washer-Extractor Specification Sheet",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "speed-queen-enrichment-vended-construction",
+          "url": "https://speedqueencommercial.com/en-us/wp-content/uploads/2020/02/sq-vended-construction-drawing.pdf",
+          "title": "Speed Queen Vended Construction Drawing",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "speed-queen-sct040",
+          "family": "SCT hardmount washer-extractors",
+          "model": "SCT040",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-sct040-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 30.6,
+              "depthIn": 42.3,
+              "heightIn": 47.2,
+              "weightLb": 540,
+              "capacityLb": 40,
+              "voltage": ["120V/60Hz", "200-240V/50-60Hz", "440-480V/50-60Hz"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": [],
+              "configuration": ["Quantum hardmount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "SCT040",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "30.6",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "42.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "47.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "540",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "40",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "120V/60Hz; 200-240V/50-60Hz; 440-480V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "single_phase; three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-sct040",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT040 column",
+                "officialValue": "Quantum hardmount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-sct060",
+          "family": "SCT hardmount washer-extractors",
+          "model": "SCT060",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-sct060-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 34.1,
+              "depthIn": 44.7,
+              "heightIn": 49.9,
+              "weightLb": 680,
+              "capacityLb": 60,
+              "voltage": ["200-240V/50-60Hz", "440-480V/50-60Hz"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": [],
+              "configuration": ["Quantum hardmount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "SCT060",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "34.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "44.7",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "49.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "680",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "60",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "200-240V/50-60Hz; 440-480V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "single_phase; three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-sct060",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT060 column",
+                "officialValue": "Quantum hardmount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-sct080",
+          "family": "SCT hardmount washer-extractors",
+          "model": "SCT080",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-sct080-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 41.5,
+              "depthIn": 47.1,
+              "heightIn": 57.2,
+              "weightLb": 1250,
+              "capacityLb": 80,
+              "voltage": ["200-240V/50-60Hz", "440-480V/50-60Hz"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": [],
+              "configuration": ["Quantum hardmount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "SCT080",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "41.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "47.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "57.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "1250",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "80",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "200-240V/50-60Hz; 440-480V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "single_phase; three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-sct080",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT080 column",
+                "officialValue": "Quantum hardmount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-sct100",
+          "family": "SCT hardmount washer-extractors",
+          "model": "SCT100",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-sct100-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 41.5,
+              "depthIn": 51.1,
+              "heightIn": 57.2,
+              "weightLb": 1280,
+              "capacityLb": 100,
+              "voltage": ["200-240V/50-60Hz", "440-480V/50-60Hz"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": [],
+              "configuration": ["Quantum hardmount washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "SCT100",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "41.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "51.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "57.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "1280",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "100",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "200-240V/50-60Hz; 440-480V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "single_phase; three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-sct100",
+                "locator": "PDF p.1, Hardmount Washer-Extractor Specifications table, SCT100 column",
+                "officialValue": "Quantum hardmount washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-scn020wcf",
+          "family": "SCN vended washer-extractors",
+          "model": "SCN020WCF",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-scn020wcf-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["three_phase"],
+              "fuel": [],
+              "configuration": ["Washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "SCN020WCF",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN020WCF row",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN020WCF row",
+                "officialValue": "three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN020WCF row",
+                "officialValue": "Washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-scn030wcf",
+          "family": "SCN vended washer-extractors",
+          "model": "SCN030WCF",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-scn030wcf-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["three_phase"],
+              "fuel": [],
+              "configuration": ["Washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "SCN030WCF",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN030WCF row",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN030WCF row",
+                "officialValue": "three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN030WCF row",
+                "officialValue": "Washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-scn040wcf",
+          "family": "SCN vended washer-extractors",
+          "model": "SCN040WCF",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-scn040wcf-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["three_phase"],
+              "fuel": [],
+              "configuration": ["Washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "SCN040WCF",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN040WCF row",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN040WCF row",
+                "officialValue": "three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN040WCF row",
+                "officialValue": "Washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-scn060wcf",
+          "family": "SCN vended washer-extractors",
+          "model": "SCN060WCF",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-scn060wcf-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["three_phase"],
+              "fuel": [],
+              "configuration": ["Washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "SCN060WCF",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN060WCF row",
+                "officialValue": "208-240V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN060WCF row",
+                "officialValue": "three_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SCN060WCF row",
+                "officialValue": "Washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "speed-queen-swnln21",
+          "family": "SWN vended washer",
+          "model": "SWNLN21",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "speed-queen-swnln21-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": null,
+              "voltage": ["110-120V/60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Topload washer"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "SWNLN21",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq19",
+                "locator": "Construction drawing model schedule",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "voltage",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SWNLN21 row",
+                "officialValue": "110-120V/60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SWNLN21 row",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "speed-queen-enrichment-vended-construction",
+                "locator": "PDF p.1, Construction Drawing Electrical Requirements and Equipment List tables, SWNLN21 row",
+                "officialValue": "Topload washer",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "maytag-commercial",
+      "name": "Maytag Commercial",
+      "aliases": ["Maytag"],
+      "sources": [
+        {
+          "id": "maytag-m01",
+          "url": "https://www.maytagcommerciallaundry.com/mclstorefront/mcl/en_US/sitemap.xml",
+          "title": "Official Product Sitemap",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "maytag-m02",
+          "url": "https://www.maytagcommerciallaundry.com/mclstorefront/medias/MY180084-Maytag-MultiLoadWasher-Vended-12Page-Full-Brochure-Final-WCCL255-Rev.pdf",
+          "title": "Maytag Vended Multi-Load Washer Brochure",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "maytag-m03",
+          "url": "https://www.maytagcommerciallaundry.com/mclstorefront/mat20",
+          "title": "MAT20 Commercial Top-Load Washer",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "maytag-m04",
+          "url": "https://www.maytagcommerciallaundry.com/mclstorefront/mhn33",
+          "title": "MHN33 Commercial Front-Load Washer",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "maytag-m05",
+          "url": "https://www.maytagcommerciallaundry.com/mclstorefront/mcl/en_US/category-landing-page/category/stack",
+          "title": "Stack Laundry Category",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "maytag-m06",
+          "url": "https://www.maytagcommerciallaundry.com/mclstorefront/multi-load",
+          "title": "Multi-Load Laundry",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "inventory-maytag-mah21pddww",
+          "url": "https://www.maytag.com/content/dam/global/documents/201102/parts-list-MAH21PDDWW.pdf",
+          "title": "Maytag MAH21PDDWW Repair Parts List",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "maytag-enrichment-wfr124390",
+          "url": "https://www.whirlpool.com/content/dam/global/documents/202304/installation-instruction-wfr124390-revJ.pdf",
+          "title": "Maytag Commercial Washer-Extractor Installation Instructions WFR124390J",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "maytag-commercial-myr20",
+          "family": "MYR rigid-mount washers",
+          "model": "MYR20",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-myr20-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 26,
+              "depthIn": 27,
+              "heightIn": 43.8,
+              "weightLb": 333,
+              "capacityLb": 20,
+              "voltage": ["115V/60Hz", "208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Rigid washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYR20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR20 row, Width",
+                "officialValue": "26",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR20 row, Depth",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR20 row, Height",
+                "officialValue": "43.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYR20 row, Uncrated",
+                "officialValue": "333",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR20 row, Dry load capacity",
+                "officialValue": "20",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR20 row, Voltage (1P)",
+                "officialValue": "115V/60Hz; 208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR20 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYR models (Rigid Machines)",
+                "officialValue": "Rigid washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-myr25",
+          "family": "MYR rigid-mount washers",
+          "model": "MYR25",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-myr25-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 29.5,
+              "depthIn": 28.5,
+              "heightIn": 48.1,
+              "weightLb": 447,
+              "capacityLb": 25,
+              "voltage": ["115V/60Hz", "208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Rigid washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYR25",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR25 row, Width",
+                "officialValue": "29.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR25 row, Depth",
+                "officialValue": "28.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR25 row, Height",
+                "officialValue": "48.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYR25 row, Uncrated",
+                "officialValue": "447",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR25 row, Dry load capacity",
+                "officialValue": "25",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR25 row, Voltage (1P)",
+                "officialValue": "115V/60Hz; 208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR25 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYR models (Rigid Machines)",
+                "officialValue": "Rigid washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-myr30",
+          "family": "MYR rigid-mount washers",
+          "model": "MYR30",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-myr30-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 29.5,
+              "depthIn": 33.1,
+              "heightIn": 48.1,
+              "weightLb": 489,
+              "capacityLb": 30,
+              "voltage": ["115V/60Hz", "208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Rigid washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYR30",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR30 row, Width",
+                "officialValue": "29.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR30 row, Depth",
+                "officialValue": "33.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR30 row, Height",
+                "officialValue": "48.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYR30 row, Uncrated",
+                "officialValue": "489",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR30 row, Dry load capacity",
+                "officialValue": "30",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR30 row, Voltage (1P)",
+                "officialValue": "115V/60Hz; 208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR30 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYR models (Rigid Machines)",
+                "officialValue": "Rigid washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-myr40",
+          "family": "MYR rigid-mount washers",
+          "model": "MYR40",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-myr40-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 35,
+              "depthIn": 34.5,
+              "heightIn": 55.5,
+              "weightLb": 688,
+              "capacityLb": 40,
+              "voltage": ["208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Rigid washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYR40",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR40 row, Width",
+                "officialValue": "35",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR40 row, Depth",
+                "officialValue": "34.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR40 row, Height",
+                "officialValue": "55.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYR40 row, Uncrated",
+                "officialValue": "688",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR40 row, Dry load capacity",
+                "officialValue": "40",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR40 row, Voltage (1P)",
+                "officialValue": "208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR40 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYR models (Rigid Machines)",
+                "officialValue": "Rigid washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-myr55",
+          "family": "MYR rigid-mount washers",
+          "model": "MYR55",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-myr55-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 35,
+              "depthIn": 39.8,
+              "heightIn": 55.5,
+              "weightLb": 732,
+              "capacityLb": 55,
+              "voltage": ["208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Rigid washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYR55",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR55 row, Width",
+                "officialValue": "35",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR55 row, Depth",
+                "officialValue": "39.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR55 row, Height",
+                "officialValue": "55.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYR55 row, Uncrated",
+                "officialValue": "732",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR55 row, Dry load capacity",
+                "officialValue": "55",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR55 row, Voltage (1P)",
+                "officialValue": "208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR55 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYR models (Rigid Machines)",
+                "officialValue": "Rigid washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-myr65",
+          "family": "MYR rigid-mount washers",
+          "model": "MYR65",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-myr65-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 35,
+              "depthIn": 42.7,
+              "heightIn": 55.5,
+              "weightLb": 764,
+              "capacityLb": 65,
+              "voltage": ["208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Rigid washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYR65",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR65 row, Width",
+                "officialValue": "35",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR65 row, Depth",
+                "officialValue": "42.7",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR65 row, Height",
+                "officialValue": "55.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYR65 row, Uncrated",
+                "officialValue": "764",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYR65 row, Dry load capacity",
+                "officialValue": "65",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR65 row, Voltage (1P)",
+                "officialValue": "208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYR65 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYR models (Rigid Machines)",
+                "officialValue": "Rigid washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mys20",
+          "family": "MYS soft-mount washers",
+          "model": "MYS20",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-mys20-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 28.4,
+              "depthIn": 28.4,
+              "heightIn": 43.8,
+              "weightLb": 415,
+              "capacityLb": 20,
+              "voltage": ["115V/60Hz", "208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Soft washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYS20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS20 row, Width",
+                "officialValue": "28.4",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS20 row, Depth",
+                "officialValue": "28.4",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS20 row, Height",
+                "officialValue": "43.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYS20 row, Uncrated",
+                "officialValue": "415",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS20 row, Dry load capacity",
+                "officialValue": "20",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS20 row, Voltage (1P)",
+                "officialValue": "115V/60Hz; 208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS20 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYS models (Soft Machines)",
+                "officialValue": "Soft washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mys30",
+          "family": "MYS soft-mount washers",
+          "model": "MYS30",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-mys30-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 31.3,
+              "depthIn": 34.3,
+              "heightIn": 48.1,
+              "weightLb": 582,
+              "capacityLb": 30,
+              "voltage": ["208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Soft washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYS30",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS30 row, Width",
+                "officialValue": "31.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS30 row, Depth",
+                "officialValue": "34.3",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS30 row, Height",
+                "officialValue": "48.1",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYS30 row, Uncrated",
+                "officialValue": "582",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS30 row, Dry load capacity",
+                "officialValue": "30",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS30 row, Voltage (1P)",
+                "officialValue": "208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS30 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYS models (Soft Machines)",
+                "officialValue": "Soft washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mys40",
+          "family": "MYS soft-mount washers",
+          "model": "MYS40",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-mys40-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 38.2,
+              "depthIn": 35.5,
+              "heightIn": 55.5,
+              "weightLb": 851,
+              "capacityLb": 40,
+              "voltage": ["208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Soft washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYS40",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS40 row, Width",
+                "officialValue": "38.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS40 row, Depth",
+                "officialValue": "35.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS40 row, Height",
+                "officialValue": "55.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYS40 row, Uncrated",
+                "officialValue": "851",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS40 row, Dry load capacity",
+                "officialValue": "40",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS40 row, Voltage (1P)",
+                "officialValue": "208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS40 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYS models (Soft Machines)",
+                "officialValue": "Soft washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mys55",
+          "family": "MYS soft-mount washers",
+          "model": "MYS55",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-mys55-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 38.2,
+              "depthIn": 40.8,
+              "heightIn": 55.5,
+              "weightLb": 894,
+              "capacityLb": 55,
+              "voltage": ["208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Soft washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYS55",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS55 row, Width",
+                "officialValue": "38.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS55 row, Depth",
+                "officialValue": "40.8",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS55 row, Height",
+                "officialValue": "55.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYS55 row, Uncrated",
+                "officialValue": "894",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS55 row, Dry load capacity",
+                "officialValue": "55",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS55 row, Voltage (1P)",
+                "officialValue": "208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS55 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYS models (Soft Machines)",
+                "officialValue": "Soft washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mys65",
+          "family": "MYS soft-mount washers",
+          "model": "MYS65",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "maytag-commercial-mys65-r2-speedqueen-maytag-20260923",
+            "revision": 2,
+            "approvedAt": "2026-09-23T00:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 38.2,
+              "depthIn": 43.7,
+              "heightIn": 55.5,
+              "weightLb": 944,
+              "capacityLb": 65,
+              "voltage": ["208-240V/50-60Hz"],
+              "phase": ["single_phase"],
+              "fuel": [],
+              "configuration": ["Soft washer-extractor"]
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MYS65",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS65 row, Width",
+                "officialValue": "38.2",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS65 row, Depth",
+                "officialValue": "43.7",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS65 row, Height",
+                "officialValue": "55.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.6, Approximate Weight table, MYS65 row, Uncrated",
+                "officialValue": "944",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.3, Dimensions and Technical Specifications table, MYS65 row, Dry load capacity",
+                "officialValue": "65",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS65 row, Voltage (1P)",
+                "officialValue": "208-240V/50-60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.8, Electrical Requirements table, MYS65 row, Voltage (1P)",
+                "officialValue": "single_phase",
+                "officialUnit": null
+              },
+              {
+                "field": "configuration",
+                "sourceId": "maytag-enrichment-wfr124390",
+                "locator": "PDF p.10, Anchoring MYS models (Soft Machines)",
+                "officialValue": "Soft washer-extractor",
+                "officialUnit": null
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3497 @@
+{
+  "datasetId": "catalog-reviewed-enrichment-2026-09-24",
+  "snapshotDate": "2026-09-24",
+  "checksum": "d038c0335688f487aa7b288fe2ce02d6a9d6e1332189333248c94eff758fb3a1",
+  "manufacturers": [
+    {
+      "id": "continental-girbau",
+      "name": "Continental Girbau",
+      "aliases": ["Continental"],
+      "sources": [
+        {
+          "id": "continental-c01",
+          "url": "https://continental-laundry.com/services-support/technical-service/equipment-manuals/",
+          "title": "Equipment Manuals",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "continental-reviewed-kwn-20260924",
+          "url": "https://continental-laundry.com/wp-content/uploads/2024/01/EconoWashA-Vended.pdf",
+          "title": "EconoWash A Vended, KWN product specifications",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "continental-reviewed-eh190-eh255-20260924",
+          "url": "https://continental-laundry.com/wp-content/uploads/2023/10/OPL-E-SeriesLgWashBro.pdf",
+          "title": "OPL E Series large washer brochure, EH190 and EH255",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "continental-girbau-kwn",
+          "family": "Econo washer family",
+          "model": "KWN",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-kwn-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 25.63,
+              "depthIn": 28,
+              "heightIn": 43,
+              "weightLb": 190,
+              "capacityLb": 16,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "KWN",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "continental-reviewed-kwn-20260924",
+                "locator": "PDF p. 1, Product Specifications, KWN exact model row; machine dimensions and net weight",
+                "officialValue": "25.63",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "continental-reviewed-kwn-20260924",
+                "locator": "PDF p. 1, Product Specifications, KWN exact model row; machine dimensions and net weight",
+                "officialValue": "28",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "continental-reviewed-kwn-20260924",
+                "locator": "PDF p. 1, Product Specifications, KWN exact model row; machine dimensions and net weight",
+                "officialValue": "43",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "continental-reviewed-kwn-20260924",
+                "locator": "PDF p. 1, Product Specifications, KWN exact model row; machine dimensions and net weight",
+                "officialValue": "190",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-reviewed-kwn-20260924",
+                "locator": "PDF p. 1, Product Specifications, KWN exact model row; machine dimensions and net weight",
+                "officialValue": "16",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh190",
+          "family": "EH washer-extractors",
+          "model": "EH190",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh190-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": 190,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH190",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-reviewed-eh190-eh255-20260924",
+                "locator": "PDF Stat/Tilt capacity table, EH190 exact model rows; shared rated capacity",
+                "officialValue": "190",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "continental-girbau-eh255",
+          "family": "EH washer-extractors",
+          "model": "EH255",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "continental-girbau-eh255-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": null,
+              "depthIn": null,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": 255,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "EH255",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "continental-c01",
+                "locator": "Equipment manuals washer index",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "continental-reviewed-eh190-eh255-20260924",
+                "locator": "PDF Stat/Tilt capacity table, EH255 exact model rows; shared rated capacity",
+                "officialValue": "255",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "dexter",
+      "name": "Dexter",
+      "aliases": [],
+      "sources": [
+        {
+          "id": "dexter-d04",
+          "url": "https://www.dexter.com/upl/downloads/products/vended/documents/t-600-wcvd-coin-washer-parts-no-stop-button.pdf",
+          "title": "T-600 WCVD Coin Washer Parts — No Stop Button",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "8c0015193579e4324a265fab15d46a7dba7ecbabd47d78f7c71e2899cfb13e3f"
+        },
+        {
+          "id": "dexter-d01",
+          "url": "https://www.dexter.com/upl/downloads/library/dexter-model-identification.pdf",
+          "title": "Model Identification",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": "945b7e850fe05aefd468e69b0ee3368d7ab7ad5b3522425a1ec54293b2d28bde"
+        },
+        {
+          "id": "dexter-reviewed-segotw-wcvd-20260924",
+          "url": "https://www.segotw.com/laundry/dexterv.pdf",
+          "title": "Dexter WCVD specifications, distributor copy",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "distributor"
+        },
+        {
+          "id": "dexter-reviewed-123laundry-wcvd18-20260924",
+          "url": "https://www.123laundryshop.com/dexter-t300-commercial-front-load-washing-machine-model-wcvd18kcs-12sz-serial-no-20405000470482/",
+          "title": "Dexter WCVD18KCS-12 product overview",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "reseller"
+        },
+        {
+          "id": "dexter-reviewed-123laundry-wcvd25-20260924",
+          "url": "https://www.123laundryshop.com/dexter-t-400-commercial-front-load-washer-model-wcvd25kcs-12-serial-no-20401000467048/",
+          "title": "Dexter WCVD25KCS-12 product overview",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "reseller"
+        }
+      ],
+      "models": [
+        {
+          "id": "dexter-wcvd18kcs-12",
+          "family": "WCVD washer variants",
+          "model": "WCVD18KCS-12",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "dexter-wcvd18kcs-12-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 26,
+              "depthIn": 24.81,
+              "heightIn": 43.88,
+              "weightLb": 326,
+              "capacityLb": 18,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "dexter-d04",
+                "locator": "Model applicability list",
+                "officialValue": "WCVD18KCS-12",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "dexter-d04",
+                "locator": "Model applicability list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "dexter-d01",
+                "locator": "PDF p.1, Base Model / Capacity/Form and Previous model-number format",
+                "officialValue": "18",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "dexter-d04",
+                "locator": "PDF p.1 (printed p.76), V-Series Accessories model list",
+                "officialValue": "208-240 volts 60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "dexter-d04",
+                "locator": "PDF p.1 (printed p.76), V-Series Accessories model list",
+                "officialValue": "Single Phase or Three Phase",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "dexter-reviewed-segotw-wcvd-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "26",
+                "officialUnit": "in"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "dexter-reviewed-123laundry-wcvd18-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "26",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "dexter-reviewed-segotw-wcvd-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "24.81",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "dexter-reviewed-123laundry-wcvd18-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "24.81",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "dexter-reviewed-segotw-wcvd-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "43.88",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "dexter-reviewed-123laundry-wcvd18-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "43.88",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "dexter-reviewed-segotw-wcvd-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "326",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "dexter-reviewed-123laundry-wcvd18-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact base model",
+                "officialValue": "326",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "dexter-wcvd25kcs-12",
+          "family": "WCVD washer variants",
+          "model": "WCVD25KCS-12",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "dexter-wcvd25kcs-12-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 29.88,
+              "depthIn": null,
+              "heightIn": 48.25,
+              "weightLb": 464,
+              "capacityLb": 25,
+              "voltage": ["208-240V/60Hz"],
+              "phase": ["single_phase", "three_phase"],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "dexter-d04",
+                "locator": "Model applicability list",
+                "officialValue": "WCVD25KCS-12",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "dexter-d04",
+                "locator": "Model applicability list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "dexter-d01",
+                "locator": "PDF p.1, Base Model / Capacity/Form and Previous model-number format",
+                "officialValue": "25",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "voltage",
+                "sourceId": "dexter-d04",
+                "locator": "PDF p.1 (printed p.76), V-Series Accessories model list",
+                "officialValue": "208-240 volts 60Hz",
+                "officialUnit": null
+              },
+              {
+                "field": "phase",
+                "sourceId": "dexter-d04",
+                "locator": "PDF p.1 (printed p.76), V-Series Accessories model list",
+                "officialValue": "Single Phase or Three Phase",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "dexter-reviewed-segotw-wcvd-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact model",
+                "officialValue": "29.88",
+                "officialUnit": "in"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "dexter-reviewed-123laundry-wcvd25-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact model",
+                "officialValue": "29.88",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "dexter-reviewed-segotw-wcvd-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact model",
+                "officialValue": "48.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "dexter-reviewed-123laundry-wcvd25-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact model",
+                "officialValue": "48.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "dexter-reviewed-segotw-wcvd-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact model",
+                "officialValue": "464",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "dexter-reviewed-123laundry-wcvd25-20260924",
+                "locator": "Distributor PDF p. 1 exact model row; reseller product overview exact model",
+                "officialValue": "464",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "speed-queen",
+      "name": "Speed Queen",
+      "aliases": ["Speedqueen"],
+      "sources": [
+        {
+          "id": "speed-queen-sq08",
+          "url": "https://go.speedqueencommercial.com/power-on-profit-more",
+          "title": "Power On. Profit More.",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "speedqueen-reviewed-stt55-20260924",
+          "url": "https://alliancelaundrysystems.widen.net/s/ln6fl6gc7c/dl_am25-0052_specsheet_stt55_en-us",
+          "title": "STT55 exact model specification sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "speed-queen-stt55",
+          "family": "STT stack tumble dryers",
+          "model": "STT55",
+          "aliases": [],
+          "equipmentClass": "stack_dryer",
+          "revision": {
+            "id": "speed-queen-stt55-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 34.5,
+              "depthIn": 54.4,
+              "heightIn": 80.9,
+              "weightLb": null,
+              "capacityLb": 55,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "STT55",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "speed-queen-sq08",
+                "locator": "Published current model list",
+                "officialValue": "stack_dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "speedqueen-reviewed-stt55-20260924",
+                "locator": "Exact STT55 model specification table; machine dimensions and rated capacity per pocket",
+                "officialValue": "34.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "speedqueen-reviewed-stt55-20260924",
+                "locator": "Exact STT55 model specification table; machine dimensions and rated capacity per pocket",
+                "officialValue": "54.4",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "speedqueen-reviewed-stt55-20260924",
+                "locator": "Exact STT55 model specification table; machine dimensions and rated capacity per pocket",
+                "officialValue": "80.9",
+                "officialUnit": "in"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "speedqueen-reviewed-stt55-20260924",
+                "locator": "Exact STT55 model specification table; machine dimensions and rated capacity per pocket",
+                "officialValue": "55",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "maytag-commercial",
+      "name": "Maytag Commercial",
+      "aliases": ["Maytag"],
+      "sources": [
+        {
+          "id": "maytag-m01",
+          "url": "https://www.maytagcommerciallaundry.com/mclstorefront/mcl/en_US/sitemap.xml",
+          "title": "Official Product Sitemap",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "maytag-reviewed-md20-20260924",
+          "url": "https://www.maytag.com/content/dam/global/documents/202410/my240361_mdeg20mntgwkw_50hz_spec%20sheet_v03.pdf",
+          "title": "MDE20 and MDG20 50 Hz specification sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "maytag-reviewed-md28-distributor-20260924",
+          "url": "https://portalimages.blob.core.windows.net/products/pdfs/anghogsi_MDE28andMDG28-10.5kg-DLSSpecSheet.pdf",
+          "title": "MDE28 and MDG28 distributor specification sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "distributor"
+        },
+        {
+          "id": "maytag-reviewed-mle26-mlg26-20260924",
+          "url": "https://www.maytag.com/content/dam/global/documents/201505/dimension-guide-MY150073.pdf",
+          "title": "MLE26 and MLG26 dimension guide",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "maytag-reviewed-mle27-mlg27-archive-20260924",
+          "url": "https://device.report/m/7dcabdae24d1b79989e21f0b890e9af4ba483d4aedc04bd64acd2e3c982d930f",
+          "title": "MLE27 and MLG27 archived manufacturer manual",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "third_party"
+        },
+        {
+          "id": "maytag-reviewed-mdg30-20260924",
+          "url": "https://www.whirlpool.com/content/dam/global/documents/202105/dimension-guide-my200036-mcl-mdg30-mdg76-traditional-vend-spec-sheet.pdf",
+          "title": "MDG30 traditional vended specification sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "maytag-reviewed-mdg50-mdg75-20260924",
+          "url": "https://www.maytag.com/content/dam/global/documents/202210/my200035-mcl-mdg50-mdg75-traditional-opl-spec-sheet_Revised10.10.22_MV.pdf",
+          "title": "MDG50 and MDG75 traditional OPL specification sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "maytag-reviewed-mdg120-mdg170-20260924",
+          "url": "https://www.maytag.com/content/dam/global/documents/202212/dimension-guide-my200034-mdg120-mdg170-opl-spec-sheet-rev-12.22.pdf",
+          "title": "MDG120 and MDG170 OPL specification sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "maytag-commercial-mde20",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDE20",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mde20-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29.25,
+              "heightIn": 43,
+              "weightLb": null,
+              "capacityLb": 23.2,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDE20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDE20 row, product dimensions and IEC rated capacity",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDE20 row, product dimensions and IEC rated capacity",
+                "officialValue": "29.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDE20 row, product dimensions and IEC rated capacity",
+                "officialValue": "43",
+                "officialUnit": "in"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDE20 row, product dimensions and IEC rated capacity",
+                "officialValue": "23.2",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mdg20",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDG20",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mdg20-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29.25,
+              "heightIn": 43,
+              "weightLb": null,
+              "capacityLb": 23.2,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDG20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDG20 row, product dimensions and IEC rated capacity",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDG20 row, product dimensions and IEC rated capacity",
+                "officialValue": "29.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDG20 row, product dimensions and IEC rated capacity",
+                "officialValue": "43",
+                "officialUnit": "in"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-md20-20260924",
+                "locator": "Exact MDG20 row, product dimensions and IEC rated capacity",
+                "officialValue": "23.2",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mde28",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDE28",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mde28-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": 23.1,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDE28",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-md28-distributor-20260924",
+                "locator": "Exact MDE28 specification row, machine width/depth and IEC rated capacity",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-md28-distributor-20260924",
+                "locator": "Exact MDE28 specification row, machine width/depth and IEC rated capacity",
+                "officialValue": "29",
+                "officialUnit": "in"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-md28-distributor-20260924",
+                "locator": "Exact MDE28 specification row, machine width/depth and IEC rated capacity",
+                "officialValue": "23.1",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mdg28",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDG28",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mdg28-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29,
+              "heightIn": null,
+              "weightLb": null,
+              "capacityLb": 23.1,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDG28",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-md28-distributor-20260924",
+                "locator": "Exact MDG28 specification row, machine width/depth and IEC rated capacity",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-md28-distributor-20260924",
+                "locator": "Exact MDG28 specification row, machine width/depth and IEC rated capacity",
+                "officialValue": "29",
+                "officialUnit": "in"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-md28-distributor-20260924",
+                "locator": "Exact MDG28 specification row, machine width/depth and IEC rated capacity",
+                "officialValue": "23.1",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mle26",
+          "family": "Maytag stack dryers",
+          "model": "MLE26",
+          "aliases": [],
+          "equipmentClass": "stack_dryer",
+          "revision": {
+            "id": "maytag-commercial-mle26-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29,
+              "heightIn": 74.25,
+              "weightLb": 250,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MLE26",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "stack_dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLE26 specifications, uncrated dimensions and weight",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLE26 specifications, uncrated dimensions and weight",
+                "officialValue": "29",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLE26 specifications, uncrated dimensions and weight",
+                "officialValue": "74.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLE26 specifications, uncrated dimensions and weight",
+                "officialValue": "250",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mlg26",
+          "family": "Maytag stack dryers",
+          "model": "MLG26",
+          "aliases": [],
+          "equipmentClass": "stack_dryer",
+          "revision": {
+            "id": "maytag-commercial-mlg26-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29,
+              "heightIn": 74.25,
+              "weightLb": 250,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MLG26",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "stack_dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLG26 specifications, uncrated dimensions and weight",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLG26 specifications, uncrated dimensions and weight",
+                "officialValue": "29",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLG26 specifications, uncrated dimensions and weight",
+                "officialValue": "74.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mle26-mlg26-20260924",
+                "locator": "PDF p. 2 exact MLG26 specifications, uncrated dimensions and weight",
+                "officialValue": "250",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mle27",
+          "family": "Maytag stack dryers",
+          "model": "MLE27",
+          "aliases": [],
+          "equipmentClass": "stack_dryer",
+          "revision": {
+            "id": "maytag-commercial-mle27-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29,
+              "heightIn": 76.75,
+              "weightLb": 272,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MLE27",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "stack_dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLE27 specifications, uncrated dimensions and weight",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLE27 specifications, uncrated dimensions and weight",
+                "officialValue": "29",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLE27 specifications, uncrated dimensions and weight",
+                "officialValue": "76.75",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLE27 specifications, uncrated dimensions and weight",
+                "officialValue": "272",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mlg27",
+          "family": "Maytag stack dryers",
+          "model": "MLG27",
+          "aliases": [],
+          "equipmentClass": "stack_dryer",
+          "revision": {
+            "id": "maytag-commercial-mlg27-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 27,
+              "depthIn": 29,
+              "heightIn": 76.75,
+              "weightLb": 272,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MLG27",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "stack_dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLG27 specifications, uncrated dimensions and weight",
+                "officialValue": "27",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLG27 specifications, uncrated dimensions and weight",
+                "officialValue": "29",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLG27 specifications, uncrated dimensions and weight",
+                "officialValue": "76.75",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mle27-mlg27-archive-20260924",
+                "locator": "Archived manufacturer manual exact MLG27 specifications, uncrated dimensions and weight",
+                "officialValue": "272",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mdg30",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDG30",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mdg30-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 31.38,
+              "depthIn": 43,
+              "heightIn": 72,
+              "weightLb": 535,
+              "capacityLb": 30,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDG30",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mdg30-20260924",
+                "locator": "Exact MDG30(PC) row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "31.38",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mdg30-20260924",
+                "locator": "Exact MDG30(PC) row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "43",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mdg30-20260924",
+                "locator": "Exact MDG30(PC) row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "72",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mdg30-20260924",
+                "locator": "Exact MDG30(PC) row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "535",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-mdg30-20260924",
+                "locator": "Exact MDG30(PC) row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "30",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mdg50",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDG50",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mdg50-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 34.25,
+              "depthIn": 50,
+              "heightIn": 72,
+              "weightLb": 651,
+              "capacityLb": 50,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDG50",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG50 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "34.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG50 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "50",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG50 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "72",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG50 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "651",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG50 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "50",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mdg75",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDG75",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mdg75-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 38.25,
+              "depthIn": 48.38,
+              "heightIn": 75.13,
+              "weightLb": 721,
+              "capacityLb": 75,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDG75",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG75 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "38.25",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG75 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "48.38",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG75 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "75.13",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG75 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "721",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-mdg50-mdg75-20260924",
+                "locator": "Exact MDG75 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "75",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mdg120",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDG120",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mdg120-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 48.75,
+              "depthIn": 62.5,
+              "heightIn": 86.88,
+              "weightLb": 1349,
+              "capacityLb": 120,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDG120",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG120 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "48.75",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG120 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "62.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG120 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "86.88",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG120 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "1349",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG120 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "120",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "maytag-commercial-mdg170",
+          "family": "Maytag single and multi-load dryers",
+          "model": "MDG170",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "maytag-commercial-mdg170-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": null,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 55.88,
+              "depthIn": 62.5,
+              "heightIn": 100,
+              "weightLb": 2103,
+              "capacityLb": 170,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "MDG170",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "maytag-m01",
+                "locator": "Official product sitemap model URL",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG170 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "55.88",
+                "officialUnit": "in"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG170 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "62.5",
+                "officialUnit": "in"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG170 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "100",
+                "officialUnit": "in"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG170 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "2103",
+                "officialUnit": "lb"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "maytag-reviewed-mdg120-mdg170-20260924",
+                "locator": "Exact MDG170 row, uncrated dimensions, net weight and rated capacity",
+                "officialValue": "170",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    },
+    {
+      "id": "electrolux-professional",
+      "name": "Electrolux Professional",
+      "aliases": ["Electrolux"],
+      "sources": [
+        {
+          "id": "electrolux-ep01",
+          "url": "https://www.electroluxprofessional.com/jp/download/errorsearch/",
+          "title": "Washer/Dryer/Wash-Dryer Error Code Search",
+          "retrievedAt": "2026-09-23T00:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Official source reviewed through public document extraction; source bytes were not retained for a content checksum."
+        },
+        {
+          "id": "electrolux-reviewed-wh6-8-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WH6-8_438908681_EN.pdf?version=1731414469",
+          "title": "WH6-8 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wh6-11-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WH6-11_438908682_EN.pdf",
+          "title": "WH6-11 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wh6-14-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WH6-14_438908683_EN.pdf?version=1691501101",
+          "title": "WH6-14 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wh6-20-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WH6-20_438908684_EN.pdf",
+          "title": "WH6-20 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wh6-27-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WH6-27_438908685_EN.pdf?version=1703910787",
+          "title": "WH6-27 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wn6-8-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PS_438908941EN_WN6-8%20Compass%20Pro_EN.pdf?version=1614372242",
+          "title": "WN6-8 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wn6-11-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PS_438908943EN_WN6-11%20Compass%20Pro_EN.pdf",
+          "title": "WN6-11 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wn6-20-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WN6-20_438908945_EN.pdf?version=1728881324",
+          "title": "WN6-20 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-ws6-11-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WS6-11_438918012_EN.pdf?version=1716679012",
+          "title": "WS6-11 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-ws6-14-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WS6-14_438918013_EN.pdf?version=1753391523",
+          "title": "WS6-14 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-ws6-20-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PS_438918014EN_WS6-20%20Compass%20Pro_EN.pdf",
+          "title": "WS6-20 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-ws6-28-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_WS6-28_438918015_EN.pdf?version=1765143039",
+          "title": "WS6-28 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-ws6-35-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PS_438918016EN_WS6-35%20Compass%20Pro_EN.pdf?version=1612401841",
+          "title": "WS6-35 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-wh6-33-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/IN/IN_WH6-7%2C%20WH6-8%2C%20WH6-11%2C%20WH6-14%2C%20WH6-20%2C%20WH6-27%2C%20WH6-33_Compass%20Pro_438917550_EN.pdf?version=1778030406",
+          "title": "WH6 series Compass Pro installation manual",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-td6-7lac-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_438913911_Lagoon%20concept_Essential%20set%20TD6-7%20and%20WH6-6_ELS%20US_US.pdf?version=1774281954",
+          "title": "TD6-7LAC product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-td6-16-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_TD6-16_438908654_EN.pdf",
+          "title": "TD6-16 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-td6-17s-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PS_438908652EN_TD6-17S_EN.pdf",
+          "title": "TD6-17S product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-td6-20lac-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_438913910_Lagoon%20concept_TD6-20%20and%20WH6-20_EN.pdf?version=1698743700",
+          "title": "TD6-20LAC product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-td6-24s-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_TD6-24S_438908653_EN.pdf?version=1756292314",
+          "title": "TD6-24S product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        },
+        {
+          "id": "electrolux-reviewed-td6-30-20260924",
+          "url": "https://tools.electroluxprofessional.com/Mirror/Doc/ELS/PDS/PDS_TD6-30_438908655_EN.pdf",
+          "title": "TD6-30 product data sheet",
+          "retrievedAt": "2026-09-24T07:00:00.000Z",
+          "documentRevision": null,
+          "checksum": null,
+          "checksumUnavailableReason": "Reviewed through public document extraction; source bytes were not retained for a content checksum.",
+          "sourceClass": "official_manufacturer"
+        }
+      ],
+      "models": [
+        {
+          "id": "electrolux-professional-wh6-8",
+          "family": "Line6000 washers",
+          "model": "WH6-8",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wh6-8-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 28.3465,
+              "depthIn": 28.3858,
+              "heightIn": 44.5669,
+              "weightLb": 348.3304,
+              "capacityLb": 18,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WH6-8",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wh6-8-20260924",
+                "locator": "Exact WH6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "720",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wh6-8-20260924",
+                "locator": "Exact WH6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "721",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wh6-8-20260924",
+                "locator": "Exact WH6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1132",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wh6-8-20260924",
+                "locator": "Exact WH6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "158",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wh6-8-20260924",
+                "locator": "Exact WH6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "18",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wh6-11",
+          "family": "Line6000 washers",
+          "model": "WH6-11",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wh6-11-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 32.6772,
+              "depthIn": 30.1575,
+              "heightIn": 47.7165,
+              "weightLb": 445.3338,
+              "capacityLb": 25,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WH6-11",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wh6-11-20260924",
+                "locator": "Exact WH6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "830",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wh6-11-20260924",
+                "locator": "Exact WH6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "766",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wh6-11-20260924",
+                "locator": "Exact WH6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1212",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wh6-11-20260924",
+                "locator": "Exact WH6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "202",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wh6-11-20260924",
+                "locator": "Exact WH6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "25",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wh6-14",
+          "family": "Line6000 washers",
+          "model": "WH6-14",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wh6-14-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 35.8268,
+              "depthIn": 32.3228,
+              "heightIn": 52.2047,
+              "weightLb": 579.8157,
+              "capacityLb": 30,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WH6-14",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wh6-14-20260924",
+                "locator": "Exact WH6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "910",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wh6-14-20260924",
+                "locator": "Exact WH6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "821",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wh6-14-20260924",
+                "locator": "Exact WH6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1326",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wh6-14-20260924",
+                "locator": "Exact WH6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "263",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wh6-14-20260924",
+                "locator": "Exact WH6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "30",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wh6-20",
+          "family": "Line6000 washers",
+          "model": "WH6-20",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wh6-20-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 38.189,
+              "depthIn": 37.2835,
+              "heightIn": 55.5906,
+              "weightLb": 780.4364,
+              "capacityLb": 45,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WH6-20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wh6-20-20260924",
+                "locator": "Exact WH6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "970",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wh6-20-20260924",
+                "locator": "Exact WH6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "947",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wh6-20-20260924",
+                "locator": "Exact WH6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1412",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wh6-20-20260924",
+                "locator": "Exact WH6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "354",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wh6-20-20260924",
+                "locator": "Exact WH6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "45",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wh6-27",
+          "family": "Line6000 washers",
+          "model": "WH6-27",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wh6-27-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 40.1575,
+              "depthIn": 38.9764,
+              "heightIn": 57.5591,
+              "weightLb": 936.9646,
+              "capacityLb": 60,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WH6-27",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wh6-27-20260924",
+                "locator": "Exact WH6-27 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1020",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wh6-27-20260924",
+                "locator": "Exact WH6-27 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "990",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wh6-27-20260924",
+                "locator": "Exact WH6-27 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1462",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wh6-27-20260924",
+                "locator": "Exact WH6-27 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "425",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wh6-27-20260924",
+                "locator": "Exact WH6-27 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "60",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wn6-8",
+          "family": "Line6000 washers",
+          "model": "WN6-8",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wn6-8-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 25.9843,
+              "depthIn": 26.7717,
+              "heightIn": 44.685,
+              "weightLb": 255.7362,
+              "capacityLb": 18,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WN6-8",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wn6-8-20260924",
+                "locator": "Exact WN6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "660",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wn6-8-20260924",
+                "locator": "Exact WN6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "680",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wn6-8-20260924",
+                "locator": "Exact WN6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1135",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wn6-8-20260924",
+                "locator": "Exact WN6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "116",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wn6-8-20260924",
+                "locator": "Exact WN6-8 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "18",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wn6-11",
+          "family": "Line6000 washers",
+          "model": "WN6-11",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wn6-11-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 28.3465,
+              "depthIn": 27.5591,
+              "heightIn": 48.0315,
+              "weightLb": 335.1026,
+              "capacityLb": 25,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WN6-11",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wn6-11-20260924",
+                "locator": "Exact WN6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "720",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wn6-11-20260924",
+                "locator": "Exact WN6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "700",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wn6-11-20260924",
+                "locator": "Exact WN6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1220",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wn6-11-20260924",
+                "locator": "Exact WN6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "152",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wn6-11-20260924",
+                "locator": "Exact WN6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "25",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wn6-20",
+          "family": "Line6000 washers",
+          "model": "WN6-20",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wn6-20-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 29.5276,
+              "depthIn": 36.0236,
+              "heightIn": 52.9528,
+              "weightLb": 456.3569,
+              "capacityLb": 45,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WN6-20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wn6-20-20260924",
+                "locator": "Exact WN6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "750",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wn6-20-20260924",
+                "locator": "Exact WN6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "915",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wn6-20-20260924",
+                "locator": "Exact WN6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1345",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wn6-20-20260924",
+                "locator": "Exact WN6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "207",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wn6-20-20260924",
+                "locator": "Exact WN6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "45",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-ws6-11",
+          "family": "Line6000 washers",
+          "model": "WS6-11",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-ws6-11-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 28.3465,
+              "depthIn": 27.5591,
+              "heightIn": 48.0315,
+              "weightLb": 335.1026,
+              "capacityLb": 25,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WS6-11",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-ws6-11-20260924",
+                "locator": "Exact WS6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "720",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-ws6-11-20260924",
+                "locator": "Exact WS6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "700",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-ws6-11-20260924",
+                "locator": "Exact WS6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1220",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-ws6-11-20260924",
+                "locator": "Exact WS6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "152",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-ws6-11-20260924",
+                "locator": "Exact WS6-11 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "25",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-ws6-14",
+          "family": "Line6000 washers",
+          "model": "WS6-14",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-ws6-14-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 28.3465,
+              "depthIn": 31.1024,
+              "heightIn": 48.0315,
+              "weightLb": 339.5119,
+              "capacityLb": 30,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WS6-14",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-ws6-14-20260924",
+                "locator": "Exact WS6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "720",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-ws6-14-20260924",
+                "locator": "Exact WS6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "790",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-ws6-14-20260924",
+                "locator": "Exact WS6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1220",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-ws6-14-20260924",
+                "locator": "Exact WS6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "154",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-ws6-14-20260924",
+                "locator": "Exact WS6-14 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "30",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-ws6-20",
+          "family": "Line6000 washers",
+          "model": "WS6-20",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-ws6-20-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 29.5276,
+              "depthIn": 36.0236,
+              "heightIn": 52.9528,
+              "weightLb": 487.2216,
+              "capacityLb": 45,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WS6-20",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-ws6-20-20260924",
+                "locator": "Exact WS6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "750",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-ws6-20-20260924",
+                "locator": "Exact WS6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "915",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-ws6-20-20260924",
+                "locator": "Exact WS6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1345",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-ws6-20-20260924",
+                "locator": "Exact WS6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "221",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-ws6-20-20260924",
+                "locator": "Exact WS6-20 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "45",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-ws6-28",
+          "family": "Line6000 washers",
+          "model": "WS6-28",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-ws6-28-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 32.6772,
+              "depthIn": 40.5512,
+              "heightIn": 56.2992,
+              "weightLb": 577.6111,
+              "capacityLb": 62,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WS6-28",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-ws6-28-20260924",
+                "locator": "Exact WS6-28 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "830",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-ws6-28-20260924",
+                "locator": "Exact WS6-28 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1030",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-ws6-28-20260924",
+                "locator": "Exact WS6-28 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1430",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-ws6-28-20260924",
+                "locator": "Exact WS6-28 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "262",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-ws6-28-20260924",
+                "locator": "Exact WS6-28 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "62",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-ws6-35",
+          "family": "Line6000 washers",
+          "model": "WS6-35",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-ws6-35-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 35.8268,
+              "depthIn": 43.8976,
+              "heightIn": 57.6772,
+              "weightLb": 676.8191,
+              "capacityLb": 75,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WS6-35",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-ws6-35-20260924",
+                "locator": "Exact WS6-35 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "910",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-ws6-35-20260924",
+                "locator": "Exact WS6-35 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1115",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-ws6-35-20260924",
+                "locator": "Exact WS6-35 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "1465",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-ws6-35-20260924",
+                "locator": "Exact WS6-35 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "307",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-ws6-35-20260924",
+                "locator": "Exact WS6-35 row, Main specifications and Dimensions; machine net weight, rated capacity",
+                "officialValue": "75",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-wh6-33",
+          "family": "Line6000 washers",
+          "model": "WH6-33",
+          "aliases": [],
+          "equipmentClass": "washer",
+          "revision": {
+            "id": "electrolux-professional-wh6-33-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 40.1575,
+              "depthIn": 44.6457,
+              "heightIn": 56.9291,
+              "weightLb": 1234.5887,
+              "capacityLb": 75,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "WH6-33",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "washer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) washer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-wh6-33-20260924",
+                "locator": "PDF section 3.2, exact WH6-33 model column; machine dimensions, net weight and rated capacity",
+                "officialValue": "1020",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-wh6-33-20260924",
+                "locator": "PDF section 3.2, exact WH6-33 model column; machine dimensions, net weight and rated capacity",
+                "officialValue": "1134",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-wh6-33-20260924",
+                "locator": "PDF section 3.2, exact WH6-33 model column; machine dimensions, net weight and rated capacity",
+                "officialValue": "1446",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-wh6-33-20260924",
+                "locator": "PDF section 3.2, exact WH6-33 model column; machine dimensions, net weight and rated capacity",
+                "officialValue": "560",
+                "officialUnit": "kg"
+              },
+              {
+                "field": "capacityLb",
+                "sourceId": "electrolux-reviewed-wh6-33-20260924",
+                "locator": "PDF section 3.2, exact WH6-33 model column; machine dimensions, net weight and rated capacity",
+                "officialValue": "75",
+                "officialUnit": "lb"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-7lac",
+          "family": "Line6000 single dryers",
+          "model": "TD6-7LAC",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-7lac-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 23.622,
+              "depthIn": null,
+              "heightIn": 41.3386,
+              "weightLb": 240.3039,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-7LAC",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-td6-7lac-20260924",
+                "locator": "Exact TD6-7LAC row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "600",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-td6-7lac-20260924",
+                "locator": "Exact TD6-7LAC row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1050",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-td6-7lac-20260924",
+                "locator": "Exact TD6-7LAC row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "109",
+                "officialUnit": "kg"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-16",
+          "family": "Line6000 single dryers",
+          "model": "TD6-16",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-16-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 28.1496,
+              "depthIn": 47.6378,
+              "heightIn": 66.5354,
+              "weightLb": 416.6737,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-16",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-td6-16-20260924",
+                "locator": "Exact TD6-16 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "715",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-td6-16-20260924",
+                "locator": "Exact TD6-16 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1210",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-td6-16-20260924",
+                "locator": "Exact TD6-16 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1690",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-td6-16-20260924",
+                "locator": "Exact TD6-16 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "189",
+                "officialUnit": "kg"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-17s",
+          "family": "Line6000 stacked dryers",
+          "model": "TD6-17S",
+          "aliases": [],
+          "equipmentClass": "stack_dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-17s-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 31.1024,
+              "depthIn": 43.8976,
+              "heightIn": 76.378,
+              "weightLb": 637.1359,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-17S",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "stack_dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-td6-17s-20260924",
+                "locator": "Exact TD6-17S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "790",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-td6-17s-20260924",
+                "locator": "Exact TD6-17S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1115",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-td6-17s-20260924",
+                "locator": "Exact TD6-17S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1940",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-td6-17s-20260924",
+                "locator": "Exact TD6-17S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "289",
+                "officialUnit": "kg"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-20lac",
+          "family": "Line6000 single dryers",
+          "model": "TD6-20LAC",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-20lac-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 31.1024,
+              "depthIn": null,
+              "heightIn": 69.685,
+              "weightLb": 535.7233,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-20LAC",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-td6-20lac-20260924",
+                "locator": "Exact TD6-20LAC row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "790",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-td6-20lac-20260924",
+                "locator": "Exact TD6-20LAC row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1770",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-td6-20lac-20260924",
+                "locator": "Exact TD6-20LAC row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "243",
+                "officialUnit": "kg"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-24s",
+          "family": "Line6000 stacked dryers",
+          "model": "TD6-24S",
+          "aliases": [],
+          "equipmentClass": "stack_dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-24s-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 34.252,
+              "depthIn": 52.5591,
+              "heightIn": 82.0866,
+              "weightLb": 970.034,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-24S",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "stack_dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-td6-24s-20260924",
+                "locator": "Exact TD6-24S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "870",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-td6-24s-20260924",
+                "locator": "Exact TD6-24S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1335",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-td6-24s-20260924",
+                "locator": "Exact TD6-24S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "2085",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-td6-24s-20260924",
+                "locator": "Exact TD6-24S row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "440",
+                "officialUnit": "kg"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        },
+        {
+          "id": "electrolux-professional-td6-30",
+          "family": "Line6000 single dryers",
+          "model": "TD6-30",
+          "aliases": [],
+          "equipmentClass": "dryer",
+          "revision": {
+            "id": "electrolux-professional-td6-30-r2-reviewed-20260924",
+            "revision": 2,
+            "approvedAt": "2026-09-24T07:00:00.000Z",
+            "productionStartYear": 2019,
+            "productionEndYear": null,
+            "specs": {
+              "widthIn": 37.7953,
+              "depthIn": 53.7402,
+              "heightIn": 73.0315,
+              "weightLb": 617.2943,
+              "capacityLb": null,
+              "voltage": [],
+              "phase": [],
+              "fuel": [],
+              "configuration": []
+            },
+            "evidence": [
+              {
+                "field": "model",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "TD6-30",
+                "officialUnit": null
+              },
+              {
+                "field": "equipmentClass",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "dryer",
+                "officialUnit": null
+              },
+              {
+                "field": "productionStartYear",
+                "sourceId": "electrolux-ep01",
+                "locator": "Line6000 (2019–) dryer list",
+                "officialValue": "2019",
+                "officialUnit": "year"
+              },
+              {
+                "field": "widthIn",
+                "sourceId": "electrolux-reviewed-td6-30-20260924",
+                "locator": "Exact TD6-30 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "960",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "depthIn",
+                "sourceId": "electrolux-reviewed-td6-30-20260924",
+                "locator": "Exact TD6-30 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1365",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "heightIn",
+                "sourceId": "electrolux-reviewed-td6-30-20260924",
+                "locator": "Exact TD6-30 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "1855",
+                "officialUnit": "mm"
+              },
+              {
+                "field": "weightLb",
+                "sourceId": "electrolux-reviewed-td6-30-20260924",
+                "locator": "Exact TD6-30 row, Dimensions and Shipping data; stable machine dimensions and net weight",
+                "officialValue": "280",
+                "officialUnit": "kg"
+              }
+            ],
+            "publicationMode": "reviewed_snapshot"
+          },
+          "serialRules": []
+        }
+      ]
+    }
+  ]
+}
