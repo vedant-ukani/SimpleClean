@@ -116,6 +116,42 @@ export class FilesController {
     response.send(file.bytes);
   }
 
+  @Post(":fileId/preview-grants")
+  @RequirePermission("files.read")
+  async createPreviewGrant(
+    @Req() request: Request,
+    @Param("fileId") fileId: string,
+  ) {
+    return {
+      grant: await this.files.createPreviewGrant(
+        fileId,
+        currentIdentityFromRequest(request),
+        this.context(request),
+      ),
+    };
+  }
+
+  @Get(":fileId/preview-content")
+  @RequirePermission("files.read")
+  async previewContent(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Param("fileId") fileId: string,
+    @Query("grant") grant?: string,
+  ) {
+    const file = await this.files.downloadPreview(
+      fileId,
+      grant,
+      currentIdentityFromRequest(request),
+      this.context(request),
+    );
+    response.setHeader("Content-Type", file.mediaType);
+    response.setHeader("Content-Length", String(file.byteCount));
+    response.setHeader("Cache-Control", "private, no-store");
+    response.setHeader("Content-Disposition", 'inline; filename="preview.jpg"');
+    response.send(file.bytes);
+  }
+
   @Get("review/incomplete")
   @RequirePermission("files.manage")
   async incomplete(@Req() request: Request) {

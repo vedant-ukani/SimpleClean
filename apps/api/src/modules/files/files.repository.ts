@@ -1,4 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { FileAttachmentSchema } from "@simply-clean/contracts";
 import type {
   CreateFileUploadGrantRequest,
   FileAttachment,
@@ -26,6 +27,25 @@ export interface FileActorContext {
 
 export interface PrivateFileAttachment extends FileAttachment {
   storageKey: string;
+  previewStorageKey?: string;
+}
+
+export interface IntakeFileEvidence {
+  id: string;
+  originalFilename: string;
+  detectedMediaType: FileMediaType | null;
+  state: FileAttachment["state"];
+  previewStorageKey?: string;
+  sha256?: string;
+  byteCount?: number;
+}
+
+export interface IntakeAnalysisEvidence extends IntakeFileEvidence {
+  storageKey: string;
+  byteCount: number;
+  sha256: string;
+  previewByteCount: number | null;
+  previewSha256: string | null;
 }
 
 type RecordRow = Record<string, unknown>;
@@ -60,6 +80,9 @@ function fileFromRow(row: RecordRow): PrivateFileAttachment {
       : { type: "load", id: loadId! },
     purpose: row.purpose as FileAttachment["purpose"],
     storageKey: String(row.storage_key),
+    ...(nullableString(row.preview_storage_key)
+      ? { previewStorageKey: nullableString(row.preview_storage_key)! }
+      : {}),
     originalFilename: String(row.original_filename),
     declaredMediaType: row.declared_media_type as FileMediaType,
     detectedMediaType: (row.detected_media_type ??
@@ -76,6 +99,14 @@ function fileFromRow(row: RecordRow): PrivateFileAttachment {
     version: Number(row.version),
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
+    preview:
+      row.preview_byte_count === null || row.preview_byte_count === undefined
+        ? null
+        : {
+            mediaType: "image/jpeg",
+            byteCount: Number(row.preview_byte_count),
+            sha256: String(row.preview_sha256),
+          },
   };
 }
 
@@ -87,6 +118,28 @@ export class FilesRepository {
     @Inject(MUTATION_RECORDER)
     private readonly mutationRecorder: MutationRecorder,
   ) {}
+
+  async findPreliminaryEvidence(
+    database: DatabaseExecutor,
+    fileIds: readonly string[],
+    machineId?: string,
+    readyOnly = false,
+  ): Promise<FileAttachment[]> {
+    if (!fileIds.length) return [];
+    const result = await database.execute(sql`
+      select * from file_attachment
+      where purpose = 'preliminary_inspection'
+        and id in (${sql.join(
+          fileIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})
+        ${machineId ? sql`and machine_id = ${machineId}` : sql``}
+        ${readyOnly ? sql`and state = 'ready'` : sql``}
+    `);
+    return rows(result).map((row) =>
+      FileAttachmentSchema.parse(fileFromRow(row)),
+    );
+  }
 
   async createPendingUpload(input: {
     fileId: string;
@@ -154,9 +207,79 @@ export class FilesRepository {
     return rows(result).map(fileFromRow);
   }
 
+  async findIntakeEvidence(
+    database: DatabaseExecutor,
+    fileIds: string[],
+    loadId?: string,
+  ): Promise<IntakeFileEvidence[]> {
+    if (!fileIds.length) return [];
+    const result = await database.execute(sql`
+      select f.id, f.original_filename, f.detected_media_type, f.state,
+             f.preview_storage_key, f.sha256, f.byte_count
+      from file_attachment f
+      where f.purpose = 'intake_evidence'
+        and f.id in (${sql.join(
+          fileIds.map((fileId) => sql`${fileId}`),
+          sql`, `,
+        )})
+        ${loadId ? sql`and f.load_id = ${loadId}` : sql``}
+    `);
+    return rows(result).map((row) => ({
+      id: String(row.id),
+      originalFilename: String(row.original_filename),
+      detectedMediaType: (row.detected_media_type ??
+        null) as FileMediaType | null,
+      state: row.state as FileAttachment["state"],
+      ...(nullableString(row.preview_storage_key)
+        ? { previewStorageKey: nullableString(row.preview_storage_key)! }
+        : {}),
+      ...(nullableString(row.sha256)
+        ? { sha256: nullableString(row.sha256)! }
+        : {}),
+      ...(row.byte_count === null || row.byte_count === undefined
+        ? {}
+        : { byteCount: Number(row.byte_count) }),
+    }));
+  }
+
+  async findIntakeAnalysisEvidence(
+    database: DatabaseExecutor,
+    fileIds: string[],
+    loadId: string,
+  ): Promise<IntakeAnalysisEvidence[]> {
+    if (!fileIds.length) return [];
+    const result = await database.execute(sql`
+      select f.id, f.original_filename, f.detected_media_type, f.state,
+             f.preview_storage_key, f.preview_byte_count, f.preview_sha256,
+             f.storage_key, f.byte_count, f.sha256
+      from file_attachment f
+      where f.purpose = 'intake_evidence' and f.state = 'ready'
+        and f.load_id = ${loadId}
+        and f.id in (${sql.join(
+          fileIds.map((fileId) => sql`${fileId}`),
+          sql`, `,
+        )})
+    `);
+    return rows(result).map((row) => ({
+      id: String(row.id),
+      originalFilename: String(row.original_filename),
+      detectedMediaType: row.detected_media_type as FileMediaType,
+      state: row.state as FileAttachment["state"],
+      storageKey: String(row.storage_key),
+      byteCount: Number(row.byte_count),
+      sha256: String(row.sha256),
+      previewByteCount:
+        row.preview_byte_count == null ? null : Number(row.preview_byte_count),
+      previewSha256: nullableString(row.preview_sha256),
+      ...(nullableString(row.preview_storage_key)
+        ? { previewStorageKey: nullableString(row.preview_storage_key)! }
+        : {}),
+    }));
+  }
+
   async consumeGrant(input: {
     fileId: string;
-    operation: "upload" | "download";
+    operation: "upload" | "download" | "preview";
     tokenHash: string;
     actorUserId: string;
     sessionId: string;
@@ -202,7 +325,7 @@ export class FilesRepository {
     const result = await this.connection.database.execute(sql`
       update file_access_grant g set consumed_at = now()
       where g.file_id = ${input.fileId}
-        and g.operation = 'download'
+        and g.operation = ${input.operation}
         and g.token_hash = ${input.tokenHash}
         and g.issued_to_user_id = ${input.actorUserId}
         and g.issued_session_id = ${input.sessionId}
@@ -227,6 +350,7 @@ export class FilesRepository {
     },
     lease: { id: string; fileVersion: number },
     context: FileActorContext,
+    preview?: { storageKey: string; byteCount: number; sha256: string },
   ): Promise<PrivateFileAttachment | undefined> {
     return this.connection.transaction(async (database) => {
       const result = await database.execute(sql`
@@ -234,6 +358,9 @@ export class FilesRepository {
           detected_media_type = ${metadata.mediaType},
           byte_count = ${metadata.byteCount},
           sha256 = ${metadata.sha256},
+          preview_storage_key = ${preview?.storageKey ?? null},
+          preview_byte_count = ${preview?.byteCount ?? null},
+          preview_sha256 = ${preview?.sha256 ?? null},
           state = 'ready', failure_code = null,
           upload_lease_id = null, upload_lease_expires_at = null,
           version = version + 1, updated_at = now()
@@ -324,6 +451,31 @@ export class FilesRepository {
     });
   }
 
+  async createPreviewGrant(input: {
+    fileId: string;
+    tokenHash: string;
+    expiresAt: Date;
+    context: FileActorContext;
+  }): Promise<void> {
+    await this.connection.transaction(async (database) => {
+      await database.execute(sql`
+        insert into file_access_grant (
+          id, file_id, operation, token_hash, issued_to_user_id,
+          issued_session_id, expires_at
+        ) values (
+          ${randomUUID()}, ${input.fileId}, 'preview', ${input.tokenHash},
+          ${input.context.actorUserId}, ${input.context.sessionId}, ${input.expiresAt}
+        )
+      `);
+      await this.activity(
+        database,
+        input.fileId,
+        "preview_grant_created",
+        input.context,
+      );
+    });
+  }
+
   async recordDownload(
     fileId: string,
     context: FileActorContext,
@@ -334,6 +486,13 @@ export class FilesRepository {
       "downloaded",
       context,
     );
+  }
+
+  async recordPreview(
+    fileId: string,
+    context: FileActorContext,
+  ): Promise<void> {
+    await this.activity(this.connection.database, fileId, "previewed", context);
   }
 
   async incomplete(): Promise<PrivateFileAttachment[]> {

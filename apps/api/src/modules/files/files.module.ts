@@ -1,4 +1,4 @@
-import { Module, type DynamicModule } from "@nestjs/common";
+import { Global, Module, type DynamicModule } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
 import type { ServerConfig } from "@simply-clean/config";
 import { memoryStorage } from "multer";
@@ -12,6 +12,7 @@ import {
   FilesService,
 } from "./files.service.js";
 
+@Global()
 @Module({})
 export class FilesModule {
   static register(config: ServerConfig): DynamicModule {

@@ -17,7 +17,7 @@ import type {
 } from "./storage.adapter.js";
 
 const GENERATED_KEY =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?:\/preview\.jpg)?$/i;
 
 @Injectable()
 export class LocalStorageAdapter implements StorageAdapter {
@@ -83,7 +83,10 @@ export class LocalStorageAdapter implements StorageAdapter {
     if (!GENERATED_KEY.test(key)) {
       throw new Error("Invalid generated storage key");
     }
-    const candidate = resolve(this.root, key);
+    const normalizedKey = key.endsWith("/preview.jpg")
+      ? key.slice(0, -"/preview.jpg".length) + ".preview.jpg"
+      : key;
+    const candidate = resolve(this.root, normalizedKey);
     if (!candidate.startsWith(`${this.root}${sep}`)) {
       throw new Error("Storage key escapes configured root");
     }

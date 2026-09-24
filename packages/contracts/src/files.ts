@@ -6,6 +6,8 @@ export const FILE_PURPOSES = [
   "document",
   "receipt",
   "other",
+  "intake_evidence",
+  "preliminary_inspection",
 ] as const;
 export const FILE_STATES = [
   "pending_upload",
@@ -17,6 +19,8 @@ export const FILE_MEDIA_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
   "application/pdf",
 ] as const;
 export const FILE_TARGET_TYPES = ["machine", "load"] as const;
@@ -52,6 +56,14 @@ export const FileAttachmentSchema = z.object({
   version: z.number().int().positive(),
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,
+  preview: z
+    .object({
+      mediaType: z.literal("image/jpeg"),
+      byteCount: z.number().int().positive(),
+      sha256: z.string().regex(/^[a-f0-9]{64}$/),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const CreateFileUploadGrantRequestSchema = z.object({

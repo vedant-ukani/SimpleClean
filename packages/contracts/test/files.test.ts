@@ -15,6 +15,8 @@ describe("file contracts", () => {
       "document",
       "receipt",
       "other",
+      "intake_evidence",
+      "preliminary_inspection",
     ]);
     expect(FILE_STATES).toEqual([
       "pending_upload",

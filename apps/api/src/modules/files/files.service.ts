@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import type { ServerConfig } from "@simply-clean/config";
+import type { DatabaseExecutor } from "@simply-clean/database";
 import {
   CreateFileUploadGrantRequestSchema,
   FileIdSchema,
@@ -27,13 +28,17 @@ import {
 } from "../inventory/inventory.service.js";
 import {
   FilePolicyError,
+  createIntakeAnalysisImage,
   inspectContent,
   safeDownloadFilename,
   validateUploadGrantRequest,
+  createIntakePreview,
+  inspectStoredIntakePreview,
 } from "./content-policy.js";
 import {
   FilesRepository,
   type FileActorContext,
+  type IntakeFileEvidence,
   type PrivateFileAttachment,
 } from "./files.repository.js";
 import { STORAGE_ADAPTER, type StorageAdapter } from "./storage.adapter.js";
@@ -49,6 +54,32 @@ export interface DownloadedFile {
 }
 
 export interface FilesOperations {
+  findReadyPreliminaryEvidence(
+    database: DatabaseExecutor,
+    machineId: string,
+    fileIds: readonly string[],
+  ): Promise<FileAttachment[]>;
+  findPreliminaryEvidenceByIds(
+    database: DatabaseExecutor,
+    fileIds: readonly string[],
+  ): Promise<FileAttachment[]>;
+  findIntakeEvidence(
+    database: DatabaseExecutor,
+    fileIds: string[],
+    loadId?: string,
+  ): Promise<IntakeFileEvidence[]>;
+  getIntakeAnalysisImages(
+    database: DatabaseExecutor,
+    photos: readonly { photoId: string; fileId: string }[],
+    loadId: string,
+    limits?: IntakeAnalysisLimits,
+  ): Promise<IntakeAnalysisImage[]>;
+  getIntakeRecognitionImages(
+    database: DatabaseExecutor,
+    photos: readonly { photoId: string; fileId: string }[],
+    loadId: string,
+    limits?: IntakeAnalysisLimits,
+  ): Promise<{ ocr: IntakeAnalysisImage[]; semantic: IntakeAnalysisImage[] }>;
   createUploadGrant(
     input: unknown,
     identity: IdentityUser,
@@ -67,7 +98,18 @@ export interface FilesOperations {
     identity: IdentityUser,
     context: FileActorContext,
   ): Promise<FileGrant>;
+  createPreviewGrant(
+    fileId: string,
+    identity: IdentityUser,
+    context: FileActorContext,
+  ): Promise<FileGrant>;
   downloadContent(
+    fileId: string,
+    token: string | undefined,
+    identity: IdentityUser,
+    context: FileActorContext,
+  ): Promise<DownloadedFile>;
+  downloadPreview(
     fileId: string,
     token: string | undefined,
     identity: IdentityUser,
@@ -81,6 +123,21 @@ export interface FilesOperations {
   ): Promise<FileAttachment>;
 }
 
+export interface IntakeAnalysisLimits {
+  maxImageBytes: number;
+  maxBatchBytes: number;
+  maxPixels: number;
+}
+
+export interface IntakeAnalysisImage {
+  photoId: string;
+  sourceChecksum: string;
+  bytes: Buffer;
+  mediaType: "image/jpeg";
+  width: number;
+  height: number;
+}
+
 @Injectable()
 export class FilesService implements FilesOperations {
   constructor(
@@ -90,6 +147,153 @@ export class FilesService implements FilesOperations {
     @Inject(STORAGE_ADAPTER) private readonly storage: StorageAdapter,
     @Inject(FILES_CONFIG) private readonly config: ServerConfig,
   ) {}
+
+  findReadyPreliminaryEvidence(
+    database: DatabaseExecutor,
+    machineId: string,
+    fileIds: readonly string[],
+  ): Promise<FileAttachment[]> {
+    return this.repository.findPreliminaryEvidence(
+      database,
+      fileIds,
+      machineId,
+      true,
+    );
+  }
+
+  findPreliminaryEvidenceByIds(
+    database: DatabaseExecutor,
+    fileIds: readonly string[],
+  ): Promise<FileAttachment[]> {
+    return this.repository.findPreliminaryEvidence(database, fileIds);
+  }
+
+  findIntakeEvidence(
+    database: DatabaseExecutor,
+    fileIds: string[],
+    loadId?: string,
+  ): Promise<IntakeFileEvidence[]> {
+    return this.repository.findIntakeEvidence(database, fileIds, loadId);
+  }
+
+  async getIntakeAnalysisImages(
+    database: DatabaseExecutor,
+    photos: readonly { photoId: string; fileId: string }[],
+    loadId: string,
+    limits: IntakeAnalysisLimits = {
+      maxImageBytes: 8 * 1024 * 1024,
+      maxBatchBytes: 40 * 1024 * 1024,
+      maxPixels: 20_000_000,
+    },
+  ): Promise<IntakeAnalysisImage[]> {
+    return (
+      await this.readIntakeImages(database, photos, loadId, limits, false)
+    ).ocr;
+  }
+
+  async getIntakeRecognitionImages(
+    database: DatabaseExecutor,
+    photos: readonly { photoId: string; fileId: string }[],
+    loadId: string,
+    limits: IntakeAnalysisLimits = {
+      maxImageBytes: 8 * 1024 * 1024,
+      maxBatchBytes: 40 * 1024 * 1024,
+      maxPixels: 20_000_000,
+    },
+  ): Promise<{ ocr: IntakeAnalysisImage[]; semantic: IntakeAnalysisImage[] }> {
+    return this.readIntakeImages(database, photos, loadId, limits, true);
+  }
+
+  private async readIntakeImages(
+    database: DatabaseExecutor,
+    photos: readonly { photoId: string; fileId: string }[],
+    loadId: string,
+    limits: IntakeAnalysisLimits,
+    includeSemantic: boolean,
+  ): Promise<{ ocr: IntakeAnalysisImage[]; semantic: IntakeAnalysisImage[] }> {
+    if (!photos.length) return { ocr: [], semantic: [] };
+    const records = await this.repository.findIntakeAnalysisEvidence(
+      database,
+      photos.map((photo) => photo.fileId),
+      loadId,
+    );
+    const recordsByFileId = new Map(
+      records.map((record) => [record.id, record]),
+    );
+    const images: IntakeAnalysisImage[] = [];
+    const semantic: IntakeAnalysisImage[] = [];
+    let total = 0;
+    let semanticTotal = 0;
+    for (const photo of photos) {
+      const record = recordsByFileId.get(photo.fileId);
+      if (!record) throw new FilePolicyError("missing_analysis_bytes");
+      const object = await this.storage.get(record.storageKey);
+      if (!object) throw new FilePolicyError("missing_analysis_bytes");
+      if (
+        object.mediaType !== record.detectedMediaType ||
+        object.byteCount !== record.byteCount ||
+        object.sha256 !== record.sha256 ||
+        createHash("sha256").update(object.bytes).digest("hex") !==
+          record.sha256
+      ) {
+        throw new FilePolicyError("checksum_mismatch");
+      }
+      const converted = await createIntakeAnalysisImage(
+        object.bytes,
+        record.detectedMediaType,
+        limits,
+      );
+      if (
+        converted.bytes.byteLength > limits.maxImageBytes ||
+        total + converted.bytes.byteLength > limits.maxBatchBytes
+      ) {
+        throw new FilePolicyError("size_exceeded");
+      }
+      total += converted.bytes.byteLength;
+      images.push({
+        photoId: photo.photoId,
+        sourceChecksum: record.sha256,
+        bytes: converted.bytes,
+        mediaType: "image/jpeg",
+        width: converted.width,
+        height: converted.height,
+      });
+      if (includeSemantic) {
+        if (
+          !record.previewStorageKey ||
+          !record.previewByteCount ||
+          !record.previewSha256
+        )
+          throw new FilePolicyError("missing_analysis_bytes");
+        const preview = await this.storage.get(record.previewStorageKey);
+        if (!preview) throw new FilePolicyError("missing_analysis_bytes");
+        if (
+          preview.mediaType !== "image/jpeg" ||
+          preview.byteCount !== record.previewByteCount ||
+          preview.sha256 !== record.previewSha256 ||
+          preview.bytes.byteLength !== record.previewByteCount ||
+          createHash("sha256").update(preview.bytes).digest("hex") !==
+            record.previewSha256
+        )
+          throw new FilePolicyError("checksum_mismatch");
+        const dimensions = await inspectStoredIntakePreview(preview.bytes);
+        if (
+          preview.bytes.byteLength > limits.maxImageBytes ||
+          semanticTotal + preview.bytes.byteLength > limits.maxBatchBytes
+        )
+          throw new FilePolicyError("size_exceeded");
+        semanticTotal += preview.bytes.byteLength;
+        semantic.push({
+          photoId: photo.photoId,
+          sourceChecksum: record.sha256,
+          bytes: preview.bytes,
+          mediaType: "image/jpeg",
+          ...dimensions,
+        });
+      }
+    }
+    return { ocr: images, semantic };
+  }
 
   async createUploadGrant(
     rawInput: unknown,
@@ -161,14 +365,37 @@ export class FilesService implements FilesOperations {
     try {
       if (!bytes) throw new FilePolicyError("unsupported_content");
       const metadata = inspectContent(input, bytes, this.config.fileMaxBytes);
+      const preview =
+        input.purpose === "intake_evidence"
+          ? await createIntakePreview(bytes, metadata.mediaType)
+          : undefined;
       storageAttempted = true;
       await this.storage.put(file.storageKey, bytes, metadata);
+      if (preview) {
+        await this.storage.put(
+          `${file.storageKey}/preview.jpg`,
+          preview.bytes,
+          {
+            byteCount: preview.byteCount,
+            mediaType: "image/jpeg",
+            sha256: preview.sha256,
+          },
+        );
+      }
       const head = await this.storage.head(file.storageKey);
+      const previewHead = preview
+        ? await this.storage.head(`${file.storageKey}/preview.jpg`)
+        : undefined;
       if (
         !head ||
         head.byteCount !== metadata.byteCount ||
         head.mediaType !== metadata.mediaType ||
-        head.sha256 !== metadata.sha256
+        head.sha256 !== metadata.sha256 ||
+        (preview &&
+          (!previewHead ||
+            previewHead.byteCount !== preview.byteCount ||
+            previewHead.mediaType !== "image/jpeg" ||
+            previewHead.sha256 !== preview.sha256))
       ) {
         throw new FilePolicyError("storage_failed");
       }
@@ -177,11 +404,21 @@ export class FilesService implements FilesOperations {
         metadata,
         lease,
         context,
+        preview
+          ? {
+              storageKey: `${file.storageKey}/preview.jpg`,
+              byteCount: preview.byteCount,
+              sha256: preview.sha256,
+            }
+          : undefined,
       );
       if (!ready) throw new ConflictException("File state changed");
       return publicFile(ready);
     } catch (error) {
-      if (storageAttempted) await this.deleteWithoutDisclosure(file.storageKey);
+      if (storageAttempted) {
+        await this.deleteWithoutDisclosure(file.storageKey);
+        await this.deleteWithoutDisclosure(`${file.storageKey}/preview.jpg`);
+      }
       const failureCode =
         error instanceof FilePolicyError ? error.code : "storage_failed";
       await this.repository.markFailed(fileId, failureCode, lease, context);
@@ -266,6 +503,77 @@ export class FilesService implements FilesOperations {
       mediaType: object.mediaType,
       byteCount: object.byteCount,
       filename: safeDownloadFilename(file.originalFilename),
+    };
+  }
+
+  async createPreviewGrant(
+    rawFileId: string,
+    identity: IdentityUser,
+    context: FileActorContext,
+  ): Promise<FileGrant> {
+    this.assertPermission(identity, "files.read");
+    const file = await this.requireFile(this.fileId(rawFileId));
+    await this.validateTarget(file.target, identity);
+    if (file.state !== "ready" || !file.previewStorageKey || !file.preview) {
+      throw new ConflictException(
+        "Only intake files with previews can be previewed",
+      );
+    }
+    const token = randomBytes(32).toString("base64url");
+    const expiresAt = this.expires(this.config.fileDownloadGrantTtlSeconds);
+    await this.repository.createPreviewGrant({
+      fileId: file.id,
+      tokenHash: hashToken(token),
+      expiresAt,
+      context,
+    });
+    return { fileId: file.id, token, expiresAt: expiresAt.toISOString() };
+  }
+
+  async downloadPreview(
+    rawFileId: string,
+    token: string | undefined,
+    identity: IdentityUser,
+    context: FileActorContext,
+  ): Promise<DownloadedFile> {
+    this.assertPermission(identity, "files.read");
+    const file = await this.requireFile(this.fileId(rawFileId));
+    await this.validateTarget(file.target, identity);
+    if (
+      !token ||
+      !validToken(token) ||
+      !file.previewStorageKey ||
+      !file.preview
+    ) {
+      throw new ForbiddenException();
+    }
+    const consumed = await this.repository.consumeGrant({
+      fileId: file.id,
+      operation: "preview",
+      tokenHash: hashToken(token),
+      actorUserId: identity.id,
+      sessionId: context.sessionId,
+    });
+    if (!consumed) throw new ForbiddenException();
+    const object = await this.storage.get(file.previewStorageKey);
+    const checksum = object
+      ? createHash("sha256").update(object.bytes).digest("hex")
+      : undefined;
+    if (
+      !object ||
+      object.mediaType !== "image/jpeg" ||
+      object.byteCount !== file.preview.byteCount ||
+      object.sha256 !== file.preview.sha256 ||
+      checksum !== file.preview.sha256
+    ) {
+      throw new InternalServerErrorException("Stored preview is unavailable");
+    }
+    await this.repository.recordPreview(file.id, context);
+    return {
+      bytes: object.bytes,
+      mediaType: "image/jpeg",
+      byteCount: object.byteCount,
+      filename: "preview.jpg",
     };
   }
 
@@ -374,7 +682,12 @@ function validToken(token: string): boolean {
 }
 
 function publicFile(file: PrivateFileAttachment): FileAttachment {
-  const { storageKey, ...metadata } = file;
+  const {
+    storageKey,
+    previewStorageKey: _previewStorageKey,
+    ...metadata
+  } = file;
   void storageKey;
+  void _previewStorageKey;
   return metadata;
 }
