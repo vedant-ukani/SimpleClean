@@ -1,6 +1,6 @@
-# Simply Clean Core Operations Platform
+# Simple Clean Core Operations Platform
 
-This repository contains the greenfield foundation for the Simply Clean operational system of record. It is an npm workspace with a Next.js web application, a NestJS API, and small shared packages for runtime configuration, API contracts, database access, and test setup.
+This repository contains the greenfield foundation for the Simple Clean operational system of record. It is an npm workspace with a Next.js web application, a NestJS API, and small shared packages for runtime configuration, API contracts, database access, and test setup.
 
 ## Prerequisites
 
@@ -30,11 +30,11 @@ The browser reaches authentication and application APIs through the same-origin 
 
 QR labels use `PLATFORM_PUBLIC_ORIGIN` to construct authenticated `/scan#<token>` links. `QR_SIGNING_SECRET` must be generated independently from `AUTH_SECRET`; rotating it invalidates every existing signed QR token, so rotation requires a planned label reissue operation.
 
-Signed-in foundation views are available at `/loads`, `/machines`, and `/locations`. Owner Admin manages Load and Location definitions; Owner Admin and Warehouse users can create, identify, verify, and relocate Machines; Technician/Cleaner users have read-only Machine search and Location access. Inventory APIs are served under `/inventory/*`.
+Signed-in staff views are available at Home, `/loads` (when permitted), `/machines`, `/scan`, and Owner Admin-only Team management. A Location is optional during Intake; unassigned Machines remain visible in Inventory and authorized staff can relocate them later from the Machine detail screen. Inventory APIs are served under `/inventory/*`.
 
 Machine and Acquisition Load detail pages also provide private attachments. File relationships and checksums live in PostgreSQL; bytes are accessed only through short-lived, one-time grants under `/files/*` and are never exposed through static serving.
 
-Owner Admins can review privacy-safe mutation history and failed internal work at `/admin/operations`. Creating a Load, Location, or Machine requires an `Idempotency-Key` header; the web application generates one UUID for each submit attempt so a retried request cannot create a duplicate record.
+The backend retains privacy-safe mutation history, failed internal work, and import capabilities for operational workflows, but these do not have dedicated staff web pages. Creating a Load or Machine requires an `Idempotency-Key` header; the web application generates one UUID for each submit attempt so a retried request cannot create a duplicate record.
 
 ## Provision the first staff user
 
@@ -74,7 +74,7 @@ npm run test:browser
 npm run build
 ```
 
-The local integration suite creates disposable in-memory PGlite databases. Browser tests start isolated API, storage, and web processes, provision disposable role users and records, and run both desktop and tablet Chromium projects without reading or writing the root inventory workbook. CI also runs the database integration test against a PostgreSQL service through the normal wire driver.
+The local integration suite creates disposable in-memory PGlite databases. Browser tests start isolated API, storage, and web processes, provision disposable role users and records, and run both desktop and tablet Chromium projects without reading or writing the source inventory workbook. CI also runs the database integration test against a PostgreSQL service through the normal wire driver.
 
 ## Database modes
 
@@ -93,23 +93,27 @@ DATABASE_URL=postgres://...
 
 Local development and tests default to `FILE_STORAGE_DRIVER=local`, with bytes under the gitignored `FILE_LOCAL_DIRECTORY`. Staging and production require S3-compatible storage unless `ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED=true` is explicitly set. S3 credentials use the AWS standard provider chain unless both explicit access-key variables are supplied.
 
-The configured size and grant TTL settings apply to every upload and download. JPEG, PNG, WebP, and PDF content is verified from its bytes; an attachment becomes ready only after its stored size, media type, and SHA-256 agree.
+The configured size and grant TTL settings apply to every upload and download. JPEG, PNG, WebP, and PDF content is verified from its bytes; an attachment becomes ready only after its stored size, media type, and SHA-256 agree. Laundrorama Intake also accepts bounded JPEG, PNG, WebP, HEIC, and HEIF evidence on Load targets. Originals remain private; the server uses a maintained decoder to create a bounded metadata-stripped JPEG review preview. Intake is online-only and available to Owner Admin and Warehouse users. The active path binds one nameplate photo and worker-selected type to each Machine Intake Item, runs recognition independently, and requires explicit review plus an atomic individual commit before a Machine is created. A destination Location is optional.
 
 ## Audit and internal work
 
 Successful foundation mutations append a central audit entry and an outbox job in the same PostgreSQL transaction as the owning domain change. Audit summaries contain controlled field names and outcomes only; request bodies, credentials, serial values, filenames, tokens, file bytes, and exception text are not stored there.
 
-The API process polls the PostgreSQL outbox when `OPERATIONS_WORKER_POLLING_ENABLED=true`. Claim leases, maximum attempts, polling interval, and exponential-backoff base are configured by the `OPERATIONS_WORKER_*` environment values in `.env.example`. Tests disable polling and call the worker directly. A delivery with no registered internal subscribers succeeds. Handler failures store only the safe code `handler_failed`, retry automatically, and eventually become `dead_letter`; an Owner Admin can requeue the current dead-letter version from the Operations page. The stable job ID is the idempotency boundary future handlers must use for at-least-once delivery.
+The API process polls the PostgreSQL outbox when `OPERATIONS_WORKER_POLLING_ENABLED=true`. Claim leases, maximum attempts, polling interval, and exponential-backoff base are configured by the `OPERATIONS_WORKER_*` environment values in `.env.example`. Tests disable polling and call the worker directly. A delivery with no registered internal subscribers succeeds. Handler failures store only the safe code `handler_failed`, retry automatically, and eventually become `dead_letter`; the backend retains requeue behavior for operational tooling. The stable job ID is the idempotency boundary future handlers must use for at-least-once delivery.
+
+## Intake recognition evaluation
+
+Recognition is disabled by default and deterministic fake providers are used for product tests. The opt-in evaluator reads a labeled manifest and private source photos without modifying them, then prints exact field match, false auto-accepts, grouping purity, recapture rate, latency, and supplied cost metadata. See [`docs/intake-recognition-evaluation.md`](docs/intake-recognition-evaluation.md) and `.env.example`; live providers require an explicit `--allow-live` flag and are never part of `npm test`.
 
 ## Inventory spreadsheet import
 
-Owner Admins can stage a legacy inventory file at `/admin/imports`. Choose the existing Acquisition Load that supplied the equipment, upload one `.xlsx` or UTF-8 `.csv` file, review every source row and finding, explicitly select the rows to approve, then separately confirm the atomic commit. The source remains private and unchanged. Unsupported sold/shipped history cannot be approved, warnings are never selected automatically, and a successful commit creates provisional Machines with exact source-row provenance.
+The backend retains legacy inventory-import staging and commit behavior for supported operational workflows. The source remains private and unchanged; unsupported sold/shipped history cannot be approved, warnings are never selected automatically, and a successful commit creates provisional Machines with exact source-row provenance. There is no dedicated import web workspace.
 
 Imports use the configured `FILE_MAX_BYTES` limit (15 MiB by default) and reject unsupported or mismatched content. Parsing is bounded to 20 worksheets, 10,000 aggregate non-header rows, 640,000 aggregate cells, 64 columns per sheet, 256 characters per header, 4,000 JSON characters per typed cell value, and 8 MiB of expanded staged evidence. Formula text is retained as inert evidence and is never evaluated; a formula-backed serial is rejected. If Inventory matches change after approval, that approval becomes terminal and the Owner must stage a new Import Run.
 
 Private object storage and PostgreSQL cannot share one atomic transaction. The importer verifies stored-object metadata before staging, cleans up definite pre-commit failures best-effort, and retains the private object when the database outcome is uncertain so a committed Import Run is not broken. After a storage or database outage, operators should reconcile private objects against Import Runs.
 
-For local acceptance, start the platform, create or choose an Acquisition Load, and upload the unmodified root `Inventory List.xlsx`. The review should show 227 source rows: 172 on-hand candidates, 55 non-committable sold/shipped rows, and five duplicate serial groups. Download the source and result report from the Import Run review page; do not edit or write back to the workbook.
+For backend import acceptance, use the deterministic import integration coverage with the unmodified `source-materials/inventory/Inventory List.xlsx`. It covers 227 source rows: 172 on-hand candidates, 55 non-committable sold/shipped rows, and five duplicate serial groups. The source remains read-only; no dedicated staff import page is exposed.
 
 ## Architecture boundary
 

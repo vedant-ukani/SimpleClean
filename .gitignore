@@ -19,4 +19,8 @@ playwright-report/
 .codex-finalizer/
 Deliverables/
 
+source-materials/**
+!source-materials/
+!source-materials/README.md
+
 .DS_Store
