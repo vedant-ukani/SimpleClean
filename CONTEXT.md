@@ -1,4 +1,4 @@
-# Simply Clean Domain Language
+# Laundrorama Domain Language
 
 This glossary defines the terms used in [ARCHITECTURE.md](./ARCHITECTURE.md), specifications, code, tests, and operational interfaces.
 
@@ -8,7 +8,7 @@ A person or organization that may act as a seller, distributor, prospect, buyer,
 
 ## Acquisition Inquiry
 
-A seller or distributor submission describing equipment that Simply Clean may purchase, including contact, location, access, equipment facts, photos, timing, and requested terms.
+A seller or distributor submission describing equipment that Laundrorama may purchase, including contact, location, access, equipment facts, photos, timing, and requested terms.
 
 ## Acquisition Offer
 
@@ -28,7 +28,81 @@ The shared, verified characteristics of a manufacturer model, such as dimensions
 
 ## Intake
 
-The process of receiving a Machine, identifying it, documenting its arrival condition, assigning its identity and location, and associating it with an Acquisition Load.
+The process of receiving a Machine, identifying it, documenting its arrival condition, assigning its identity and any known location, and associating it with an Acquisition Load.
+
+## Intake Batch
+
+A bounded, Load-level receiving session that collects private Intake Evidence and Machine Intake Items, may share one destination, records human review, and remains open until one final Batch Commit creates every ready unmapped Machine and closes the session. Historical sessions may contain individually committed mappings.
+
+## Machine Intake Item
+
+One independently progressing unit inside an Intake Batch: one nameplate photo, one Candidate Machine, and targeted recognition state. The worker may prepare the next item while earlier items process, then records the observed Washer, Dryer, or Other type after recognition succeeds. Historical items may have recorded type during preparation or carry recapture state.
+
+## Intake Evidence
+
+A private arrival or nameplate image associated with an Acquisition Load and an Intake Batch. The original file remains immutable evidence; review previews and links do not replace it.
+
+Failed Intake Evidence may be excluded from active receiving without being deleted. Exclusion preserves the photo, Recognition Run, Candidate history, and audit trail, while a Candidate with no currently assigned evidence is not an active Machine Intake Item and does not enter Batch Commit.
+
+## Candidate Machine
+
+A reviewed proposal inside an open Intake Batch. In the active workflow it is bound to one nameplate photo, holds automatically assigned visible facts, and gains an attributable worker-observed Machine type after recognition. It is not authoritative Inventory until the final Batch Commit succeeds.
+
+## Candidate Confirmation
+
+The attributable decision that a Candidate Machine's evidence and visible facts satisfy the recognition policy. Historical INT-01 batches may contain manual confirmation; the active workflow uses the versioned Confidence Policy to accept supported field suggestions, then separately requires a person's Machine-type choice and final Batch Commit authorization.
+
+## Recognition Run
+
+One idempotent, versioned attempt to analyze an Intake Batch or a targeted Machine Intake Item. It records the provider, model, prompt/schema version, Confidence Policy version, source checksums, target Candidate revision, status, and privacy-safe failure information. A Recognition Run produces evidence and proposals, not authoritative Machines.
+
+## Grouping Proposal
+
+A recognition-produced suggestion that specific Intake Evidence images show the same physical Machine. It records its supporting signals and confidence-policy result. An accepted proposal may populate a Candidate Machine, but ambiguity creates a Recapture Request or returns to manual grouping.
+
+## Field Suggestion
+
+A proposed visible nameplate fact, such as manufacturer, model, serial, voltage, or phase, linked to exact Intake Evidence and a bounded evidence location. It preserves the raw provider read separately from the normalized value evaluated by Inventory rules.
+
+## Nameplate Assignment
+
+The semantic proposal that maps bounded Google OCR evidence to specific visible fields such as manufacturer, model, serial, voltage, phase, fuel, capacity, or equipment type. In the active path the semantic provider receives a bounded metadata-stripped JPEG with its same-photo OCR and may use visual layout, adjacency, and labels only to assign field meaning. It must copy exact characters from and cite the supplied OCR, return unknown facts as null, and cannot create or verify a Machine. Any proposed equipment type is not applied; the worker selects Machine type after recognition.
+
+## Character Resolution
+
+A versioned, evidence-backed decision about an OCR-confusable character such as `O/0` or `I/1`. It preserves the original symbol and records the position, proposed character, supporting evidence, and validation result. A global substitution or unsupported guess is not a Character Resolution.
+
+## Independent Verification
+
+A second reading or deterministic check that does not merely repeat the semantic extractor's confidence. Historical recognition may include cross-photo or second-reader checks. The active single-nameplate path requires valid same-photo Google OCR citations and verifies OpenAI's normalized field value against all bounded OCR for that photo. Required identity values must occur as complete contiguous token sequences, and field formats remain deterministic. A duplicate identity match does not change readiness.
+
+## Confidence Policy
+
+The versioned platform rule that validates semantic assignments against bounded Google OCR evidence and deterministic Inventory checks before accepting a proposal. Every non-null value must retain valid same-photo citations, while support may be found anywhere in that photo's bounded OCR. Manufacturer, model, and serial must occur as complete contiguous normalized token sequences. Provider confidence and image-quality warnings are retained as provenance but do not independently block a supported assignment.
+
+## Recapture Request
+
+A historical targeted request for new Intake Evidence when an image was blurred, reflective, cropped, too small, conflicting, or ambiguously grouped. Existing requests remain readable, but the active single-nameplate path does not create new Recapture Requests; unsupported or failed recognition remains retryable against the retained photo.
+
+## Intake Exception
+
+A recognition or receiving problem that prevents exception-free Batch Commit, such as unresolved grouping, unreadable critical fields, conflicting reads, or a failed required recapture. A duplicate identity match is not an Intake Exception. It remains distinct from a later cross-workflow Exception Case unless explicitly promoted.
+
+## Individual Intake Commit
+
+The historical and compatibility transaction that revalidates one confirmed Candidate Machine and creates exactly one provisional Machine, its identity evidence, optional initial location history, and provenance mapping while leaving the Intake Batch open. A matching manufacturer and serial never causes an automatic merge or blocks this photo-Intake transition. The active UI does not expose this action.
+
+## Finish Receiving
+
+The historical and compatibility transition that closes an Intake Batch after every Candidate Machine already has a durable Machine mapping. It does not approve or create unreviewed Machines; the active UI uses one final Batch Commit instead.
+
+## Batch Commit
+
+The active final receiving transition. It validates that every selected item is accounted for, recognition-ready and confirmed, and has a human-selected Machine type; then it creates all unmapped provisional Machines, identity evidence, optional location history, and provenance mappings and closes the Intake Batch in one audited, idempotent database transaction. Compatible historical mappings are preserved and skipped.
+
+## Photo Provenance
+
+The immutable relationship from a committed Machine back to the Intake Batch, Candidate Machine, and private Intake Evidence used during confirmation.
 
 ## Preliminary Inspection
 
@@ -128,7 +202,7 @@ A physical Shipment Unit containing one or more approved Machines or Parts with 
 
 ## Shipment
 
-The planned and tracked movement of one or more Sales Orders from Simply Clean to a destination.
+The planned and tracked movement of one or more Sales Orders from Laundrorama to a destination.
 
 ## Load Plan
 

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Clean — Google Vision setup</title>
+    <link rel="stylesheet" href="../assets/learning.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Set up Google Vision for the 92-photo test</h1>
+      <p class="lede">Create one Google Cloud project, enable billing and Cloud Vision, create a restricted API key, then store it only in the ignored local <code>.env</code> file.</p>
+
+      <section class="card warning">
+        <h2>Keep the key private</h2>
+        <p>Do not paste the key into chat, commit it, or place it in <code>.env.example</code>. The repository ignores <code>.env</code>.</p>
+      </section>
+
+      <h2>1. Create or select a project</h2>
+      <ol>
+        <li>Open the <a href="https://console.cloud.google.com/projectselector2/home/dashboard">Google Cloud project selector</a>.</li>
+        <li>Create a project named <code>laundrorama-ocr-evaluation</code>, or select an existing test project.</li>
+        <li>Attach a billing account. Google requires billing even when usage remains within the free tier.</li>
+      </ol>
+
+      <h2>2. Enable Cloud Vision</h2>
+      <ol>
+        <li>Open the <a href="https://console.cloud.google.com/apis/library/vision.googleapis.com">Cloud Vision API page</a>.</li>
+        <li>Confirm the correct project is selected.</li>
+        <li>Click <strong>Enable</strong>.</li>
+      </ol>
+
+      <h2>3. Create and restrict the key</h2>
+      <ol>
+        <li>Open <a href="https://console.cloud.google.com/apis/credentials">APIs &amp; Services → Credentials</a>.</li>
+        <li>Choose <strong>Create credentials → API key</strong>.</li>
+        <li>Name it <code>laundrorama-ocr-local-benchmark</code>.</li>
+        <li>Under <strong>API restrictions</strong>, choose <strong>Restrict key</strong> and select <strong>Cloud Vision API</strong>.</li>
+        <li>For this short local test, leave application restrictions unset unless the Mac has a stable public IP. Delete or rotate the key after the benchmark.</li>
+      </ol>
+      <p>Google recommends restricting every API key. See <a href="https://cloud.google.com/docs/authentication/api-keys">Manage API keys</a>.</p>
+
+      <h2>4. Store it locally</h2>
+      <p>Open <code>/Users/vedant/Desktop/Simple Clean/.env</code> and add or replace:</p>
+      <pre><code>INTAKE_RECOGNITION_VERIFIER_API_KEY=your_restricted_google_key</code></pre>
+      <p>Do not change the permanent provider setting. The benchmark command selects Google only for that run.</p>
+
+      <h2>5. Tell the agent “done”</h2>
+      <p>The agent will verify only that the value is present, then run all 92 images with the exact same one-megapixel preprocessing used for PaddleOCR. Expected usage is 92 billable image units; the first 1,000 Vision units each month are currently free.</p>
+
+      <section class="card decision">
+        <h2>What happens next</h2>
+        <p>The result will compare serial, model, manufacturer, voltage and phase accuracy, plus average/p95 latency and estimated cost. No provider will be selected until both reports use the same manifest and image bytes.</p>
+      </section>
+
+      <p>Primary source: <a href="https://cloud.google.com/vision/docs/setup">Google Cloud Vision setup documentation</a>. Ask the agent if any Console label differs or the project shows a permission/billing error.</p>
+    </main>
+  </body>
+</html>
+

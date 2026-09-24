@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Clean — Verify supervised Intake approval</title>
+    <link rel="stylesheet" href="../assets/learning.css" />
+  </head>
+  <body>
+    <main>
+      <p>
+        <a href="../MISSION.md">Learning mission</a> ·
+        <a href="../specs/INT-02.md">INT-02 spec</a> ·
+        <a href="../reviews/INT-02-review.md">INT-02 review</a>
+      </p>
+      <h1>Verify supervised Intake approval</h1>
+      <p class="lede">
+        Walk one real-looking machine through Gemini grouping, Google Vision
+        verification, human correction, and the single approval action that adds
+        it to Inventory.
+      </p>
+
+      <section class="card decision">
+        <h2>Readiness snapshot</h2>
+        <ul>
+          <li>
+            Gemini <code>gemini-3.6-flash</code> text connectivity passed.
+          </li>
+          <li>
+            The Google Vision benchmark previously passed on the shared corpus.
+          </li>
+          <li>
+            The local web app is healthy on <code>:3000</code>; the API is
+            healthy on <code>:3001</code>.
+          </li>
+        </ul>
+        <p>
+          <strong>Safety rule:</strong> unset confidence floors keep approval
+          human-supervised. Provider output alone never creates an Inventory
+          Machine.
+        </p>
+      </section>
+
+      <h2>1. Follow the exact path</h2>
+      <div class="flow">
+        <div>
+          <strong>Loads</strong><br />Choose <strong>View Load</strong>.
+        </div>
+        <div>
+          <strong>Start</strong><br />Choose
+          <strong>Start Laundrorama intake</strong>.
+        </div>
+        <div>
+          <strong>Review</strong><br />Open
+          <strong>Photo intake review</strong>.
+        </div>
+      </div>
+      <p>
+        For the first test, use one machine and two or three private photos: one
+        full-machine view plus one sharp, readable nameplate view (and a second
+        plate angle if useful).
+      </p>
+
+      <h2>2. Check recognition, then take ownership</h2>
+      <ol>
+        <li>
+          Choose <strong>Choose arrival/nameplate photos</strong> and wait for
+          <strong>Ready for review</strong>.
+        </li>
+        <li>
+          Confirm the photos form one recognized Machine group and inspect the
+          visible facts: type, manufacturer, model, serial, voltage, phase, and
+          fuel.
+        </li>
+        <li>
+          If a fact is wrong, edit it in the candidate editor, choose
+          <strong>Save facts</strong>, then choose
+          <strong>Confirm candidate</strong>. The saved correction—not the
+          provider suggestion—is what approval uses.
+        </li>
+        <li>
+          If the evidence is unclear, follow
+          <strong>Upload the requested evidence</strong>, wait for the recapture
+          result, and resolve the new review state. If recognition cannot
+          resolve the evidence, use
+          <strong>Continue with manual review</strong>.
+        </li>
+      </ol>
+
+      <section class="card warning">
+        <h2>What a healthy exception looks like</h2>
+        <p>
+          Blur, glare, cutoff, unreadable text, conflicting readings, or an
+          ambiguous group should become a targeted recapture or manual
+          review—not a guessed fact. Do not approve until every candidate is
+          confirmed.
+        </p>
+      </section>
+
+      <h2>3. Approve one atomic batch</h2>
+      <ol>
+        <li>Choose an active <strong>Destination location</strong>.</li>
+        <li>
+          Read the total candidate count and confirm every candidate is ready.
+        </li>
+        <li>
+          Choose <strong>Approve and Add to Inventory</strong>, then accept the
+          irreversible confirmation dialog.
+        </li>
+      </ol>
+      <p>
+        Cancel the confirmation once as a negative test: no approval request
+        should be sent, the batch should remain open, and no Machine should
+        appear.
+      </p>
+
+      <h2>4. Verify the result</h2>
+      <ul>
+        <li>
+          The status reads <code>committed</code> and the approval control is
+          disabled.
+        </li>
+        <li>
+          A created Machine link appears, along with
+          <strong>View Inventory</strong>.
+        </li>
+        <li>
+          The corrected manufacturer/model/serial values appear on the created
+          Machine.
+        </li>
+        <li>
+          The Machine is <code>on_hand</code>, still <code>provisional</code>,
+          and assigned to the selected destination.
+        </li>
+        <li>
+          Reload the Intake page: the committed status and Machine links
+          persist.
+        </li>
+        <li>
+          Repeat approval or replay the request: it does not create a duplicate
+          Machine.
+        </li>
+      </ul>
+
+      <section class="card decision">
+        <h2>Pass or fail?</h2>
+        <p>
+          <strong>Pass</strong> means the full path completes with the corrected
+          values, one provisional Machine, the right destination, persistent
+          committed state, and no duplicate after replay.
+        </p>
+        <p>
+          <strong>Fail</strong> means approval happens before confirmation, a
+          recapture/incomplete/canceled path creates anything, corrected values
+          disappear, the destination is wrong, or a repeated approval creates
+          another Machine.
+        </p>
+        <p>
+          Report the exact navigation path, the labels reached,
+          recognition/recapture outcome, candidate correction, destination,
+          created Machine link, committed/reload result, and duplicate check.
+          Never report API keys, raw provider responses, private image contents,
+          or filenames.
+        </p>
+      </section>
+
+      <h2>Primary references</h2>
+      <p>
+        Read Google’s
+        <a href="https://ai.google.dev/gemini-api/docs/models"
+          >Gemini model documentation</a
+        >
+        and
+        <a href="https://ai.google.dev/api/generate-content"
+          >GenerateContent reference</a
+        >
+        before changing provider settings. For the verifier boundary, see
+        <a href="https://cloud.google.com/vision/docs/ocr"
+          >Google Cloud Vision OCR</a
+        >. The local implementation notes are in the
+        <a href="../specs/INT-02.md">INT-02 spec</a> and
+        <a href="../reviews/INT-02-review.md">INT-02 review</a>.
+      </p>
+      <p>
+        <strong>Ask the agent follow-up questions</strong> if a label differs, a
+        branch is unclear, or a result does not match this checklist.
+      </p>
+    </main>
+  </body>
+</html>

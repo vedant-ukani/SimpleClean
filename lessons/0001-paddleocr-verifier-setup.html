@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Clean — PaddleOCR verifier setup</title>
+    <link rel="stylesheet" href="../assets/learning.css" />
+  </head>
+  <body>
+    <main>
+      <h1>PaddleOCR as the INT-02 verifier</h1>
+      <p class="lede">Gemini interprets the machines and groups their photos. PaddleOCR independently reads visible text. Automatic approval happens only when both agree strongly enough.</p>
+
+      <section class="card decision">
+        <h2>Decision</h2>
+        <p>Start with the <strong>General OCR pipeline (PP-OCR)</strong>, not PaddleOCR-VL. It is the independent text-reading check we need; a second vision-language model would duplicate Gemini's role and its failure modes.</p>
+      </section>
+
+      <h2>Runtime shape</h2>
+      <div class="flow">
+        <div><strong>Simple Clean API</strong><br />Sends bounded, metadata-stripped images.</div>
+        <div><strong>Compatibility bridge</strong><br />Translates our batch JSON into PaddleX's per-image API.</div>
+        <div><strong>PaddleX OCR server</strong><br />Returns text, confidence, and polygons.</div>
+      </div>
+
+      <section class="card warning">
+        <h2>Important integration detail</h2>
+        <p>The stock PaddleX endpoint is <code>POST /ocr</code> with <code>{"file": "base64", "fileType": 1}</code>. Our adapter sends <code>{"model": "...", "images": [...]}</code> and expects normalized lines. Therefore, pointing the app directly at <code>http://localhost:8080/ocr</code> will not work. Add a small bridge at <code>/recognize</code>, or change the TypeScript adapter.</p>
+      </section>
+
+      <h2>1. Run PaddleOCR locally</h2>
+      <pre><code>python3 -m venv .venv-paddleocr
+source .venv-paddleocr/bin/activate
+python -m pip install --upgrade pip
+
+# Install the correct CPU/GPU PaddlePaddle build using the official selector first.
+pip install paddleocr
+paddlex --install serving
+paddlex --serve --pipeline OCR --host 127.0.0.1 --port 8080 --device cpu</code></pre>
+      <p>The first run downloads model files. Begin on CPU for validation; measure before buying or configuring GPU capacity. See the <a href="https://www.paddleocr.ai/main/en/version3.x/pipeline_usage/OCR.html">General OCR guide</a> and <a href="https://www.paddleocr.ai/main/en/version3.x/inference_deployment/serving/serving.html">serving guide</a>.</p>
+
+      <h2>2. Bridge contract</h2>
+      <p>The bridge accepts the request already emitted by Simple Clean:</p>
+      <pre><code>{
+  "model": "pp-ocr",
+  "images": [{
+    "photoId": "uuid",
+    "mediaType": "image/jpeg",
+    "imageBase64": "base64..."
+  }]
+}</code></pre>
+      <p>For every image it calls PaddleX <code>POST /ocr</code>, converts each polygon to one pixel bounding rectangle, and returns the adapter-friendly <code>results</code> form. The existing adapter normalizes those pixel coordinates using the source image dimensions:</p>
+      <pre><code>{
+  "results": [{
+    "photoId": "uuid",
+    "lines": [{
+      "text": "MODEL SC30",
+      "confidence": 0.98,
+      "bbox": [160, 240, 1280, 360]
+    }]
+  }]
+}</code></pre>
+
+      <h2>3. Configure Simple Clean</h2>
+      <pre><code>INTAKE_RECOGNITION_ENABLED=true
+INTAKE_RECOGNITION_SEMANTIC_PROVIDER=gemini
+INTAKE_RECOGNITION_SEMANTIC_MODEL=&lt;approved-gemini-model&gt;
+INTAKE_RECOGNITION_SEMANTIC_API_KEY=&lt;secret&gt;
+
+INTAKE_RECOGNITION_VERIFIER_PROVIDER=paddleocr
+INTAKE_RECOGNITION_VERIFIER_MODEL=pp-ocr
+INTAKE_RECOGNITION_VERIFIER_ENDPOINT=http://127.0.0.1:8090/recognize
+
+# Starting values only; tune from labeled evaluation data.
+INTAKE_RECOGNITION_GROUP_FLOOR=0.90
+INTAKE_RECOGNITION_FIELD_FLOOR=0.90
+INTAKE_RECOGNITION_OCR_FLOOR=0.90</code></pre>
+      <p>Use HTTPS for staging/production. Keep the API key blank only if the OCR bridge is private and network-restricted; otherwise configure bearer-token authentication.</p>
+
+      <h2>4. Prove accuracy before enabling auto-approval</h2>
+      <pre><code>npm run evaluate:intake-recognition -- \
+  --allow-live \
+  --manifest /absolute/path/to/intake-recognition.manifest.json</code></pre>
+      <p>Use real, permissioned warehouse photos: sharp, blurry, glare, oblique angles, multiple machines, duplicate views, and unreadable labels. Optimize first for zero false auto-accepts; then reduce unnecessary recaptures.</p>
+
+      <h2>What to verify</h2>
+      <ul>
+        <li>PaddleOCR returns the exact serial/model text visible in the photo.</li>
+        <li>The bridge preserves the correct <code>photoId</code> for every line.</li>
+        <li>Boxes are normalized to 0–1 and stay inside image bounds.</li>
+        <li>Low-confidence or conflicting readings trigger recapture, not guessing.</li>
+        <li>Provider timeouts and malformed output fail closed.</li>
+      </ul>
+    </main>
+  </body>
+</html>

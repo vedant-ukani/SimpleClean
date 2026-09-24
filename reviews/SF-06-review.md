@@ -14,7 +14,7 @@ Pass
 - `npm run test:integration` — pass (27 tests, one optional PostgreSQL-wire test skipped)
 - `npm run build` — pass
 - `npm ls @nestjs/common @nestjs/core exceljs uuid uid --depth=2` — pass
-- Root `Inventory List.xlsx` acceptance — pass; 227 rows staged read-only, with 172 on-hand candidates and 55 sold/shipped errors
+- `source-materials/inventory/Inventory List.xlsx` acceptance — pass; 227 rows staged read-only, with 172 on-hand candidates and 55 sold/shipped errors
 - `npm audit --omit=dev` — two moderate findings in ExcelJS's transitive `uuid@8.3.2`; no compatible declared-range remediation exists and the importer does not call the affected UUID APIs
 
 ## Findings

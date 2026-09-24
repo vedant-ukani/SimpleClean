@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OCR verifier options</title>
+    <link rel="stylesheet" href="../assets/learning.css" />
+  </head>
+  <body>
+    <main>
+      <h1>OCR verifier options</h1>
+      <p class="lede">Shortlist for photographed machine labels and nameplates.</p>
+      <table>
+        <thead><tr><th>Option</th><th>Strengths</th><th>Tradeoffs</th><th>Fit</th></tr></thead>
+        <tbody>
+          <tr><td><strong>PaddleOCR / PP-OCR</strong></td><td>Open source, self-hosted, confidence and text geometry, no per-image vendor bill.</td><td>We operate Python/Paddle, model files, monitoring, scaling, and a compatibility bridge.</td><td><strong>Recommended starting verifier.</strong></td></tr>
+          <tr><td><strong>Google Cloud Vision</strong></td><td>Managed service, image OCR, word/box output, almost no inference infrastructure.</td><td>Usage cost, network dependency, vendor/data-governance review.</td><td>Best managed fallback if operations simplicity wins.</td></tr>
+          <tr><td><strong>Azure Vision Read</strong></td><td>Managed OCR designed for documents and in-the-wild images.</td><td>Same cost, privacy, latency, and lock-in considerations.</td><td>Strong when Azure is already the approved cloud.</td></tr>
+          <tr><td><strong>Tesseract</strong></td><td>Mature, light, private, Apache-licensed, CPU-friendly.</td><td>Usually needs stronger preprocessing for glare, skew, tiny text, and irregular industrial photos.</td><td>Useful baseline or fallback; benchmark before selecting.</td></tr>
+          <tr><td><strong>EasyOCR / docTR</strong></td><td>Open source and straightforward Python APIs; CPU/GPU options.</td><td>Still needs serving, normalization, monitoring, and project-specific accuracy tests.</td><td>Benchmark challengers if PaddleOCR underperforms.</td></tr>
+          <tr><td><strong>AWS Textract</strong></td><td>Managed forms, tables, and document extraction.</td><td>Document-centric and usually unnecessary for isolated equipment plates.</td><td>Weak fit for this verifier role.</td></tr>
+          <tr><td><strong>Gemini only</strong></td><td>One call can group photos and extract fields.</td><td>No independent check; semantic and OCR mistakes become correlated.</td><td>Not sufficient for high-confidence auto-approval.</td></tr>
+          <tr><td><strong>PaddleOCR-VL</strong></td><td>Richer document understanding.</td><td>Heavier and overlaps Gemini's semantic role.</td><td>Do not start here for the verifier.</td></tr>
+        </tbody>
+      </table>
+      <section class="card decision">
+        <h2>Selection rule</h2>
+        <p>Keep PaddleOCR only if it wins on the project's labeled warehouse-photo evaluation. “Recommended” is an engineering hypothesis, not proof of production accuracy.</p>
+      </section>
+    </main>
+  </body>
+</html>

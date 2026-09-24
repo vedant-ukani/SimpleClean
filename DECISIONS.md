@@ -2,6 +2,133 @@
 
 # Decisions
 
+## 2026-09-24 — Exact Catalog matches remain usable while missing facts are enriched
+
+Treat exact model resolution and specification completeness as separate Catalog decisions. When an accepted identity resolves to an exact approved revision that still has unknown fields, keep that revision immediately usable and invoke the existing additive specification-enrichment operation for only its missing fields. A verified result publishes an immutable next revision on the same variant; a no-result or unavailable provider leaves the partial revision unchanged. Provider failures remain durable-work failures, but Machine events link the current exact approved revision before propagating the error for retry.
+
+Consequences: exact matches no longer suppress official web research merely because some facts are already known. Existing facts and evidence cannot be overwritten, repeated recognition/Machine events reuse the same base-and-missing-fields run, existing Machine pins do not move, and future resolutions use the newest approved revision. ADR 0017 and ADR 0018 remain the publication authority: related series such as T-600 cannot populate `WCVD40KCS-12` unless exact or safe anchored-base official evidence passes; conflicting or unsupported dimensions and weight remain unknown.
+
+## 2026-09-23 — Use image layout for OCR-backed assignment and documented base-model specifications
+
+Send each bounded, metadata-stripped nameplate JPEG to OpenAI with its bounded Google OCR so the semantic mapper can use layout, adjacency, and visible labels when a printed field label is cropped or missed. Google OCR remains the exact-character authority: every non-null value needs same-photo OCR support, and the image cannot repair or invent characters. Capacity still requires an explicit unit, and worker-selected Machine type remains authoritative.
+
+For separate Catalog discovery, accept official specifications for either the full accepted model or an exact officially documented leading base model. A base model is valid only as an anchored normalized prefix of at least four characters containing a letter and digit, with exact evidence on a provider-returned trusted official URL. Preserve the full nameplate model as the variant and store the documented base as its family. All other ADR 0017 source, locator, equipment-class, unit, conflict, audit, and automatic-publication gates remain active. See [ADR 0018](./docs/adr/0018-vision-assisted-intake-and-documented-base-models.md).
+
+## 2026-09-23 — Automatically publish only strict official-source Catalog discoveries
+
+After accepted OCR-backed manufacturer and full-model identity, run a separate asynchronous Catalog discovery request. Search may inspect the unrestricted public web, but automatic publication has no human approval step only when every accepted fact cites provider-returned HTTPS evidence on an already trusted `official_manufacturer` hostname, names the exact full model or an ADR 0018-safe documented leading base model, includes a locator, is conflict-free, and passes deterministic schema/unit checks. Typed official serial rules are the only path to a manufacture-year result.
+
+Third-party, reseller, distributor, marketplace, lookalike-domain, unrelated-family, conflicting, and unsupported claims remain unknown. Discovery is deduplicated, retryable, immutable, audited, usage/cost-attributed, and non-blocking for Intake. Inventory actual values still override Catalog defaults. This is the sole narrow exception to the general human-approval rule for consequential AI publication; see [ADR 0017](./docs/adr/0017-automatic-official-source-catalog-discovery.md) and its [ADR 0018](./docs/adr/0018-vision-assisted-intake-and-documented-base-models.md) refinement.
+
+## 2026-09-23 — Keep verified model enrichment in a separate Catalog module
+
+Create a Catalog domain module for canonical manufacturers, model families and variants, approved specification revisions, source evidence, aliases, and manufacturer/series-specific serial-date rules. Other modules receive one deterministic resolution result from accepted manufacturer, model, and optional serial values; they do not query Catalog tables directly.
+
+Catalog enrichment runs after nameplate recognition and cannot reconstruct unreadable identity, search the public internet inside Intake, or overwrite immutable nameplate evidence. Reviewed snapshot material creates approved provenance-bearing revisions. ADR 0017, as refined by ADR 0018, permits automatic publication only through strict exact documented-model or safe anchored-base-model evidence from provider-returned official hosts; all other unsupported or conflicting material remains unknown. A Catalog match may suggest Washer, Dryer, or Other, but the current attributable worker confirmation remains authoritative. Physical Machine overrides supersede catalog defaults, and actual packed dimensions and weight remain authoritative for final shipping.
+
+## 2026-09-23 — Start recognition on selection; exclude failed evidence without deleting it
+
+Selecting nameplate files immediately starts upload and sequential item preparation; the active Intake has no separate Upload button. Failed or stale items offer a clearer replacement image or failed-only removal rather than retrying the same evidence.
+
+Replacement preparation succeeds before the original failed photo is excluded. Exclusion preserves the failed photo, Candidate, Recognition Run, and audit history but removes that orphaned Candidate from the active queue and final Batch Commit scope. Unassigned photos and all remaining active Candidates still satisfy the existing accounting, recognition, and type rules. See [ADR 0016](./docs/adr/0016-immediate-nameplate-preparation-and-failed-evidence-exclusion.md).
+
+## 2026-09-23 — Classify after recognition and add the complete Intake once
+
+Let warehouse staff select and upload all nameplates without choosing Washer, Dryer, or Other first. Each upload still becomes one private photo, Candidate, and independent targeted Recognition Run. After a result is ready, the worker records the observed Machine type; recognition cannot populate or overwrite that human choice.
+
+Replace the active per-card Inventory buttons and separate Finish Receiving action with one **Add Machines to Inventory** action. It is enabled only after every selected item is prepared, recognition-ready, confirmed, and typed. The server revalidates those rules and reuses the existing audited, idempotent Batch Commit transaction to create every unmapped provisional Machine and close the Intake atomically. Historical individual mappings and finalization APIs remain compatible. After commit, the whole-Intake QR PDF opens in a visible tablet tab, with download fallback when popups are blocked. This supersedes the active presentation and sequencing portions of ADR 0008 and ADR 0012; see [ADR 0015](./docs/adr/0015-post-recognition-type-and-final-intake-commit.md).
+
+## 2026-09-23 — OpenAI assigns fields; same-photo Google OCR proves their characters
+
+Let OpenAI assign manufacturer, model, serial, voltage, phase, fuel, type, and capacity from bounded Google OCR. Every non-null value still requires valid same-photo OCR references, but deterministic support is checked against all bounded OCR for that photo rather than requiring the complete cited line to equal the field.
+
+Manufacturer, model, and serial must occur as complete contiguous normalized token sequences, so a full-nameplate OCR block can support the correct value while `M1` cannot match `M10` and missing or changed characters still fail. Field-aware equivalents remain available for optional facts, explicit units remain required for capacity, and unsupported optional facts do not block readiness. New runs use `intake-nameplate-policy-v3`; a person still reviews and explicitly adds each provisional Machine. See [ADR 0014](./docs/adr/0014-openai-field-assignment-with-same-photo-ocr-presence.md).
+
+## 2026-09-23 — Store duplicate photo-Intake Machines separately
+
+Create a separate provisional Machine for every supported, worker-approved photo-Intake Candidate, even when its normalized manufacturer and serial match an existing Machine or another Candidate. Remove Intake duplicate warnings, acknowledgement controls, and blockers. Preserve a new immutable Machine ID plus the Candidate, photo, evidence, audit, and Intake mapping for each record; never merge Machines automatically.
+
+Request idempotency still prevents the same commit request from creating a second business result. Later explicit identity verification retains the unique normalized identity claim and records a conflict while keeping both Machines. Spreadsheet migration keeps its separate duplicate-review behavior. This supersedes the photo-Intake duplicate-blocking portions of ADR 0010 and ADR 0012; see [ADR 0013](./docs/adr/0013-store-duplicate-intake-machines.md).
+
+## 2026-09-23 — Batch nameplate selection and capacity-optional QR sheets
+
+Let warehouse staff choose several nameplate photos for one Load in a single tablet action, review compact thumbnails, and select Washer, Dryer, or Other for each image before upload. Each image still passes through the existing single-item preparation, recognition, evidence checking, individual approval, and Machine creation boundaries; batch selection does not group Machines or authorize bulk approval.
+
+After Finish Receiving, unknown capacity no longer blocks the private whole-Intake QR sheet. Known values retain the existing pound label, while missing values print as **Capacity unknown** with the Machine type. This supersedes only the capacity-required printing part of ADR 0011 and supplements the active Intake presentation from ADR 0008. ADR 0013 later supersedes ADR 0012's duplicate-warning and blocking behavior; ADR 0015 later supersedes its type-before-upload and per-Machine approval presentation. See [ADR 0012](./docs/adr/0012-batch-nameplates-and-capacity-optional-qr-sheets.md).
+
+## 2026-09-23 — Capacity and whole-Intake QR label sheets
+
+Capture a nullable, bounded pound capacity during individual Machine Intake. Recognition accepts capacity only from explicit unit-bearing nameplate evidence; workers may confirm a common value, enter a bounded custom value, or keep it unknown. Capacity is not part of serialized identity and does not block adding a Machine to Inventory.
+
+After Finish Receiving, Owner Admin and Warehouse users can print one private nine-up Letter PDF for every Machine mapped by that Intake. Printing requires capacity on every mapped Machine, reuses or creates exactly one active QR label per Machine, and records print activity. The QR token remains opaque and authenticated; visible label text is limited to Laundrorama, manufacturer, capacity, type, full serial, and fallback code. See [ADR 0011](./docs/adr/0011-intake-capacity-and-whole-load-qr-sheets.md).
+
+## 2026-09-23 — Google OCR is authoritative for active Intake field assignment
+
+Use Google Cloud Vision as the sole text reader in the active single-nameplate Intake path. Send only bounded Google OCR lines, stable line IDs, confidence, and boxes to `gpt-6-luna`; do not send image bytes to OpenAI. Luna maps supported text into the strict Machine-field schema, and the deterministic policy requires same-photo citations plus supported manufacturer, model, and serial values before confirming the Candidate.
+
+Provider confidence and image-quality warnings remain provenance rather than readiness blockers. Missing or unsupported critical evidence, malformed output, and provider failures fail the targeted run without creating a new Recapture Request; the retained photo remains retryable. A person still reviews the values and explicitly selects **Add to Inventory** before a Machine is created. Historical recapture data remains readable. ADR 0013 later supersedes ADR 0010's exact-duplicate failure behavior. This supersedes ADR 0007's active independent-reader and targeted-recapture decisions; see [ADR 0010](./docs/adr/0010-google-ocr-authoritative-intake-assignment.md).
+
+## 2026-09-23 — Luna field assignment with fenced recognition retries
+
+Use `gpt-6-luna` as the configured OpenAI semantic field-assignment model for live Intake recognition while Google Cloud Vision remains the bounded OCR provider and the deterministic policy remains the authority for accepting exact identity. Normalize explicit plate labels such as `MODEL NO.`, `SERIAL NO.`, and `S/N` before comparing provider values, but preserve genuine values such as `NO123`.
+
+Fence every Recognition Run execution with a non-secret claim derived from the stable outbox job ID and delivery attempt. A redelivery may reclaim an abandoned `running` run, but apply, requeue, and failure writes succeed only for the currently claimed attempt. This prevents a late expired handler from overwriting a newer retry or creating duplicate recognition artifacts. Existing Recognition Runs and evidence are not rewritten or automatically retried.
+
+## 2026-09-23 — Locationless intake during the pilot
+
+Make the Intake Batch destination optional. Individual Candidate Commit, compatible historical Batch Commit, and Finish Receiving continue to enforce Load provenance, evidence, approval, idempotency, audit, and outbox invariants; when a destination is supplied they still validate it as active, create the normal initial location history, and preserve the existing destination-lock behavior. When it is absent, Inventory creates an on-hand provisional Machine with a null current location and no initial relocation entry.
+
+The active Intake UI no longer fetches or renders destination choices, so workers can capture, review, approve, and add Machines without any active Locations. Machines without a current location use the shared `Location not assigned` label and remain relocatable later. The legacy destination endpoint and nullable Batch field remain for historical/API compatibility. See [ADR 0009](./docs/adr/0009-locationless-intake.md).
+
+## 2026-09-23 — Pipelined recognition with individual Machine approval
+
+Keep one Intake Batch as the Load-level receiving session, but process each nameplate as an independent Machine Intake Item. Preparing an item records the worker-observed Washer/Dryer/Other type, binds one private photo to one Candidate, and queues a targeted Recognition Run. The worker can capture the next item while previous recognition continues. Each ready Candidate is reviewed and committed to exactly one Inventory Machine through an audited, idempotent transaction; Finish Receiving only closes the Batch after every item is already mapped.
+
+Consequences: adding another photo cannot stale an unrelated run, identity fields remain automatic/read-only in the active workflow, a present destination becomes immutable after the first individual commit, and no final action can silently approve unreviewed Machines. Historical batch-wide recognition and Batch Commit data remain readable. ADR 0015 later supersedes type during preparation, active individual commits, and separate Finish Receiving while preserving targeted recognition. See [ADR 0008](./docs/adr/0008-pipelined-individual-intake-commit.md).
+
+## 2026-09-22 — Single-nameplate automated recognition
+
+Treat each intake upload as one private nameplate photo for one physical Machine. Use Google Cloud Vision for bounded document-text OCR, OpenAI for structured field assignment, and a versioned deterministic policy plus current Inventory matching for independent verification. Preserve raw OCR separately, audit character-level corrections, and never globally substitute confusable characters.
+
+Consequences: the active path does not group photos, use manufacturer-site or general web search, or fall back to manual field entry. Ambiguous evidence creates a targeted Recapture Request, while provider failures retain the photo and remain retryable. Recognition stays advisory and a person still authorizes Batch Commit. See [ADR 0007](./docs/adr/0007-single-nameplate-automated-recognition.md).
+
+## 2026-09-22 — Provisional Google Vision primary for the INT-02 pilot
+
+Use Google Cloud Vision `document-text-detection` as the provisional primary
+OCR verifier for the INT-02 pilot, with PaddleOCR retained as the self-hosted
+fallback behind the same replaceable `IntakeOcrVerifier` port. The side-by-side
+run used the same 92-image manifest and the same one-megapixel,
+metadata-stripped JPEG preprocessing: Google matched 345/537 candidate fields
+(64.25%) versus PaddleOCR's 285/537 (53.07%), with 40.1 seconds versus 543.8
+seconds total latency. These are pilot measurements, not final accuracy claims:
+the manifest labels are `agent-candidate-unreviewed` and require human review.
+
+Consequences: the pilot deployment explicitly selects Google through validated
+configuration while recognition remains disabled by default in source examples;
+PaddleOCR remains the documented fallback. Human label adjudication, measured
+false-accept/recapture calibration, and privacy/vendor review remain deployment
+gates. This choice does not change the supervised recognition boundary, the
+manual INT-01 fallback, the human-authorized Batch Commit, or Machine identity
+authority.
+
+## 2026-09-22 — Supervised, replaceable Intake recognition
+
+Treat photo grouping, nameplate extraction, independent OCR verification, confidence-policy acceptance, and targeted recapture as one Inventory Intake recognition pipeline behind replaceable provider ports. Persist provider/model/schema/policy provenance and source evidence; never treat model confidence alone as verified Machine identity.
+
+Consequences: reliable results can be accepted without field-by-field review, uncertain evidence becomes a targeted Recapture Request, provider failures fall back to INT-01's manual path, and a person still authorizes one final audited Batch Commit. Files owns bounded private analysis access, Operations owns durable retries, and provider adapters cannot write domain tables. See [ADR 0006](./docs/adr/0006-supervised-replaceable-intake-recognition.md).
+
+## 2026-09-21 — Laundrorama owns the used-equipment workflow
+
+Use Laundrorama as the product and business name for the used-equipment Core Operations Platform. Simple Clean is William's separate new-equipment business and must not be treated as the authority for Laundrorama inventory, intake, production, sales, or fulfillment.
+
+Consequences: new used-equipment specifications and UI use Laundrorama. Existing repository paths and `@simply-clean/*` package scopes remain technical identifiers until a dedicated, fully tested migration changes them; feature tickets do not perform opportunistic package or directory renames.
+
+## 2026-09-21 — Files owns private intake-image derivatives
+
+Keep the immutable original intake image and any review derivative inside the Files module's private-storage boundary. HEIC/HEIF intake evidence is decoded through a maintained adapter under explicit byte, dimension, and pixel limits; review output is a metadata-stripped JPEG. A preview is derived display material, not authoritative evidence.
+
+Consequences: Files owns original and preview metadata, checksums, storage agreement, cleanup, and grant validation. Original and preview access remains short-lived, one-time, authorization-checked, and `no-store`; neither may enter the service-worker cache or become a public object URL. Intake stores File references and provenance but never stores, transforms, or authorizes the bytes itself.
+
 ## 2026-09-21 — Shared-tablet PWA with public-only offline assets
 
 Deliver one responsive installable web application for Owner, Warehouse, and Technician/Cleaner users. Every worker signs in with an individual account, sees permission-derived navigation, and keeps visible identity and switch-user controls. Cache only versioned public application assets plus a generic offline page; never cache sessions, protected pages, operational data, files, imports, reports, or QR responses, and never queue offline mutations.
@@ -40,7 +167,7 @@ Consequences: unloading and migration do not stop for catalog enrichment, unknow
 
 ## 2026-09-21 — Staff authentication and platform authorization
 
-Use Better Auth for staff email/password credentials, secure cookies, and database-backed sessions. Keep the three Simply Clean application roles and their permissions in a platform-owned Identity module and shared authorization contract rather than Better Auth organizations or browser state. Every protected API request resolves the signed session and current persisted platform profile; role changes and deactivation revoke sessions, and the final active Owner Admin is protected transactionally.
+Use Better Auth for staff email/password credentials, secure cookies, and database-backed sessions. Keep the three Laundrorama application roles and their permissions in a platform-owned Identity module and shared authorization contract rather than Better Auth organizations or browser state. Every protected API request resolves the signed session and current persisted platform profile; role changes and deactivation revoke sessions, and the final active Owner Admin is protected transactionally.
 
 Consequences: credential cryptography and session semantics remain delegated to an established library, while operational authorization stays explicit and replaceable. Shared tablets still require individual accounts and a prominent sign-out/user-switch action. Adding future module permissions extends the canonical policy rather than introducing controller- or UI-local role checks.
 
@@ -63,3 +190,16 @@ The detailed rationale and consequences remain canonical in these ADRs:
 - [ADR 0003 — Separate operational state axes](./docs/adr/0003-separate-operational-state-axes.md)
 - [ADR 0004 — Supervised Facebook Marketplace automation](./docs/adr/0004-supervised-facebook-marketplace-automation.md)
 - [ADR 0005 — AI Surfer is a constrained automation client](./docs/adr/0005-ai-surfer-is-a-constrained-automation-client.md)
+- [ADR 0006 — Supervised, replaceable Intake recognition](./docs/adr/0006-supervised-replaceable-intake-recognition.md)
+- [ADR 0007 — Single-nameplate automated recognition](./docs/adr/0007-single-nameplate-automated-recognition.md)
+- [ADR 0008 — Pipelined recognition and individual Intake commit](./docs/adr/0008-pipelined-individual-intake-commit.md)
+- [ADR 0009 — Locationless Intake during the pilot](./docs/adr/0009-locationless-intake.md)
+- [ADR 0010 — Google OCR authoritative Intake assignment](./docs/adr/0010-google-ocr-authoritative-intake-assignment.md)
+- [ADR 0011 — Capacity and whole-Intake QR sheets](./docs/adr/0011-intake-capacity-and-whole-load-qr-sheets.md)
+- [ADR 0012 — Batch nameplate selection and capacity-optional QR sheets](./docs/adr/0012-batch-nameplates-and-capacity-optional-qr-sheets.md)
+- [ADR 0013 — Store duplicate photo-Intake Machines separately](./docs/adr/0013-store-duplicate-intake-machines.md)
+- [ADR 0014 — OpenAI field assignment with same-photo OCR presence](./docs/adr/0014-openai-field-assignment-with-same-photo-ocr-presence.md)
+- [ADR 0015 — Post-recognition Machine type and one final Intake commit](./docs/adr/0015-post-recognition-type-and-final-intake-commit.md)
+- [ADR 0016 — Immediate nameplate preparation and failed evidence exclusion](./docs/adr/0016-immediate-nameplate-preparation-and-failed-evidence-exclusion.md)
+- [ADR 0017 — Automatic official-source Catalog discovery](./docs/adr/0017-automatic-official-source-catalog-discovery.md)
+- [ADR 0018 — Vision-assisted Intake and documented base models](./docs/adr/0018-vision-assisted-intake-and-documented-base-models.md)

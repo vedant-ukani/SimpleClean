@@ -4,7 +4,7 @@ Status: completed and accepted on 2026-09-21. See `reviews/SF-01-review.md` thro
 
 ## Outcome
 
-Create the secure technical foundation for the Simply Clean Core Operations Platform without pretending that the warehouse intake workflow has already been finalized. The result must be a running, tested application skeleton that can safely hold users, roles, loads, provisional machines, locations, files, audit history, spreadsheet imports, and QR labels. It must also provide a simple shared-tablet shell that can be refined after the warehouse observation.
+Create the secure technical foundation for the Simple Clean Core Operations Platform without pretending that the warehouse intake workflow has already been finalized. The result must be a running, tested application skeleton that can safely hold users, roles, loads, provisional machines, locations, files, audit history, spreadsheet imports, and QR labels. It must also provide a simple shared-tablet shell that can be refined after the warehouse observation.
 
 This program is one milestone composed of eight independently reviewable tickets. Each ticket receives its own `code-architect` specification, implementation pass, test pass, review, and durable-memory update.
 
@@ -180,7 +180,7 @@ Bring the current inventory workbook into the platform through a reversible, rev
 
 ### Acceptance criteria
 
-- The supplied `Inventory List.xlsx` can be uploaded and parsed into staging.
+- The supplied `source-materials/inventory/Inventory List.xlsx` can be uploaded and parsed into staging.
 - Invalid and ambiguous rows remain visible without corrupting authoritative Machines.
 - An approved subset can be committed once and traced back to the exact source rows.
 - Parser, validation, duplicate, approval, rollback/failure, and idempotency tests pass.

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Clean — Where to run OCR</title>
+    <link rel="stylesheet" href="../assets/learning.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Where should Simple Clean run OCR?</h1>
+      <p class="lede">The Mac mini is capable of testing PP-OCR. Production placement depends more on monthly image volume and reliability than raw model capability.</p>
+
+      <section class="card decision">
+        <h2>This Mac mini</h2>
+        <ul>
+          <li>Apple M4, 10 CPU cores, 16 GB RAM, ARM64: sufficient for standard PP-OCR CPU inference.</li>
+          <li>Python 3.9 meets PaddleOCR's current Python requirement.</li>
+          <li>Only about 5.3 GB is free: free 15–25 GB before installing environments, models, caches, and logs.</li>
+          <li>Use it for evaluation or a low-volume internal pilot—not as the first production server.</li>
+        </ul>
+        <p>PaddleOCR reports an Apple M4 benchmark for its PP-OCRv6 tiny tier, but real latency must be measured on our resized warehouse images. See the <a href="https://www.paddleocr.ai/main/en/">PaddleOCR project page</a>.</p>
+      </section>
+
+      <h2>Three hosting choices</h2>
+      <table>
+        <thead><tr><th>Place</th><th>Use it when</th><th>Main tradeoff</th></tr></thead>
+        <tbody>
+          <tr><td><strong>This Mac mini</strong></td><td>Development, benchmarks, low-volume internal pilot.</td><td>Lowest incremental compute cost, but no production redundancy and harder secure networking.</td></tr>
+          <tr><td><strong>Managed OCR API</strong></td><td>Low/medium volume and fastest production launch.</td><td>Per-image bill and external data processing, but almost no inference operations.</td></tr>
+          <tr><td><strong>Linux CPU VM</strong></td><td>Privacy, vendor independence, or sustained higher volume.</td><td>Fixed monthly cost plus monitoring, patching, scaling, and availability work.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Raw monthly cost comparison</h2>
+      <p><a href="https://cloud.google.com/vision/pricing">Google Cloud Vision pricing</a> currently gives the first 1,000 OCR images each month free and charges $1.50 per 1,000 images after that, through five million images.</p>
+      <table>
+        <thead><tr><th>Images/month</th><th>Google Vision OCR</th><th>Always-on $24 VM</th></tr></thead>
+        <tbody>
+          <tr><td>1,000</td><td>$0.00</td><td>$24.00</td></tr>
+          <tr><td>10,000</td><td>$13.50</td><td>$24.00</td></tr>
+          <tr><td>17,000</td><td>$24.00</td><td>$24.00</td></tr>
+          <tr><td>100,000</td><td>$148.50</td><td>$24.00 plus operations</td></tr>
+        </tbody>
+      </table>
+      <p>The approximate raw-cost break-even for a server costing <code>C</code> dollars/month is <code>1,000 + C / 0.0015</code> images/month. This excludes engineering time and assumes one VM can handle the workload.</p>
+
+      <section class="card warning">
+        <h2>Accuracy is undecided</h2>
+        <p>There is no trustworthy public benchmark comparing Google Vision and PP-OCR on our machine-nameplate photos. Published PaddleOCR benchmarks and Google product claims use different datasets. Test both on the same labeled set and compare exact serial/model match, false automatic approvals, recapture rate, and latency.</p>
+      </section>
+
+      <h2>Current recommendation</h2>
+      <ol>
+        <li>Free disk space and run PP-OCR locally on this Mac.</li>
+        <li>Send the same permissioned 200–500 photos to Google Vision.</li>
+        <li>Use the winner on exact-field accuracy, subject to a zero-false-auto-accept target.</li>
+        <li>If results are close and volume is below roughly 17,000 images/month, launch with Google Vision.</li>
+        <li>If PaddleOCR wins materially, privacy matters, or volume is high, deploy it on a monitored Linux VM.</li>
+      </ol>
+
+      <p>Next: review the <a href="0001-paddleocr-verifier-setup.html">PaddleOCR setup lesson</a> and the <a href="../reference/ocr-verifier-options.html">OCR option reference</a>. Ask the agent to implement the benchmark harness or hosting adapter when ready.</p>
+    </main>
+  </body>
+</html>
