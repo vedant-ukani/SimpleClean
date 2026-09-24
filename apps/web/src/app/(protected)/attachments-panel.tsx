@@ -27,10 +27,12 @@ export function AttachmentsPanel({
   target,
   initialFiles,
   canUpload,
+  onFilesChanged,
 }: Readonly<{
   target: FileTarget;
   initialFiles: FileAttachment[];
   canUpload: boolean;
+  onFilesChanged?: (files: FileAttachment[]) => void;
 }>) {
   const [files, setFiles] = useServerState(initialFiles);
   const [message, setMessage] = useState<string>();
@@ -67,9 +69,13 @@ export function AttachmentsPanel({
         granted.grant.token,
         selected,
       );
-      setFiles((current) =>
-        current.map((file) => (file.id === ready.id ? ready : file)),
-      );
+      setFiles((current) => {
+        const updated = current.map((file) =>
+          file.id === ready.id ? ready : file,
+        );
+        onFilesChanged?.(updated);
+        return updated;
+      });
       formElement.reset();
       setMessage("Attachment uploaded and verified.");
     } catch {
@@ -109,12 +115,17 @@ export function AttachmentsPanel({
         </p>
       ) : null}
       {canUpload ? (
-        <form className="inline-form" onSubmit={upload}>
+        <form className="inline-form attachments-upload-row" onSubmit={upload}>
           <label>
             Purpose
             <select name="purpose" required>
               {target.type === "machine" ? (
-                <option value="nameplate">Nameplate</option>
+                <>
+                  <option value="nameplate">Nameplate</option>
+                  <option value="preliminary_inspection">
+                    Preliminary inspection media
+                  </option>
+                </>
               ) : null}
               <option value="arrival_condition">Arrival condition</option>
               <option value="document">Document</option>
@@ -140,7 +151,7 @@ export function AttachmentsPanel({
         <p className="empty-state">No attachments yet.</p>
       ) : (
         files.map((file) => (
-          <article className="inventory-row" key={file.id}>
+          <article className="inventory-row attachment-row" key={file.id}>
             <div>
               <strong>{file.originalFilename}</strong>
               <span>
@@ -149,14 +160,16 @@ export function AttachmentsPanel({
               {file.failureCode ? <small>{file.failureCode}</small> : null}
             </div>
             {file.state === "ready" ? (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={busy || !online}
-                onClick={() => void download(file.id)}
-              >
-                Download
-              </button>
+              <div className="attachment-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={busy || !online}
+                  onClick={() => void download(file.id)}
+                >
+                  Download
+                </button>
+              </div>
             ) : null}
           </article>
         ))

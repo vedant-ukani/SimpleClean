@@ -3,7 +3,6 @@ import {
   FileAttachmentListResponseSchema,
   FileAttachmentResponseSchema,
   FileDownloadGrantResponseSchema,
-  FileIncompleteReviewResponseSchema,
   FileUploadGrantResponseSchema,
   type CreateFileUploadGrantRequest,
   type FileAttachment,
@@ -94,27 +93,4 @@ export async function createFileDownloadUrl(fileId: string): Promise<string> {
     }),
   );
   return `/api/files/${fileId}/download-content?grant=${encodeURIComponent(grant.token)}`;
-}
-
-export async function getIncompleteFiles(
-  fetcher: typeof fetch = fetch,
-  environment: Record<string, string | undefined> = process.env,
-  cookie?: string,
-): Promise<FileAttachment[]> {
-  const base = parseWebServerEnvironment(environment).apiBaseUrl;
-  return FileIncompleteReviewResponseSchema.parse(
-    await requestJson(`${base}/files/review/incomplete`, fetcher, {
-      ...(cookie ? { headers: { cookie } } : {}),
-    }),
-  ).files;
-}
-
-export async function abandonIncompleteFile(
-  fileId: string,
-): Promise<FileAttachment> {
-  return FileAttachmentResponseSchema.parse(
-    await requestJson(`/api/files/${fileId}/abandon`, fetch, {
-      method: "POST",
-    }),
-  ).file;
 }

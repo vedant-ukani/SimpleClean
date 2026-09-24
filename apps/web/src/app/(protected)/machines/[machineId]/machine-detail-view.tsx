@@ -6,12 +6,15 @@ import type {
   Machine,
   MachineDetail,
   QrLabel,
+  PreliminaryInspectionHistoryResponse,
 } from "@simply-clean/contracts";
 import { useState, type FormEvent } from "react";
 
 import {
   InventoryRequestError,
+  getBrowserMachine,
   relocateMachine,
+  updateMachineActualSpecs,
   updateMachineIdentity,
   verifyMachine,
 } from "../../../../lib/inventory-client";
@@ -20,6 +23,7 @@ import { AttachmentsPanel } from "../../attachments-panel";
 import { useOnlineStatus } from "../../online-status";
 import { useServerState } from "../../use-server-state";
 import { MachineQrPanel } from "./machine-qr-panel";
+import { PreliminaryInspectionPanel } from "./preliminary-inspection-panel";
 
 export function MachineDetailView({
   initialDetail,
@@ -31,6 +35,9 @@ export function MachineDetailView({
   canUploadFiles,
   initialQrLabels,
   canManageQrLabels,
+  initialPreliminaryHistory,
+  canManagePreliminary,
+  canApproveDisposition,
 }: Readonly<{
   initialDetail: MachineDetail;
   locations: InventoryLocation[];
@@ -41,9 +48,23 @@ export function MachineDetailView({
   canUploadFiles: boolean;
   initialQrLabels: QrLabel[];
   canManageQrLabels: boolean;
+  initialPreliminaryHistory: PreliminaryInspectionHistoryResponse;
+  canManagePreliminary: boolean;
+  canApproveDisposition: boolean;
 }>) {
-  const [machine, setMachine] = useServerState(initialDetail.machine);
+  const [detail, setDetail] = useServerState<
+    MachineDetail & { catalogPending?: boolean }
+  >(initialDetail);
+  const { machine, catalog } = detail;
+  const catalogPending =
+    detail.catalogPending || catalog?.pendingIdentityResolution;
+  const setMachine = (machine: Machine) =>
+    setDetail((current) => ({ ...current, machine }));
   const [message, setMessage] = useState<string>();
+  const [files, setFiles] = useServerState(initialFiles);
+  const [preliminaryHistory, setPreliminaryHistory] = useServerState(
+    initialPreliminaryHistory,
+  );
   const [busy, setBusy] = useState(false);
   const online = useOnlineStatus();
 
@@ -62,19 +83,24 @@ export function MachineDetailView({
       return;
     const form = new FormData(event.currentTarget);
     const nullable = (name: string) => String(form.get(name) ?? "") || null;
+    const capacity = String(form.get("capacityLb") ?? "").trim();
     try {
-      setMachine(
-        await updateMachineIdentity(machine.id, {
-          manufacturer: nullable("manufacturer"),
-          model: nullable("model"),
-          serial: nullable("serial"),
-          voltage: nullable("voltage"),
-          phase: nullable("phase") as Machine["phase"],
-          fuel: nullable("fuel") as Machine["fuel"],
-          sourceKind: "manual",
-          expectedVersion: machine.version,
-        }),
-      );
+      const updatedMachine = await updateMachineIdentity(machine.id, {
+        manufacturer: nullable("manufacturer"),
+        model: nullable("model"),
+        serial: nullable("serial"),
+        voltage: nullable("voltage"),
+        phase: nullable("phase") as Machine["phase"],
+        fuel: nullable("fuel") as Machine["fuel"],
+        capacityLb: capacity ? Number(capacity) : null,
+        sourceKind: "manual",
+        expectedVersion: machine.version,
+      });
+      setDetail((current) => ({
+        ...current,
+        machine: updatedMachine,
+        catalogPending: true,
+      }));
       setMessage("Identity evidence saved. Verification is required again.");
     } catch {
       setMessage(
@@ -105,6 +131,49 @@ export function MachineDetailView({
       setMessage(
         "Verification failed. Manufacturer and serial are required; refresh if the version changed.",
       );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveActualSpecs(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (
+      !canManage ||
+      !beginOnlineMutation("Reconnect before saving actual measurements.")
+    )
+      return;
+    const form = new FormData(event.currentTarget);
+    const measurement = (name: string) => {
+      const value = String(form.get(name) ?? "").trim();
+      return value ? Number(value) : null;
+    };
+    try {
+      const detail = await updateMachineActualSpecs(machine.id, {
+        widthIn: measurement("widthIn"),
+        depthIn: measurement("depthIn"),
+        heightIn: measurement("heightIn"),
+        weightLb: measurement("weightLb"),
+        expectedVersion: catalog?.actualSpecs?.version ?? 0,
+      });
+      setDetail(detail);
+      setMessage("Actual measurements saved.");
+    } catch {
+      setMessage(
+        "Measurements could not be saved. Refresh and check the values before retrying.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function refreshCatalog() {
+    if (!beginOnlineMutation("Reconnect before refreshing Catalog facts."))
+      return;
+    try {
+      setDetail(await getBrowserMachine(machine.id));
+    } catch {
+      setMessage("Catalog facts could not be refreshed. Try again.");
     } finally {
       setBusy(false);
     }
@@ -166,6 +235,14 @@ export function MachineDetailView({
             <dd>{machine.fuel ?? "Not recorded"}</dd>
           </div>
           <div>
+            <dt>Capacity</dt>
+            <dd>
+              {machine.capacityLb == null
+                ? "Not recorded"
+                : `${machine.capacityLb} lb`}
+            </dd>
+          </div>
+          <div>
             <dt>Load</dt>
             <dd>{machine.sourceLoadDisplayName}</dd>
           </div>
@@ -175,11 +252,27 @@ export function MachineDetailView({
           </div>
           <div>
             <dt>Inventory state</dt>
-            <dd>{machine.inventoryState}</dd>
+            <dd>
+              {
+                {
+                  expected: "Expected",
+                  on_hand: "On hand",
+                  scrapped: "Scrapped",
+                }[machine.inventoryState]
+              }
+            </dd>
           </div>
           <div>
             <dt>Production state</dt>
-            <dd>{machine.productionState}</dd>
+            <dd>
+              {
+                {
+                  not_assessed: "Not assessed",
+                  preliminary_passed: "Preliminary passed",
+                  blocked: "Blocked",
+                }[machine.productionState]
+              }
+            </dd>
           </div>
           <div>
             <dt>Version</dt>
@@ -187,16 +280,273 @@ export function MachineDetailView({
           </div>
         </dl>
       </section>
+      {catalogPending ? (
+        <section className="panel">
+          <p role="status">Catalog resolution pending.</p>
+          <button
+            type="button"
+            disabled={busy || !online}
+            onClick={() => void refreshCatalog()}
+          >
+            Refresh Catalog
+          </button>
+        </section>
+      ) : catalog ? (
+        <section
+          className="panel inventory-stack"
+          aria-labelledby="catalog-heading"
+        >
+          <h2 id="catalog-heading">Catalog specifications</h2>
+          <p>Catalog match: {catalog.status.replaceAll("_", " ")}</p>
+          <p>
+            Manufacture year:{" "}
+            {catalog.manufactureDate.kind === "exact"
+              ? catalog.manufactureDate.year
+              : catalog.manufactureDate.kind === "range"
+                ? `${catalog.manufactureDate.startYear}–${catalog.manufactureDate.endYear}`
+                : "Unknown"}
+            {catalog.manufactureDate.kind !== "unknown"
+              ? ` · Serial rule ${catalog.manufactureDate.ruleId}, revision ${catalog.manufactureDate.ruleRevision} · Source ${catalog.manufactureDate.sourceId}: ${catalog.manufactureDate.locator}`
+              : null}
+          </p>
+          {catalog.revision ? (
+            <>
+              <p>
+                Pinned revision {catalog.revision.revision} ·{" "}
+                {catalog.revision.revisionId}
+              </p>
+              <p>
+                {catalog.revision.manufacturer} {catalog.revision.model} ·{" "}
+                {catalog.revision.equipmentClass.replaceAll("_", " ")}
+              </p>
+              <p>
+                Model production range:{" "}
+                {catalog.revision.productionStartYear ?? "Unknown"}–
+                {catalog.revision.productionEndYear ?? "Unknown"}
+              </p>
+              {catalog.revision.publicationMode ===
+              "automatic_official_source_policy" ? (
+                <p>Automatically published under the official-source policy.</p>
+              ) : null}
+              {catalog.revision.discoveryRun ? (
+                <p>
+                  Discovery usage:{" "}
+                  {catalog.revision.discoveryRun.usage?.inputTokens ?? 0} input
+                  tokens ·{" "}
+                  {catalog.revision.discoveryRun.usage?.outputTokens ?? 0}{" "}
+                  output tokens ·{" "}
+                  {catalog.revision.discoveryRun.webSearchCallCount} web search
+                  call
+                  {catalog.revision.discoveryRun.webSearchCallCount === 1
+                    ? ""
+                    : "s"}{" "}
+                  · {catalog.revision.discoveryRun.pricing.version} · estimated
+                  cost $
+                  {catalog.revision.discoveryRun.estimatedCostUsd.toFixed(4)}
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p>No approved model revision is linked.</p>
+          )}
+          <div className="import-table-wrap">
+            <table className="import-table">
+              <caption>
+                Measurements and the source of each effective value
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Specification</th>
+                  <th scope="col">Catalog</th>
+                  <th scope="col">Actual / Machine</th>
+                  <th scope="col">Effective</th>
+                  <th scope="col">Effective source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(
+                  [
+                    ["widthIn", "Width", "in"],
+                    ["depthIn", "Depth", "in"],
+                    ["heightIn", "Height", "in"],
+                    ["weightLb", "Weight", "lb"],
+                    ["capacityLb", "Capacity", "lb"],
+                  ] as const
+                ).map(([field, label, unit]) => {
+                  const catalogValue = catalog.revision?.specs[field];
+                  const actualValue =
+                    field === "capacityLb"
+                      ? machine.capacityLb
+                      : catalog.actualSpecs?.[field];
+                  const effective = catalog.effectiveSpecs[field];
+                  return (
+                    <tr key={field}>
+                      <th scope="row">{label}</th>
+                      <td>
+                        {catalogValue == null
+                          ? "Unknown"
+                          : `${catalogValue} ${unit}`}
+                      </td>
+                      <td>
+                        {actualValue == null
+                          ? "Not recorded"
+                          : `${actualValue} ${unit}`}
+                      </td>
+                      <td>
+                        {effective.value == null
+                          ? "Unknown"
+                          : `${effective.value} ${unit}`}
+                      </td>
+                      <td>
+                        {
+                          {
+                            actual: "Actual measurement",
+                            machine: "Machine record",
+                            catalog: "Pinned catalog",
+                            unknown: "Unknown",
+                          }[effective.source]
+                        }
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {catalog.revision ? (
+            <>
+              <dl>
+                {(
+                  [
+                    ["voltage", "Catalog voltage"],
+                    ["phase", "Catalog phase"],
+                    ["fuel", "Catalog fuel"],
+                    ["configuration", "Catalog configuration"],
+                  ] as const
+                ).map(([field, label]) => (
+                  <div key={field}>
+                    <dt>{label}</dt>
+                    <dd>
+                      {catalog
+                        .revision!.specs[field].map((value) =>
+                          value.replaceAll("_", " "),
+                        )
+                        .join(", ") || "Unknown"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <h3>Official sources and field evidence</h3>
+              {catalog.revision.sources.map((source) => (
+                <div key={source.id}>
+                  <a href={source.url} target="_blank" rel="noreferrer">
+                    {source.title}
+                  </a>
+                  <p>
+                    Source class:{" "}
+                    {(source.sourceClass ?? "official_manufacturer").replaceAll(
+                      "_",
+                      " ",
+                    )}{" "}
+                    · Document revision:{" "}
+                    {source.documentRevision ?? "Not recorded"} · Retrieved{" "}
+                    {source.retrievedAt.slice(0, 10)}
+                  </p>
+                  {catalog
+                    .revision!.evidence.filter(
+                      (evidence) => evidence.sourceId === source.id,
+                    )
+                    .map((evidence, index) => (
+                      <p key={`${evidence.field}-${index}`}>
+                        {
+                          {
+                            widthIn: "Width",
+                            depthIn: "Depth",
+                            heightIn: "Height",
+                            weightLb: "Weight",
+                            capacityLb: "Capacity",
+                            voltage: "Voltage",
+                            phase: "Phase",
+                            fuel: "Fuel",
+                            configuration: "Configuration",
+                            model: "Model",
+                            equipmentClass: "Equipment class",
+                            productionStartYear: "Production start year",
+                            productionEndYear: "Production end year",
+                          }[evidence.field]
+                        }
+                        : {evidence.locator}
+                        {evidence.officialValue != null
+                          ? ` · Official value: ${evidence.officialValue} ${evidence.officialUnit ?? ""}`
+                          : null}
+                      </p>
+                    ))}
+                </div>
+              ))}
+            </>
+          ) : null}
+        </section>
+      ) : null}
       <AttachmentsPanel
         target={{ type: "machine", id: machine.id }}
         initialFiles={initialFiles}
         canUpload={canUploadFiles}
+        onFilesChanged={setFiles}
+      />
+      <PreliminaryInspectionPanel
+        machine={machine}
+        history={preliminaryHistory}
+        files={files}
+        canManage={canManagePreliminary}
+        canApprove={canApproveDisposition}
+        onRecorded={(history) => {
+          setPreliminaryHistory(history);
+          setMachine(history.machine);
+        }}
       />
       <MachineQrPanel
         machineId={machine.id}
         initialLabels={initialQrLabels}
         canManage={canManageQrLabels}
       />
+      {canManage ? (
+        <section className="panel">
+          <h2>Actual measurements</h2>
+          <p>
+            Record measurements for this physical Machine. Clear a value to use
+            the catalog default when available.
+          </p>
+          <form
+            key={`actual-${machine.id}-${catalog?.actualSpecs?.version ?? 0}`}
+            className="inline-form"
+            onSubmit={saveActualSpecs}
+          >
+            {(
+              [
+                ["widthIn", "Actual width (in)"],
+                ["depthIn", "Actual depth (in)"],
+                ["heightIn", "Actual height (in)"],
+                ["weightLb", "Actual weight (lb)"],
+              ] as const
+            ).map(([field, label]) => (
+              <label key={field}>
+                {label}
+                <input
+                  name={field}
+                  type="number"
+                  step="any"
+                  min={0.001}
+                  max={100000}
+                  defaultValue={catalog?.actualSpecs?.[field] ?? ""}
+                />
+              </label>
+            ))}
+            <button type="submit" disabled={busy || !online}>
+              {busy ? "Saving…" : "Save actual measurements"}
+            </button>
+          </form>
+        </section>
+      ) : null}
       {canManage ? (
         <section className="panel">
           <h2>Record identity evidence</h2>
@@ -223,6 +573,16 @@ export function MachineDetailView({
             <label>
               Voltage
               <input name="voltage" defaultValue={machine.voltage ?? ""} />
+            </label>
+            <label>
+              Capacity (lb)
+              <input
+                name="capacityLb"
+                type="number"
+                min={1}
+                max={2000}
+                defaultValue={machine.capacityLb ?? ""}
+              />
             </label>
             <label>
               Phase

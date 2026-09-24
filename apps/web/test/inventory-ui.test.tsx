@@ -23,7 +23,7 @@ const machine = {
   identityVerificationState: "provisional" as const,
   conflictingMachineId: null,
   inventoryState: "expected" as const,
-  productionState: "not_started" as const,
+  productionState: "not_assessed" as const,
   version: 1,
   createdAt: timestamp,
   updatedAt: timestamp,
@@ -79,6 +79,14 @@ describe("inventory UI", () => {
         canUploadFiles={false}
         initialQrLabels={[]}
         canManageQrLabels={false}
+        initialPreliminaryHistory={{
+          machine,
+          inspections: [],
+          decisions: [],
+          currentDisposition: null,
+        }}
+        canManagePreliminary={false}
+        canApproveDisposition={false}
       />,
     );
     expect(markup).toContain("Not recorded");
@@ -114,6 +122,14 @@ describe("inventory UI", () => {
           canUploadFiles
           initialQrLabels={[]}
           canManageQrLabels
+          initialPreliminaryHistory={{
+            machine,
+            inspections: [],
+            decisions: [],
+            currentDisposition: null,
+          }}
+          canManagePreliminary
+          canApproveDisposition
         />
       </>,
     );

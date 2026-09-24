@@ -4,8 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createLoad,
   getMachine,
+  getBrowserMachine,
   InventoryRequestError,
   searchMachines,
+  updateMachineActualSpecs,
 } from "../src/lib/inventory-client";
 
 const timestamp = new Date().toISOString();
@@ -26,7 +28,7 @@ const machine = {
   identityVerificationState: "provisional",
   conflictingMachineId: null,
   inventoryState: "expected",
-  productionState: "not_started",
+  productionState: "not_assessed",
   version: 1,
   createdAt: timestamp,
   updatedAt: timestamp,
@@ -35,6 +37,59 @@ const machine = {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("inventory client", () => {
+  it("refreshes Machine details through the private same-origin endpoint", async () => {
+    const detail = {
+      machine,
+      identityEvidence: [],
+      verificationHistory: [],
+      locationHistory: [],
+    };
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(JSON.stringify(detail)));
+    vi.stubGlobal("fetch", fetcher);
+    await expect(getBrowserMachine(machine.id)).resolves.toMatchObject(detail);
+    expect(fetcher).toHaveBeenCalledWith(
+      `/api/inventory/machines/${machine.id}`,
+      expect.objectContaining({
+        cache: "no-store",
+        credentials: "same-origin",
+      }),
+    );
+  });
+
+  it("saves actual measurements with their own version and parses refreshed details", async () => {
+    const detail = {
+      machine,
+      identityEvidence: [],
+      verificationHistory: [],
+      locationHistory: [],
+    };
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(JSON.stringify(detail)));
+    vi.stubGlobal("fetch", fetcher);
+    await expect(
+      updateMachineActualSpecs(machine.id, {
+        widthIn: 31.5,
+        weightLb: null,
+        expectedVersion: 0,
+      }),
+    ).resolves.toMatchObject(detail);
+    expect(fetcher).toHaveBeenCalledWith(
+      `/api/inventory/machines/${machine.id}/actual-specs`,
+      expect.objectContaining({
+        method: "PATCH",
+        cache: "no-store",
+        body: JSON.stringify({
+          widthIn: 31.5,
+          weightLb: null,
+          expectedVersion: 0,
+        }),
+      }),
+    );
+  });
+
   it("sends a fresh idempotency key for a browser create attempt", async () => {
     const response = {
       id: "a6ebd4ca-f41a-4e94-a247-b0b359a65d66",
@@ -94,7 +149,7 @@ describe("inventory client", () => {
         createTestEnvironment(),
         "session=cookie",
       ),
-    ).resolves.toMatchObject({ machine: { productionState: "not_started" } });
+    ).resolves.toMatchObject({ machine: { productionState: "not_assessed" } });
     expect(fetcher).toHaveBeenCalledWith(
       `http://localhost:3001/inventory/machines/${machine.id}`,
       expect.objectContaining({

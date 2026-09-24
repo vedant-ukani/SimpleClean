@@ -36,9 +36,25 @@ export function scanReturnPathFromLoginHash(hash: string): string | undefined {
 }
 
 export class QrRequestError extends Error {
-  constructor(readonly status: number) {
+  readonly code: string | undefined;
+  readonly machineIds: string[];
+
+  constructor(
+    readonly status: number,
+    readonly detail?: unknown,
+  ) {
     super(`QR label request failed with status ${status}`);
     this.name = "QrRequestError";
+    const body =
+      detail && typeof detail === "object"
+        ? (detail as Record<string, unknown>)
+        : undefined;
+    this.code = typeof body?.code === "string" ? body.code : undefined;
+    this.machineIds = Array.isArray(body?.machineIds)
+      ? body.machineIds.filter(
+          (value): value is string => typeof value === "string",
+        )
+      : [];
   }
 }
 
@@ -53,7 +69,15 @@ async function request(
     ...init,
     headers: { ...init.headers },
   });
-  if (!response.ok) throw new QrRequestError(response.status);
+  if (!response.ok) {
+    let detail: unknown;
+    try {
+      detail = await response.clone().json();
+    } catch {
+      // Preserve the status-only error when the server did not return JSON.
+    }
+    throw new QrRequestError(response.status, detail);
+  }
   return response;
 }
 
@@ -175,9 +199,9 @@ export interface PrintableQrLabel {
 
 function printFilename(disposition: string | null): string {
   const candidate = disposition?.match(/filename="([^"]+)"/i)?.[1];
-  return candidate && /^simply-clean-equipment-[0-9A-Z-]+\.svg$/.test(candidate)
+  return candidate && /^simple-clean-equipment-[0-9A-Z-]+\.svg$/.test(candidate)
     ? candidate
-    : "simply-clean-equipment-label.svg";
+    : "simple-clean-equipment-label.svg";
 }
 
 export async function getPrintableQrLabel(
@@ -207,4 +231,72 @@ export async function downloadQrLabel(labelId: string): Promise<void> {
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export type IntakeQrLabelSheetPresentation = "opened" | "downloaded";
+
+export async function downloadIntakeQrLabelSheet(
+  batchId: string,
+): Promise<IntakeQrLabelSheetPresentation> {
+  let preview: Window | null = null;
+  try {
+    preview = window.open("", "_blank");
+  } catch {
+    // A blocked popup uses the download fallback after the PDF is ready.
+  }
+  try {
+    const response = await request(
+      `/api/inventory/intake/${encodeURIComponent(batchId)}/qr-label-sheet`,
+      fetch,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/pdf",
+          "content-type": "application/json",
+          "idempotency-key": crypto.randomUUID(),
+        },
+        body: "{}",
+      },
+    );
+    if (!response.headers.get("content-type")?.startsWith("application/pdf"))
+      throw new Error("QR label sheet response was not PDF");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const filename =
+      response.headers
+        .get("content-disposition")
+        ?.match(/filename="([^"]+)"/i)?.[1] ??
+      "laundrorama-intake-qr-labels.pdf";
+    let presentation: IntakeQrLabelSheetPresentation = "downloaded";
+    if (preview) {
+      try {
+        preview.document.title = "Laundrorama QR label sheet";
+        preview.document.body.style.margin = "0";
+        const frame = preview.document.createElement("iframe");
+        frame.title = "Laundrorama QR label sheet PDF";
+        frame.src = url;
+        frame.style.width = "100vw";
+        frame.style.height = "100vh";
+        frame.style.border = "0";
+        preview.document.body.replaceChildren(frame);
+        presentation = "opened";
+      } catch {
+        preview.close();
+        preview = null;
+      }
+    }
+    if (!preview) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.append(link);
+      link.click();
+      link.remove();
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return presentation;
+  } catch (error) {
+    preview?.close();
+    throw error;
+  }
 }

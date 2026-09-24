@@ -145,7 +145,10 @@ export function MachinesView({
               <span>Serial: {recorded(machine.serial)}</span>
               <small>
                 {machine.currentLocationCode ?? "Location not assigned"} ·{" "}
-                {machine.machineType}
+                {machine.machineType} ·{" "}
+                {machine.capacityLb == null
+                  ? "Capacity unknown"
+                  : `${machine.capacityLb} lb`}
               </small>
               <MachineIdentityStatus machine={machine} />
             </div>

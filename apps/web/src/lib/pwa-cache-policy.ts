@@ -1,5 +1,5 @@
 export const PWA_CACHE_PREFIX = "simply-clean-public-";
-export const PWA_CACHE_VERSION = "v1";
+export const PWA_CACHE_VERSION = "v2";
 export const PWA_CACHE_NAME = `${PWA_CACHE_PREFIX}${PWA_CACHE_VERSION}`;
 export const PWA_CLEAR_CACHE_MESSAGE = "CLEAR_PUBLIC_PWA_CACHES";
 export const PWA_OFFLINE_PATH = "/offline";
@@ -112,7 +112,7 @@ async function navigateWithOfflineFallback(request) {
   } catch {
     const cache = await caches.open(CACHE_NAME);
     return (await cache.match(OFFLINE_PATH)) || new Response(
-      "Simply Clean Operations is offline. Reconnect and try again.",
+      "Simple Clean Operations is offline. Reconnect and try again.",
       { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } },
     );
   }

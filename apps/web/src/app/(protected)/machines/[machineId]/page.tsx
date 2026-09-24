@@ -6,6 +6,7 @@ import { getFiles } from "../../../../lib/files-client";
 import { getLocations, getMachine } from "../../../../lib/inventory-client";
 import { canManageQrLabels } from "../../../../lib/navigation";
 import { listMachineQrLabels } from "../../../../lib/qr-client";
+import { getPreliminaryHistory } from "../../../../lib/production-client";
 import { readProtectedRouteData } from "../../../../lib/server-route-state";
 import { MachineDetailView } from "./machine-detail-view";
 
@@ -24,16 +25,23 @@ export default async function MachineDetailPage({
     identity.user.role,
     "inventory.machines.relocate",
   );
-  const [detail, locations, files, qrLabels] = await readProtectedRouteData(
-    Promise.all([
-      getMachine(machineId, fetch, process.env, cookie),
-      canRelocate
-        ? getLocations(fetch, process.env, cookie)
-        : Promise.resolve([]),
-      getFiles({ type: "machine", id: machineId }, fetch, process.env, cookie),
-      listMachineQrLabels(machineId, fetch, process.env, cookie),
-    ]),
-  );
+  const [detail, locations, files, qrLabels, preliminaryHistory] =
+    await readProtectedRouteData(
+      Promise.all([
+        getMachine(machineId, fetch, process.env, cookie),
+        canRelocate
+          ? getLocations(fetch, process.env, cookie)
+          : Promise.resolve([]),
+        getFiles(
+          { type: "machine", id: machineId },
+          fetch,
+          process.env,
+          cookie,
+        ),
+        listMachineQrLabels(machineId, fetch, process.env, cookie),
+        getPreliminaryHistory(machineId, fetch, process.env, cookie),
+      ]),
+    );
   return (
     <main className="page-main page-main--wide">
       <MachineDetailView
@@ -52,6 +60,15 @@ export default async function MachineDetailPage({
         canUploadFiles={roleHasPermission(identity.user.role, "files.write")}
         initialQrLabels={qrLabels}
         canManageQrLabels={canManageQrLabels(identity.user.role)}
+        initialPreliminaryHistory={preliminaryHistory}
+        canManagePreliminary={roleHasPermission(
+          identity.user.role,
+          "production.manage",
+        )}
+        canApproveDisposition={roleHasPermission(
+          identity.user.role,
+          "production.disposition.approve",
+        )}
       />
     </main>
   );

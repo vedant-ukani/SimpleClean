@@ -41,14 +41,33 @@ export async function clearPublicPwaCaches(
   );
 }
 
+export async function disablePwaServiceWorker(
+  serviceWorkers: Pick<ServiceWorkerContainer, "getRegistration"> | undefined,
+  cacheStorage: Pick<CacheStorage, "delete" | "keys"> | undefined,
+): Promise<void> {
+  const registration = await serviceWorkers?.getRegistration("/");
+  await registration?.unregister();
+  await clearPublicPwaCaches(cacheStorage, undefined);
+}
+
 export function PwaRegistration() {
   useEffect(() => {
-    void registerPwaServiceWorker(
-      "serviceWorker" in navigator ? navigator.serviceWorker : undefined,
-      window.isSecureContext,
-    ).catch(() => {
-      // The authenticated web app remains usable when PWA installation fails.
-    });
+    const serviceWorkers =
+      "serviceWorker" in navigator ? navigator.serviceWorker : undefined;
+    const cacheStorage = "caches" in window ? window.caches : undefined;
+
+    if (process.env.NODE_ENV !== "production") {
+      void disablePwaServiceWorker(serviceWorkers, cacheStorage).catch(() => {
+        // The authenticated web app remains usable when PWA cleanup fails.
+      });
+      return;
+    }
+
+    void registerPwaServiceWorker(serviceWorkers, window.isSecureContext).catch(
+      () => {
+        // The authenticated web app remains usable when PWA installation fails.
+      },
+    );
   }, []);
 
   return null;

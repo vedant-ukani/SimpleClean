@@ -4,13 +4,11 @@ import {
   AcquisitionLoadResponseSchema,
   IdentityConflictResponseSchema,
   InventoryLocationListResponseSchema,
-  InventoryLocationResponseSchema,
   MachineDetailResponseSchema,
   MachineResponseSchema,
   MachineSearchResponseSchema,
   type AcquisitionLoad,
   type CreateAcquisitionLoadRequest,
-  type CreateInventoryLocationRequest,
   type CreateMachineRequest,
   type InventoryLocation,
   type Machine,
@@ -18,8 +16,8 @@ import {
   type MachineSearchResponse,
   type RelocateMachineRequest,
   type UpdateAcquisitionLoadRequest,
-  type UpdateInventoryLocationRequest,
   type UpdateMachineIdentityRequest,
+  type UpdateMachineActualSpecsRequest,
 } from "@simply-clean/contracts";
 
 export class InventoryRequestError extends Error {
@@ -165,6 +163,14 @@ async function browserMutation(
   });
 }
 
+export async function getBrowserMachine(
+  machineId: string,
+): Promise<MachineDetail> {
+  return MachineDetailResponseSchema.parse(
+    await requestJson(`/api/inventory/machines/${machineId}`, fetch),
+  );
+}
+
 async function browserCreate(path: string, body: unknown): Promise<unknown> {
   const idempotencyKey = crypto.randomUUID();
   try {
@@ -192,36 +198,6 @@ export async function updateLoad(
   ).load;
 }
 
-export async function createLocation(
-  input: CreateInventoryLocationRequest,
-): Promise<InventoryLocation> {
-  return InventoryLocationResponseSchema.parse(
-    await browserCreate("/inventory/locations", input),
-  ).location;
-}
-
-export async function updateLocation(
-  locationId: string,
-  input: UpdateInventoryLocationRequest,
-): Promise<InventoryLocation> {
-  return InventoryLocationResponseSchema.parse(
-    await browserMutation(`/inventory/locations/${locationId}`, "PATCH", input),
-  ).location;
-}
-
-export async function deactivateLocation(
-  locationId: string,
-  expectedVersion: number,
-): Promise<InventoryLocation> {
-  return InventoryLocationResponseSchema.parse(
-    await browserMutation(
-      `/inventory/locations/${locationId}/deactivate`,
-      "POST",
-      { expectedVersion },
-    ),
-  ).location;
-}
-
 export async function createMachine(
   input: CreateMachineRequest,
 ): Promise<Machine> {
@@ -241,6 +217,19 @@ export async function updateMachineIdentity(
       input,
     ),
   ).machine;
+}
+
+export async function updateMachineActualSpecs(
+  machineId: string,
+  input: UpdateMachineActualSpecsRequest,
+): Promise<MachineDetail> {
+  return MachineDetailResponseSchema.parse(
+    await browserMutation(
+      `/inventory/machines/${machineId}/actual-specs`,
+      "PATCH",
+      input,
+    ),
+  );
 }
 
 export async function verifyMachine(

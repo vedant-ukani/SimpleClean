@@ -34,24 +34,48 @@ export default async function ProtectedLayout({
         Skip to main content
       </a>
       <OnlineStatus />
-      <header className="app-header">
-        <Link className="brand-link" href="/">
+      <aside className="app-sidebar" aria-label="Simple Clean workspace">
+        <Link className="brand-link brand-link--sidebar" href="/">
           <span className="brand-mark brand-mark--small" aria-hidden="true">
             SC
           </span>
-          <span>Simply Clean</span>
-        </Link>
-        <ActiveNavigation role={identity.user.role} />
-        <div className="account-actions">
           <span>
+            <strong>Simple Clean</strong>
+            <small>Operations</small>
+          </span>
+        </Link>
+        <ActiveNavigation mode="sidebar" role={identity.user.role} />
+        <div className="account-actions account-actions--sidebar">
+          <span className="account-identity">
             <strong>{identity.user.name}</strong>
             <small>{ROLE_LABELS[identity.user.role]}</small>
           </span>
           <LogoutButton />
         </div>
-      </header>
-      <div id="main-content" tabIndex={-1}>
-        {children}
+      </aside>
+      <div className="app-content">
+        <header className="app-header">
+          <Link className="brand-link brand-link--mobile" href="/">
+            <span className="brand-mark brand-mark--small" aria-hidden="true">
+              SC
+            </span>
+            <span>
+              <strong>Simple Clean</strong>
+              <small>Operations</small>
+            </span>
+          </Link>
+          <ActiveNavigation mode="mobile" role={identity.user.role} />
+          <div className="account-actions account-actions--mobile">
+            <span className="account-identity">
+              <strong>{identity.user.name}</strong>
+              <small>{ROLE_LABELS[identity.user.role]}</small>
+            </span>
+            <LogoutButton />
+          </div>
+        </header>
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
       </div>
     </div>
   );

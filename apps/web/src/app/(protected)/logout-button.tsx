@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LogOut } from "lucide-react";
 
 import { authClient } from "../../lib/auth-client";
 import { clearPublicPwaCaches } from "../pwa-registration";
@@ -39,6 +40,7 @@ export function LogoutButton() {
   return (
     <div className="logout-control">
       <button className="secondary-button" type="button" onClick={logout}>
+        <LogOut aria-hidden="true" size={16} />
         {pending ? "Signing out…" : "Switch user / sign out"}
       </button>
       {error ? (

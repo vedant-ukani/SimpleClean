@@ -5,6 +5,7 @@ import manifest from "../src/app/manifest";
 import { GET as getServiceWorker } from "../src/app/sw.js/route";
 import {
   clearPublicPwaCaches,
+  disablePwaServiceWorker,
   registerPwaServiceWorker,
 } from "../src/app/pwa-registration";
 import {
@@ -21,11 +22,11 @@ const origin = "https://operations.example.test";
 describe("PWA install metadata", () => {
   it("describes a scoped standalone application with safe public icons", () => {
     expect(manifest()).toMatchObject({
-      name: "Simply Clean Operations",
+      name: "Simple Clean Operations",
       start_url: "/",
       scope: "/",
       display: "standalone",
-      theme_color: "#176b55",
+      theme_color: "#132d29",
     });
     expect(manifest().icons).toEqual(
       expect.arrayContaining([
@@ -36,7 +37,7 @@ describe("PWA install metadata", () => {
     expect(viewport).toMatchObject({
       width: "device-width",
       initialScale: 1,
-      themeColor: "#176b55",
+      themeColor: "#132d29",
     });
   });
 });
@@ -115,6 +116,14 @@ describe("PWA cache policy", () => {
     expect(source).not.toContain('cache.put("/loads');
   });
 
+  it("versions the worker so stale static chunks are purged on activation", () => {
+    const source = createServiceWorkerSource();
+
+    expect(PWA_CACHE_NAME).toBe(`${PWA_CACHE_PREFIX}v2`);
+    expect(source).toContain(`const CACHE_NAME = "${PWA_CACHE_NAME}"`);
+    expect(source).toContain("removeOldPublicCaches()");
+  });
+
   it("serves the worker with root scope and no HTTP caching", () => {
     const response = getServiceWorker();
 
@@ -164,5 +173,29 @@ describe("PWA lifecycle", () => {
     expect(postMessage).toHaveBeenCalledWith({
       type: PWA_CLEAR_CACHE_MESSAGE,
     });
+  });
+
+  it("disables the app worker and removes stale app caches in development", async () => {
+    const unregister = vi.fn().mockResolvedValue(true);
+    const getRegistration = vi.fn().mockResolvedValue({ unregister });
+    const deleteCache = vi.fn().mockResolvedValue(true);
+    const keys = vi
+      .fn()
+      .mockResolvedValue([
+        `${PWA_CACHE_PREFIX}v1`,
+        PWA_CACHE_NAME,
+        "other-application-cache",
+      ]);
+
+    await disablePwaServiceWorker(
+      { getRegistration },
+      { delete: deleteCache, keys },
+    );
+
+    expect(getRegistration).toHaveBeenCalledWith("/");
+    expect(unregister).toHaveBeenCalledOnce();
+    expect(deleteCache).toHaveBeenCalledWith(`${PWA_CACHE_PREFIX}v1`);
+    expect(deleteCache).toHaveBeenCalledWith(PWA_CACHE_NAME);
+    expect(deleteCache).not.toHaveBeenCalledWith("other-application-cache");
   });
 });

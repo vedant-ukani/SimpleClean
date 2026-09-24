@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { updateLoad } from "../../../../lib/inventory-client";
+import { createIntakeBatch } from "../../../../lib/intake-client";
 import { AttachmentsPanel } from "../../attachments-panel";
 import { useOnlineStatus } from "../../online-status";
 import { useServerState } from "../../use-server-state";
@@ -12,17 +13,20 @@ import { useServerState } from "../../use-server-state";
 export function LoadDetailView({
   initialLoad,
   canManage,
+  canManageIntake,
   initialFiles,
   canUploadFiles,
 }: Readonly<{
   initialLoad: AcquisitionLoad;
   canManage: boolean;
+  canManageIntake: boolean;
   initialFiles: FileAttachment[];
   canUploadFiles: boolean;
 }>) {
   const [load, setLoad] = useServerState(initialLoad);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [startingIntake, setStartingIntake] = useState(false);
   const online = useOnlineStatus();
 
   async function update(event: FormEvent<HTMLFormElement>) {
@@ -54,7 +58,7 @@ export function LoadDetailView({
 
   return (
     <div className="inventory-stack">
-      <section className="panel detail-grid">
+      <section className="panel detail-grid load-overview-panel">
         <dl>
           <div>
             <dt>Source</dt>
@@ -84,13 +88,45 @@ export function LoadDetailView({
           Find Machines from this Load
         </Link>
       </section>
-      <AttachmentsPanel
-        target={{ type: "load", id: load.id }}
-        initialFiles={initialFiles}
-        canUpload={canUploadFiles}
-      />
+      {canManageIntake ? (
+        <section className="panel load-next-action">
+          <div>
+            <p className="eyebrow">Next operational action</p>
+            <h2>Laundrorama photo intake</h2>
+          </div>
+          <p>
+            Review private arrival and nameplate evidence together before
+            creating Machines.
+          </p>
+          <button
+            type="button"
+            disabled={startingIntake || !online}
+            onClick={async () => {
+              setStartingIntake(true);
+              try {
+                const batch = await createIntakeBatch(load.id);
+                window.location.assign(`/loads/${load.id}/intake/${batch.id}`);
+              } catch {
+                setMessage("Could not start Intake. Reconnect and retry.");
+              } finally {
+                setStartingIntake(false);
+              }
+            }}
+          >
+            {startingIntake ? "Starting…" : "Start Laundrorama intake"}
+          </button>
+        </section>
+      ) : null}
+      <div className="load-evidence-panel">
+        <AttachmentsPanel
+          target={{ type: "load", id: load.id }}
+          initialFiles={initialFiles}
+          canUpload={canUploadFiles}
+        />
+      </div>
       {canManage ? (
-        <section className="panel">
+        <section className="panel load-maintenance-panel">
+          <p className="eyebrow">Maintenance</p>
           <h2>Edit Load</h2>
           {message ? (
             <p className="form-message" role="status">

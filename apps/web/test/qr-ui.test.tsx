@@ -31,7 +31,7 @@ const machine = {
   identityVerificationState: "verified" as const,
   conflictingMachineId: null,
   inventoryState: "on_hand" as const,
-  productionState: "not_started" as const,
+  productionState: "not_assessed" as const,
   version: 2,
   createdAt: timestamp,
   updatedAt: timestamp,

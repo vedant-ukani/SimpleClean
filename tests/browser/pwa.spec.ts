@@ -37,9 +37,9 @@ test("manifest and service worker expose only a public static cache", async ({
   await page.getByLabel("Password").fill("warehouse-browser-password");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(
-    page.getByText("Browser Warehouse", { exact: true }).first(),
+    page.getByRole("heading", { name: /Welcome back/ }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Loads", exact: true }).click();
+  await page.goto("/loads");
   await expect(
     page.getByText("Browser Test Expected Load", { exact: true }),
   ).toBeVisible();

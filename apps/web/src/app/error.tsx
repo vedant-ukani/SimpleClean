@@ -6,7 +6,7 @@ export default function ErrorBoundary({
   return (
     <main>
       <section className="health-card">
-        <p className="eyebrow">Simply Clean</p>
+        <p className="eyebrow">Simple Clean</p>
         <h1>We could not load this page.</h1>
         <p className="lede">
           The platform did not expose any sensitive error details.

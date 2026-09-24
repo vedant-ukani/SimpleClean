@@ -44,7 +44,7 @@ const detail = {
     identityVerificationState: "provisional" as const,
     conflictingMachineId: null,
     inventoryState: "on_hand" as const,
-    productionState: "not_started" as const,
+    productionState: "not_assessed" as const,
     version: 1,
     createdAt: timestamp,
     updatedAt: timestamp,

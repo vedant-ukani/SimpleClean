@@ -5,7 +5,7 @@ export default function OfflinePage() {
         <div className="brand-mark" aria-hidden="true">
           SC
         </div>
-        <p className="eyebrow">Simply Clean Operations</p>
+        <p className="eyebrow">Simple Clean Operations</p>
         <h1 id="offline-heading">You are offline</h1>
         <p className="lede">
           Reconnect before viewing records or recording work. Operational data

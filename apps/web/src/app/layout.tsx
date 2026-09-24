@@ -5,9 +5,9 @@ import "./styles.css";
 import { PwaRegistration } from "./pwa-registration";
 
 export const metadata: Metadata = {
-  title: "Simply Clean Operations",
-  description: "Secure Simply Clean staff operations",
-  applicationName: "Simply Clean Operations",
+  title: "Simple Clean Operations",
+  description: "Secure Simple Clean staff operations",
+  applicationName: "Simple Clean Operations",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/app-icon-v1.svg",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#176b55",
+  themeColor: "#132d29",
 };
 
 export default function RootLayout({

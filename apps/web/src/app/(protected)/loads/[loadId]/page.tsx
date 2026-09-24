@@ -29,6 +29,7 @@ export default async function LoadDetailPage({
       <LoadDetailView
         initialLoad={load}
         canManage={canManageLoads(identity.user.role)}
+        canManageIntake={roleHasPermission(identity.user.role, "intake.manage")}
         initialFiles={files}
         canUploadFiles={roleHasPermission(identity.user.role, "files.write")}
       />

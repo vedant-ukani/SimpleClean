@@ -44,17 +44,24 @@ export function LoginForm() {
   }
 
   return (
-    <form className="auth-form" onSubmit={submit}>
+    <form className="auth-form" method="post" onSubmit={submit}>
       <label>
-        Email
-        <input name="email" type="email" autoComplete="username" required />
+        <span>Email address</span>
+        <input
+          name="email"
+          type="email"
+          autoComplete="username"
+          placeholder="name@company.com"
+          required
+        />
       </label>
       <label>
-        Password
+        <span>Password</span>
         <input
           name="password"
           type="password"
           autoComplete="current-password"
+          placeholder="Enter your password"
           required
         />
       </label>

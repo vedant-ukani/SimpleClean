@@ -2,15 +2,15 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Simply Clean Operations",
-    short_name: "Simply Clean",
-    description: "Secure Simply Clean staff operations",
+    name: "Simple Clean Operations",
+    short_name: "Simple Clean",
+    description: "Secure Simple Clean staff operations",
     id: "/",
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f7f4eb",
-    theme_color: "#176b55",
+    background_color: "#f5f7f6",
+    theme_color: "#132d29",
     orientation: "any",
     icons: [
       {

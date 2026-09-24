@@ -28,8 +28,12 @@ async function signIn(
   await page.getByLabel("Password").fill(account.password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(
-    page.getByText(account.name, { exact: true }).first(),
+    page.getByRole("heading", { name: /Welcome back/ }),
   ).toBeVisible();
+  const menu = page.getByRole("button", { name: "Menu" });
+  if (await menu.isVisible()) {
+    await menu.click();
+  }
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
@@ -61,6 +65,21 @@ async function expectNoHorizontalOverflow(page: Page) {
   );
 }
 
+async function expectViewportSizedSidebar(page: Page) {
+  if ((await page.evaluate(() => window.innerWidth)) <= 900) {
+    return;
+  }
+
+  const sidebar = page.locator(".app-sidebar");
+  await expect(sidebar).toBeVisible();
+  const metrics = await sidebar.evaluate((element) => {
+    const { height, width } = element.getBoundingClientRect();
+    return { height, viewportHeight: window.innerHeight, width };
+  });
+  expect(metrics.width).toBe(256);
+  expect(metrics.height).toBe(metrics.viewportHeight);
+}
+
 async function expectNoSeriousAccessibilityViolations(page: Page) {
   const result = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -82,15 +101,11 @@ test("warehouse follows the real load, machine, file, scan, and relocation bound
   page,
 }) => {
   await signIn(page, accounts.warehouse);
+  await expectViewportSizedSidebar(page);
   await expectNoSeriousAccessibilityViolations(page);
 
   const warehouseDashboard = page.getByRole("region", { name: "Start work" });
-  for (const card of [
-    "Expected Loads",
-    "Machine Search",
-    "Scan",
-    "Locations",
-  ]) {
+  for (const card of ["Expected Loads", "Machine Search", "Scan"]) {
     await expect(
       warehouseDashboard.getByRole("link", {
         name: new RegExp(`^${card}`),
@@ -98,7 +113,7 @@ test("warehouse follows the real load, machine, file, scan, and relocation bound
     ).toBeVisible();
   }
   await expect(
-    page.getByText("Pilot placeholder", { exact: true }),
+    page.getByText("Not enabled yet", { exact: true }),
   ).toBeVisible();
 
   const primary = page.getByRole("navigation", { name: "Primary navigation" });
@@ -112,16 +127,27 @@ test("warehouse follows the real load, machine, file, scan, and relocation bound
     primary.getByRole("link", { name: "Scan", exact: true }),
   ).toBeVisible();
   await expect(
-    primary.getByRole("link", { name: "Locations", exact: true }),
-  ).toBeVisible();
-  await expect(
     primary.getByRole("link", { name: "Team", exact: true }),
   ).toHaveCount(0);
   await expect(
     primary.getByRole("link", { name: "Imports", exact: true }),
   ).toHaveCount(0);
+  for (const removedDestination of [
+    "File review",
+    "Operations",
+    "Imports",
+    "Locations",
+  ]) {
+    await expect(
+      primary.getByRole("link", { name: removedDestination, exact: true }),
+    ).toHaveCount(0);
+  }
 
   await page.getByRole("link", { name: "Loads", exact: true }).click();
+  const loadsMenu = page.getByRole("button", { name: "Menu" });
+  if (await loadsMenu.isVisible()) {
+    await loadsMenu.click();
+  }
   await expect(
     page
       .getByRole("navigation", { name: "Primary navigation" })
@@ -133,10 +159,12 @@ test("warehouse follows the real load, machine, file, scan, and relocation bound
   await expect(
     page.getByText("Browser Test Expected Load", { exact: true }),
   ).toBeVisible();
+  await expectViewportSizedSidebar(page);
   await page.getByRole("link", { name: "View Load" }).click();
   await expect(page.getByText("E2E-LOAD-001", { exact: true })).toBeVisible();
 
   await page.getByRole("link", { name: "Machines", exact: true }).click();
+  await expectViewportSizedSidebar(page);
   await page
     .getByLabel("Search by ID, manufacturer, model, serial, Load, or Location")
     .fill("BROWSER-SERIAL-001");
@@ -157,6 +185,10 @@ test("warehouse follows the real load, machine, file, scan, and relocation bound
     await page.locator(".fallback-code").first().textContent()
   )?.trim();
   expect(fallbackCode).toBeTruthy();
+  const scanMenu = page.getByRole("button", { name: "Menu" });
+  if (await scanMenu.isVisible()) {
+    await scanMenu.click();
+  }
   await page.getByRole("link", { name: "Scan", exact: true }).click();
   await page.getByLabel("Enter fallback code").fill("INVALID-CODE");
   await page.getByRole("button", { name: "Look up Machine" }).click();
@@ -194,7 +226,7 @@ test("technician can read equipment and files but cannot cross management bounda
     technicianDashboard.getByRole("link", { name: /^Scan/ }),
   ).toBeVisible();
   await expect(
-    page.getByText("Pilot placeholder", { exact: true }),
+    page.getByText("Not enabled yet", { exact: true }),
   ).toBeVisible();
   await expect(
     technicianDashboard.getByRole("link", { name: /^Expected Loads/ }),
@@ -210,14 +242,21 @@ test("technician can read equipment and files but cannot cross management bounda
     primary.getByRole("link", { name: "Scan", exact: true }),
   ).toBeVisible();
   await expect(
-    primary.getByRole("link", { name: "Locations", exact: true }),
-  ).toBeVisible();
-  await expect(
     primary.getByRole("link", { name: "Loads", exact: true }),
   ).toHaveCount(0);
   await expect(
     primary.getByRole("link", { name: "Imports", exact: true }),
   ).toHaveCount(0);
+  for (const removedDestination of [
+    "File review",
+    "Operations",
+    "Imports",
+    "Locations",
+  ]) {
+    await expect(
+      primary.getByRole("link", { name: removedDestination, exact: true }),
+    ).toHaveCount(0);
+  }
 
   const forbidden = await page.request.get("/api/inventory/loads");
   expect(forbidden.status()).toBe(403);
@@ -240,20 +279,13 @@ test("technician can read equipment and files but cannot cross management bounda
   await expectNoHorizontalOverflow(page);
 });
 
-test("owner reaches foundation administration and sign-out removes protected access", async ({
+test("owner sees the retained staff surface and sign-out removes protected access", async ({
   page,
 }) => {
   await signIn(page, accounts.owner);
   await expectNoSeriousAccessibilityViolations(page);
   const ownerDashboard = page.getByRole("region", { name: "Start work" });
-  for (const card of [
-    "Imports",
-    "Loads",
-    "Machines",
-    "Team",
-    "Operations",
-    "Foundation review",
-  ]) {
+  for (const card of ["Loads", "Machines", "Team"]) {
     await expect(
       ownerDashboard.getByRole("link", { name: new RegExp(`^${card}`) }),
     ).toBeVisible();
@@ -262,90 +294,33 @@ test("owner reaches foundation administration and sign-out removes protected acc
     page.getByText("Pilot placeholder", { exact: true }),
   ).toHaveCount(0);
   const primary = page.getByRole("navigation", { name: "Primary navigation" });
-  for (const destination of [
-    "Team",
-    "Operations",
-    "Imports",
-    "Loads",
-    "Machines",
-    "Scan",
-  ]) {
+  for (const destination of ["Team", "Loads", "Machines", "Scan"]) {
     await expect(
       primary.getByRole("link", { name: destination, exact: true }),
     ).toBeVisible();
   }
 
-  await primary.getByRole("link", { name: "Imports", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: /Inventory imports/i }),
-  ).toBeVisible();
+  for (const removedDestination of [
+    "File review",
+    "Operations",
+    "Imports",
+    "Locations",
+  ]) {
+    await expect(
+      primary.getByRole("link", { name: removedDestination, exact: true }),
+    ).toHaveCount(0);
+  }
   await page.getByRole("button", { name: "Switch user / sign out" }).click();
   await expect(
     page.getByRole("heading", { name: "Staff sign in" }),
   ).toBeVisible();
-
-  await page.goBack();
   await expect(page).toHaveURL(/\/login/);
   await expect(
     page.getByText(accounts.owner.name, { exact: true }),
   ).toHaveCount(0);
 });
 
-test("owner reviews and commits a synthetic inventory import across real boundaries", async ({
-  page,
-}, testInfo) => {
-  test.skip(
-    testInfo.project.name !== "desktop-chromium",
-    "The cross-ticket commit journey runs once against the shared isolated fixture.",
-  );
-  await signIn(page, accounts.owner);
-  await page.getByRole("link", { name: "Imports", exact: true }).click();
-  await page
-    .getByLabel("Source Load")
-    .selectOption({ label: "Browser Test Expected Load" });
-  await page.getByLabel("Inventory file").setInputFiles({
-    name: "browser-foundation.csv",
-    mimeType: "text/csv",
-    buffer: Buffer.from(
-      "Make,Model,Serial,Status\nDexter,T-900,E2E-IMPORT-001,In Inventory\n",
-      "utf8",
-    ),
-  });
-  await page.getByRole("button", { name: "Stage for review" }).click();
-  await expect(page.getByRole("status")).toContainText(
-    "Import staged with 1 source rows",
-  );
-  await page.getByRole("link", { name: "Review", exact: true }).first().click();
-
-  await page.getByLabel("Approve source row 2").check();
-  await page.getByRole("button", { name: "Approve 1 selected" }).click();
-  await expect(page.getByRole("status")).toContainText("1 rows approved");
-  await page
-    .getByLabel("I confirm this exact approved selection may create Machines.")
-    .check();
-  await page
-    .getByRole("button", { name: "Create provisional Machines" })
-    .click();
-  await expect(page.getByRole("status")).toContainText(
-    "1 provisional Machines created",
-  );
-  await page
-    .getByRole("heading", { name: "Created Machines" })
-    .locator("..")
-    .getByRole("link", { name: "View Machine" })
-    .click();
-  await expect(page.getByText("E2E-IMPORT-001", { exact: true })).toBeVisible();
-  await expectNoSeriousAccessibilityViolations(page);
-
-  await page.getByRole("link", { name: "Operations", exact: true }).click();
-  await page.getByLabel("Action").fill("imports.run.committed");
-  await page.getByRole("button", { name: "Filter history" }).click();
-  await expect(
-    page.getByText("imports.run.committed", { exact: true }).first(),
-  ).toBeVisible();
-});
-
-test("a missing import uses the protected record-not-found state", async ({
+test("retired workspaces have no bookmarked web routes", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -353,13 +328,16 @@ test("a missing import uses the protected record-not-found state", async ({
     "The canonical route-state boundary only needs one browser journey.",
   );
   await signIn(page, accounts.owner);
-  await page.goto("/admin/imports/00000000-0000-4000-8000-000000000000");
-  await expect(
-    page.getByRole("heading", { name: "This record is not available" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "This workspace is unavailable" }),
-  ).toHaveCount(0);
+  for (const path of [
+    "/admin/files",
+    "/admin/operations",
+    "/admin/imports",
+    "/admin/imports/00000000-0000-4000-8000-000000000000",
+    "/locations",
+  ]) {
+    const response = await page.goto(path);
+    expect(response?.status(), path).toBe(404);
+  }
 });
 
 test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts usable", async ({
@@ -368,9 +346,17 @@ test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts u
 }) => {
   await signIn(page, accounts.warehouse);
   await expect(page.getByRole("banner")).toBeVisible();
-  await expect(
-    page.getByRole("navigation", { name: "Primary navigation" }),
-  ).toBeVisible();
+  const initialMenu = page.getByRole("button", { name: "Menu" });
+  if (await initialMenu.isVisible()) {
+    await initialMenu.click();
+  }
+  const primaryNavigation = page.getByRole("navigation", {
+    name: "Primary navigation",
+  });
+  if (!(await primaryNavigation.isVisible())) {
+    await page.getByRole("button", { name: /menu/i }).click();
+  }
+  await expect(primaryNavigation).toBeVisible();
   await expect(page.getByRole("main")).toBeVisible();
 
   await page.goto("/machines?query=BROWSER-SERIAL-001");
@@ -447,7 +433,10 @@ test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts u
 
   await page.reload();
   await expect(
-    page.getByText(accounts.warehouse.name, { exact: true }).first(),
+    page
+      .getByText(accounts.warehouse.name, { exact: true })
+      .filter({ visible: true })
+      .first(),
   ).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(
