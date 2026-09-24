@@ -5,13 +5,18 @@ import { parseServerEnvironment } from "@simply-clean/config";
 import type { DatabaseConnection } from "@simply-clean/database";
 import { createTestEnvironment } from "@simply-clean/test-support";
 import { randomUUID } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { AppModule } from "../../apps/api/src/app.module.js";
+import {
+  CatalogService,
+  catalogManifestChecksum,
+} from "../../apps/api/src/modules/catalog/catalog.service.js";
 import { IdentityService } from "../../apps/api/src/modules/identity/identity.service.js";
 import { InventoryService } from "../../apps/api/src/modules/inventory/inventory.service.js";
+import { OperationsWorker } from "../../apps/api/src/modules/operations/operations.worker.js";
 import { QrLabelService } from "../../apps/api/src/modules/inventory/qr/qr-label.service.js";
 import { DATABASE_CONNECTION } from "../../apps/api/src/platform/database.module.js";
 
@@ -49,6 +54,21 @@ async function main(): Promise<void> {
       PLATFORM_PUBLIC_ORIGIN: webOrigin,
       PGLITE_DATA_DIR: join(sandboxDirectory, "database"),
       FILE_LOCAL_DIRECTORY: join(sandboxDirectory, "files"),
+      OPERATIONS_WORKER_POLL_MS: "100",
+      OPERATIONS_WORKER_POLLING_ENABLED: "true",
+      INTAKE_RECOGNITION_ENABLED: "true",
+      INTAKE_RECOGNITION_SEMANTIC_PROVIDER: "fake",
+      INTAKE_RECOGNITION_VERIFIER_PROVIDER: "fake",
+      INTAKE_RECOGNITION_GROUP_FLOOR: "0.9",
+      INTAKE_RECOGNITION_FIELD_FLOOR: "0.9",
+      INTAKE_RECOGNITION_OCR_FLOOR: "0.9",
+      CATALOG_DISCOVERY_ENABLED: "true",
+      CATALOG_DISCOVERY_PROVIDER: "fake",
+      CATALOG_DISCOVERY_MODEL: "deterministic-catalog-v1",
+      CATALOG_DISCOVERY_PRICING_VERSION: "browser-test-pricing-v1",
+      CATALOG_DISCOVERY_INPUT_USD_PER_MILLION_TOKENS: "1",
+      CATALOG_DISCOVERY_OUTPUT_USD_PER_MILLION_TOKENS: "2",
+      CATALOG_DISCOVERY_WEB_SEARCH_USD_PER_CALL: "0.01",
     }),
   );
   const application = await NestFactory.create(AppModule.register(config), {
@@ -56,6 +76,48 @@ async function main(): Promise<void> {
     logger: false,
   });
   await application.get<DatabaseConnection>(DATABASE_CONNECTION).migrate();
+  await application
+    .get(CatalogService)
+    .importManifest(
+      JSON.parse(
+        readFileSync(
+          new URL(
+            "../../apps/api/catalog-data/official-models.2026-09-23.json",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      ),
+    );
+  const fakeManufacturerSnapshot = {
+    datasetId: "browser-fake-manufacturer",
+    snapshotDate: "2026-09-23",
+    checksum: "0".repeat(64),
+    manufacturers: [
+      {
+        id: "browser-fake-manufacturer",
+        name: "FAKE",
+        aliases: [],
+        sources: [
+          {
+            id: "browser-fake-source",
+            url: "https://example.test/models",
+            title: "Deterministic browser manufacturer source",
+            retrievedAt: "2026-09-23T00:00:00.000Z",
+            documentRevision: null,
+            checksum: "f".repeat(64),
+          },
+        ],
+        models: [],
+      },
+    ],
+  };
+  fakeManufacturerSnapshot.checksum = catalogManifestChecksum(
+    fakeManufacturerSnapshot,
+  );
+  await application
+    .get(CatalogService)
+    .importManifest(fakeManufacturerSnapshot);
 
   const identity = application.get(IdentityService);
   const inventory = application.get(InventoryService);
@@ -138,6 +200,23 @@ async function main(): Promise<void> {
     { toLocationId: receiving.id, expectedVersion: machine.version },
     warehouseContext,
   );
+  for (const project of [
+    "desktop-chromium",
+    "tablet-chromium",
+    "tablet-landscape-chromium",
+  ]) {
+    await inventory.createMachine(
+      {
+        machineType: "washer",
+        sourceLoadId: load.id,
+        inventoryState: "on_hand",
+        manufacturer: "Speed Queen",
+        model: "SC30",
+        serial: `PRODUCTION-${project}`,
+      },
+      { ...warehouseContext, idempotencyKey: randomUUID() },
+    );
+  }
   await qr.create(
     machine.id,
     {},
@@ -150,12 +229,21 @@ async function main(): Promise<void> {
   );
 
   await application.listen(config.apiPort, "127.0.0.1");
+  // Keep the browser fixture deterministic: the acceptance journey exercises
+  // the same durable outbox worker, but drives a bounded poll from the fixture
+  // so queued targeted recognition cannot depend on Nest lifecycle timing.
+  const worker = application.get(OperationsWorker);
+  const workerTimer = setInterval(() => {
+    void worker.runOnce().catch(() => undefined);
+  }, config.operationsWorkerPollMs);
+  workerTimer.unref();
   process.stdout.write(`Browser test API ready at ${apiOrigin}\n`);
 
   let closing = false;
   async function close(): Promise<void> {
     if (closing) return;
     closing = true;
+    clearInterval(workerTimer);
     await application.close();
     rmSync(sandboxDirectory, { recursive: true, force: true });
   }

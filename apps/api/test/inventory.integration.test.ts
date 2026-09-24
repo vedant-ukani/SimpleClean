@@ -118,7 +118,7 @@ describe("inventory foundation", () => {
       serial: null,
       identityVerificationState: "provisional",
       inventoryState: "expected",
-      productionState: "not_started",
+      productionState: "not_assessed",
       version: 1,
     });
     const machineId = created.body.machine.id as string;
@@ -132,12 +132,14 @@ describe("inventory foundation", () => {
         serial: " SQ 1001 ",
         voltage: "208-240V",
         phase: "three_phase",
+        capacityLb: 40,
         expectedVersion: 1,
       })
       .expect(200);
     expect(identified.body.machine).toMatchObject({
       manufacturer: "Speed Queen",
       serial: "SQ 1001",
+      capacityLb: 40,
       identityVerificationState: "provisional",
       version: 2,
     });
@@ -163,6 +165,16 @@ describe("inventory foundation", () => {
       version: 4,
     });
 
+    const correctedCapacity = await request(app.getHttpServer())
+      .patch(`/inventory/machines/${machineId}/identity`)
+      .set("Cookie", warehouse.cookies)
+      .send({ capacityLb: 50, expectedVersion: 4 })
+      .expect(200);
+    expect(correctedCapacity.body.machine).toMatchObject({
+      capacityLb: 50,
+      version: 5,
+    });
+
     await request(app.getHttpServer())
       .get("/inventory/machines")
       .query({ query: "sq 1001" })
@@ -178,7 +190,7 @@ describe("inventory foundation", () => {
       .set("Cookie", technician.cookies)
       .expect(200)
       .expect(({ body }) => {
-        expect(body.identityEvidence).toHaveLength(2);
+        expect(body.identityEvidence).toHaveLength(3);
         expect(body.verificationHistory).toHaveLength(1);
         expect(body.verificationHistory[0]).toMatchObject({
           fromState: "provisional",
@@ -189,7 +201,8 @@ describe("inventory foundation", () => {
           requestId: expect.any(String),
         });
         expect(body.identityEvidence[0]).toMatchObject({
-          manufacturer: "  Speed   Queen ",
+          manufacturer: "Speed Queen",
+          capacityLb: 50,
           requestId: expect.any(String),
         });
         expect(body.locationHistory).toHaveLength(1);
@@ -239,7 +252,7 @@ describe("inventory foundation", () => {
     await request(app.getHttpServer())
       .patch(`/inventory/machines/${machineId}/identity`)
       .set("Cookie", technician.cookies)
-      .send({ model: "forged", expectedVersion: 4 })
+      .send({ model: "forged", expectedVersion: 5 })
       .expect(403);
     const central = await app.get<DatabaseConnection>(DATABASE_CONNECTION)
       .database.execute(sql`
@@ -253,6 +266,7 @@ describe("inventory foundation", () => {
       "inventory.machine.identity_updated",
       "inventory.machine.verified",
       "inventory.machine.relocated",
+      "inventory.machine.identity_updated",
     ]);
   });
 

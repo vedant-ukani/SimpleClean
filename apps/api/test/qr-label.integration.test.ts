@@ -89,6 +89,53 @@ async function machine(app: INestApplication, cookies: string[]) {
   return created.body.machine as { id: string };
 }
 
+async function committedIntake(
+  app: INestApplication,
+  actorUserId: string,
+  capacityLb: number | null,
+) {
+  const database = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
+  const loadId = randomUUID();
+  const batchId = randomUUID();
+  const candidateId = randomUUID();
+  const machineId = randomUUID();
+  await database.execute(sql`
+    insert into inventory_load (id, display_name) values (${loadId}, 'QR sheet load')
+  `);
+  await database.execute(sql`
+    insert into inventory_intake_batch (id, load_id, state, created_by_user_id)
+    values (${batchId}, ${loadId}, 'open', ${actorUserId})
+  `);
+  await database.execute(sql`
+    insert into inventory_machine (
+      id, machine_type, manufacturer, normalized_manufacturer, model, serial,
+      normalized_serial, source_load_id, capacity_lb, inventory_state
+    ) values (
+      ${machineId}, 'washer', 'Dexter', 'dexter', 'T-400', 'QR-SERIAL-1',
+      'qr-serial-1', ${loadId}, ${capacityLb}, 'on_hand'
+    )
+  `);
+  await database.execute(sql`
+    insert into inventory_intake_candidate (
+      id, batch_id, state, machine_type, manufacturer, model, serial, capacity_lb
+    ) values (
+      ${candidateId}, ${batchId}, 'draft', 'washer', 'Dexter', 'T-400',
+      'QR-SERIAL-1', ${capacityLb}
+    )
+  `);
+  await database.execute(sql`
+    insert into inventory_intake_machine_mapping (candidate_id, batch_id, machine_id)
+    values (${candidateId}, ${batchId}, ${machineId})
+  `);
+  await database.execute(sql`
+    update inventory_intake_candidate set state = 'committed' where id = ${candidateId}
+  `);
+  await database.execute(sql`
+    update inventory_intake_batch set state = 'committed' where id = ${batchId}
+  `);
+  return { batchId, machineId };
+}
+
 describe("Inventory QR labels", () => {
   it("creates, prints, resolves, reissues, revokes, and preserves private history", async () => {
     const app = await createApplication();
@@ -159,7 +206,7 @@ describe("Inventory QR labels", () => {
       .expect("X-Content-Type-Options", "nosniff")
       .expect("Content-Type", /image\/svg\+xml/);
     const printedSvg = Buffer.from(printed.body as Uint8Array).toString("utf8");
-    expect(printedSvg).toContain("Simply Clean Equipment");
+    expect(printedSvg).toContain("Simple Clean Equipment");
     expect(printedSvg).toContain(created.body.label.fallbackCode);
     expect(printedSvg).not.toContain("PRIVATE-SERIAL-42");
     expect(printedSvg).not.toContain(createdMachine.id);
@@ -357,6 +404,78 @@ describe("Inventory QR labels", () => {
         delete from inventory_qr_label where id = ${created.body.label.id}
       `),
     ).rejects.toThrow();
+  });
+
+  it("prints a finished Intake as a private nine-up PDF and reuses labels", async () => {
+    const app = await createApplication();
+    const owner = await user(app, "owner_admin");
+    const warehouse = await user(app, "warehouse");
+    const technician = await user(app, "technician_cleaner");
+    const intake = await committedIntake(app, owner.identity.id, 40);
+
+    await request(app.getHttpServer())
+      .post(`/inventory/intake/${intake.batchId}/qr-label-sheet`)
+      .set("Cookie", technician.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({})
+      .expect(403);
+
+    const first = await request(app.getHttpServer())
+      .post(`/inventory/intake/${intake.batchId}/qr-label-sheet`)
+      .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({})
+      .expect(200)
+      .expect("Cache-Control", "private, no-store")
+      .expect("Content-Type", /application\/pdf/);
+    const firstPdf = Buffer.from(first.body as Uint8Array).toString("utf8");
+    expect(firstPdf.startsWith("%PDF-1.4")).toBe(true);
+    expect(firstPdf).toContain("Dexter");
+    expect(firstPdf).toContain("40 LB - Washer");
+    expect(firstPdf).toContain("QR-SERIAL-1");
+
+    const second = await request(app.getHttpServer())
+      .post(`/inventory/intake/${intake.batchId}/qr-label-sheet`)
+      .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({})
+      .expect(200);
+    expect(Buffer.from(second.body as Uint8Array).toString("utf8")).toContain(
+      "QR-SERIAL-1",
+    );
+    const labels = resultRows<{ id: string }>(
+      await app
+        .get<DatabaseConnection>(DATABASE_CONNECTION)
+        .database.execute(
+          sql`select id from inventory_qr_label where machine_id = ${intake.machineId} and state = 'active'`,
+        ),
+    );
+    expect(labels).toHaveLength(1);
+    const activities = resultRows<{ action: string }>(
+      await app
+        .get<DatabaseConnection>(DATABASE_CONNECTION)
+        .database.execute(
+          sql`select action from inventory_qr_label_activity where machine_id = ${intake.machineId} and action = 'printed'`,
+        ),
+    );
+    expect(activities).toHaveLength(2);
+  });
+
+  it("prints a finished Intake sheet when capacity is missing", async () => {
+    const app = await createApplication();
+    const owner = await user(app, "owner_admin");
+    const warehouse = await user(app, "warehouse");
+    const intake = await committedIntake(app, owner.identity.id, null);
+    const response = await request(app.getHttpServer())
+      .post(`/inventory/intake/${intake.batchId}/qr-label-sheet`)
+      .set("Cookie", warehouse.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({})
+      .expect(200)
+      .expect("Content-Type", /application\/pdf/);
+    expect(Buffer.from(response.body as Uint8Array).toString("utf8")).toContain(
+      "Capacity unknown - Washer",
+    );
   });
 
   it("deduplicates concurrent creates and rolls lifecycle work back with Operations", async () => {

@@ -31,6 +31,12 @@ describe("authorization policy", () => {
       "operations.jobs.manage",
       "imports.read",
       "imports.manage",
+      "intake.read",
+      "intake.manage",
+      "catalog.read",
+      "production.read",
+      "production.manage",
+      "production.disposition.approve",
     ]);
     expect(permissionsForRole("warehouse")).toEqual([
       "platform.access",
@@ -44,6 +50,11 @@ describe("authorization policy", () => {
       "inventory.qr_labels.manage",
       "files.read",
       "files.write",
+      "intake.read",
+      "intake.manage",
+      "catalog.read",
+      "production.read",
+      "production.manage",
     ]);
     expect(permissionsForRole("technician_cleaner")).toEqual([
       "platform.access",
@@ -52,6 +63,9 @@ describe("authorization policy", () => {
       "inventory.locations.read",
       "files.read",
       "files.write",
+      "catalog.read",
+      "production.read",
+      "production.manage",
     ]);
 
     expect(roleHasPermission("owner_admin", "identity.users.manage")).toBe(
@@ -80,6 +94,16 @@ describe("authorization policy", () => {
     expect(roleHasPermission("technician_cleaner", "files.write")).toBe(true);
     expect(roleHasPermission("owner_admin", "imports.manage")).toBe(true);
     expect(roleHasPermission("warehouse", "imports.read")).toBe(false);
+    expect(roleHasPermission("warehouse", "production.manage")).toBe(true);
+    expect(roleHasPermission("technician_cleaner", "production.manage")).toBe(
+      true,
+    );
+    expect(
+      roleHasPermission("warehouse", "production.disposition.approve"),
+    ).toBe(false);
+    expect(
+      roleHasPermission("owner_admin", "production.disposition.approve"),
+    ).toBe(true);
   });
 
   it("rejects unknown roles and permissions at runtime", () => {

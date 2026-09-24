@@ -28,6 +28,12 @@ export const PERMISSIONS = [
   "operations.jobs.manage",
   "imports.read",
   "imports.manage",
+  "intake.read",
+  "intake.manage",
+  "catalog.read",
+  "production.read",
+  "production.manage",
+  "production.disposition.approve",
 ] as const;
 
 export const ApplicationRoleSchema = z.enum(APPLICATION_ROLES);
@@ -50,6 +56,11 @@ export const ROLE_PERMISSION_POLICY = {
     "inventory.qr_labels.manage",
     "files.read",
     "files.write",
+    "intake.read",
+    "intake.manage",
+    "catalog.read",
+    "production.read",
+    "production.manage",
   ],
   technician_cleaner: [
     "platform.access",
@@ -58,6 +69,9 @@ export const ROLE_PERMISSION_POLICY = {
     "inventory.locations.read",
     "files.read",
     "files.write",
+    "catalog.read",
+    "production.read",
+    "production.manage",
   ],
 } as const satisfies Record<ApplicationRole, readonly Permission[]>;
 

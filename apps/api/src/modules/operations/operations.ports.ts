@@ -49,7 +49,16 @@ export interface IdempotencyCoordinator {
     database: DatabaseExecutor,
     input: {
       recordId: string;
-      targetType: "load" | "location" | "machine" | "qr_label" | "import_run";
+      targetType:
+        | "load"
+        | "location"
+        | "machine"
+        | "qr_label"
+        | "import_run"
+        | "intake_batch"
+        | "intake_recognition_run"
+        | "preliminary_inspection"
+        | "preliminary_disposition";
       targetId: string;
     },
   ): Promise<void>;
@@ -78,6 +87,8 @@ export interface DispatchableInternalEvent {
   eventType: OperationsAction;
   targetType: OperationsTargetType;
   targetId: string;
+  /** Worker delivery attempt; absent for direct in-process dispatches. */
+  attemptCount?: number;
   actorKind: AuditActorKind;
   actorUserId: string | null;
   requestId: string;

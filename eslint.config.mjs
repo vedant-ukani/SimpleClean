@@ -12,6 +12,7 @@ export default tseslint.config(
       "**/coverage/**",
       "**/test-results/**",
       "**/playwright-report/**",
+      "**/.local-data/**",
       ".codegraph/**",
       ".codex-build/**",
       ".codex-finalizer/**",

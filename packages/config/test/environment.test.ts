@@ -14,6 +14,10 @@ describe("server environment", () => {
     );
     expect(config.databaseDriver).toBe("pglite");
     expect(config.nodeEnv).toBe("test");
+    expect(config.intakeRecognitionSemanticModel).toBe("gpt-6-luna");
+    expect(config.intakeRecognitionPolicyVersion).toBe(
+      "intake-nameplate-policy-v4",
+    );
   });
 
   it("anchors relative local data paths to the npm workspace root", () => {
@@ -165,6 +169,90 @@ describe("server environment", () => {
     ).toThrow("high-entropy");
   });
 
+  it("requires HTTPS recognition provider endpoints when deployed", () => {
+    expect(
+      parseServerEnvironment(
+        createTestEnvironment({
+          INTAKE_RECOGNITION_SEMANTIC_ENDPOINT: "http://semantic.local.test",
+          INTAKE_RECOGNITION_VERIFIER_ENDPOINT: "http://verifier.local.test",
+        }),
+      ),
+    ).toMatchObject({
+      intakeRecognitionSemanticEndpoint: "http://semantic.local.test",
+      intakeRecognitionVerifierEndpoint: "http://verifier.local.test",
+    });
+    const deployed = {
+      NODE_ENV: "production",
+      DATABASE_DRIVER: "postgres",
+      DATABASE_URL: "postgres://database.example/simply_clean",
+      AUTH_SECRET: "unique-production-auth-secret-with-entropy-42!",
+      AUTH_BASE_URL: "https://api.example.test",
+      AUTH_TRUSTED_ORIGIN: "https://app.example.test",
+      PLATFORM_PUBLIC_ORIGIN: "https://app.example.test",
+      QR_SIGNING_SECRET: "unique-production-qr-secret-with-entropy-42!",
+      FILE_STORAGE_DRIVER: "local",
+      ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED: "true",
+    };
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          ...deployed,
+          INTAKE_RECOGNITION_SEMANTIC_ENDPOINT: "http://semantic.example.test",
+        }),
+      ),
+    ).toThrow(
+      "INTAKE_RECOGNITION_SEMANTIC_ENDPOINT: must use HTTPS in staging or production",
+    );
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          ...deployed,
+          INTAKE_RECOGNITION_VERIFIER_ENDPOINT: "http://verifier.example.test",
+        }),
+      ),
+    ).toThrow(
+      "INTAKE_RECOGNITION_VERIFIER_ENDPOINT: must use HTTPS in staging or production",
+    );
+    expect(
+      parseServerEnvironment(
+        createTestEnvironment({
+          ...deployed,
+          INTAKE_RECOGNITION_SEMANTIC_ENDPOINT: "https://semantic.example.test",
+          INTAKE_RECOGNITION_VERIFIER_ENDPOINT: "https://verifier.example.test",
+        }),
+      ).intakeRecognitionSemanticEndpoint,
+    ).toBe("https://semantic.example.test");
+  });
+
+  it("requires a Google Vision credential when the verifier is enabled", () => {
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          INTAKE_RECOGNITION_ENABLED: "true",
+          INTAKE_RECOGNITION_SEMANTIC_PROVIDER: "fake",
+          INTAKE_RECOGNITION_VERIFIER_PROVIDER: "google-vision",
+          INTAKE_RECOGNITION_VERIFIER_ENDPOINT:
+            "https://vision.example.test/annotate",
+        }),
+      ),
+    ).toThrow("Google Vision verification");
+    expect(
+      parseServerEnvironment(
+        createTestEnvironment({
+          INTAKE_RECOGNITION_ENABLED: "true",
+          INTAKE_RECOGNITION_SEMANTIC_PROVIDER: "fake",
+          INTAKE_RECOGNITION_VERIFIER_PROVIDER: "google-vision",
+          INTAKE_RECOGNITION_VERIFIER_ENDPOINT:
+            "https://vision.example.test/annotate",
+          INTAKE_RECOGNITION_VERIFIER_API_KEY: "test-key",
+        }),
+      ),
+    ).toMatchObject({
+      intakeRecognitionVerifierProvider: "google-vision",
+      intakeRecognitionVerifierApiKey: "test-key",
+    });
+  });
+
   it("validates private file storage configuration", () => {
     const config = parseServerEnvironment(createTestEnvironment());
     expect(config).toMatchObject({
@@ -208,7 +296,7 @@ describe("server environment", () => {
     const config = parseServerEnvironment(createTestEnvironment());
     expect(config).toMatchObject({
       operationsWorkerMaxAttempts: 5,
-      operationsWorkerLeaseSeconds: 60,
+      operationsWorkerLeaseSeconds: 180,
       operationsWorkerPollMs: 1_000,
       operationsWorkerBackoffBaseMs: 1_000,
       operationsWorkerPollingEnabled: false,
@@ -223,6 +311,58 @@ describe("server environment", () => {
         createTestEnvironment({ OPERATIONS_WORKER_LEASE_SECONDS: "0" }),
       ),
     ).toThrow("OPERATIONS_WORKER_LEASE_SECONDS");
+  });
+
+  it("gives sequential Intake recognition providers enough bounded time", () => {
+    expect(parseServerEnvironment(createTestEnvironment())).toMatchObject({
+      intakeRecognitionTimeoutMs: 60_000,
+    });
+  });
+
+  it("keeps Catalog discovery disabled by default and supports an explicit or fallback OpenAI key", () => {
+    expect(parseServerEnvironment(createTestEnvironment())).toMatchObject({
+      catalogDiscoveryEnabled: false,
+      catalogDiscoveryProvider: "disabled",
+      catalogDiscoveryPromptVersion: "catalog-discovery-prompt-v2",
+      catalogDiscoverySchemaVersion: "catalog-discovery-schema-v1",
+      catalogDiscoveryPolicyVersion: "automatic-official-source-policy-v2",
+      catalogDiscoveryPricingVersion: "openai-gpt-6-luna-standard-2026-09-23",
+      catalogDiscoveryInputUsdPerMillionTokens: 0.1,
+      catalogDiscoveryOutputUsdPerMillionTokens: 0.5,
+      catalogDiscoveryWebSearchUsdPerCall: 0.01,
+    });
+    expect(
+      parseServerEnvironment(
+        createTestEnvironment({
+          CATALOG_DISCOVERY_ENABLED: "true",
+          CATALOG_DISCOVERY_PROVIDER: "openai",
+          INTAKE_RECOGNITION_SEMANTIC_API_KEY: "shared-openai-key",
+        }),
+      ),
+    ).toMatchObject({
+      catalogDiscoveryEnabled: true,
+      catalogDiscoveryApiKey: "shared-openai-key",
+    });
+    expect(
+      parseServerEnvironment(
+        createTestEnvironment({
+          CATALOG_DISCOVERY_ENABLED: "true",
+          CATALOG_DISCOVERY_PROVIDER: "openai",
+          CATALOG_DISCOVERY_API_KEY: "catalog-only-key",
+          INTAKE_RECOGNITION_SEMANTIC_API_KEY: "shared-openai-key",
+        }),
+      ).catalogDiscoveryApiKey,
+    ).toBe("catalog-only-key");
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({
+          CATALOG_DISCOVERY_ENABLED: "true",
+          CATALOG_DISCOVERY_PROVIDER: "openai",
+          CATALOG_DISCOVERY_API_KEY: undefined,
+          INTAKE_RECOGNITION_SEMANTIC_API_KEY: undefined,
+        }),
+      ),
+    ).toThrow("Catalog discovery");
   });
 
   it("requires bootstrap credentials without including the password in errors", () => {

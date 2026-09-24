@@ -86,6 +86,17 @@ export class QrLabelRepository {
     return rows(result).map(labelFromRow);
   }
 
+  async findActiveLabelForMachine(
+    machineId: string,
+  ): Promise<QrLabel | undefined> {
+    const result = await this.connection.database.execute(sql`
+      select * from inventory_qr_label
+      where machine_id = ${machineId} and state = 'active'
+    `);
+    const row = rows(result)[0];
+    return row ? labelFromRow(row) : undefined;
+  }
+
   async create(
     input: { machineId: string; labelId: string; fallbackCode: string },
     context: QrActorContext,

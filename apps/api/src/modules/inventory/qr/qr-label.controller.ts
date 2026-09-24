@@ -107,6 +107,30 @@ export class QrLabelController {
       .send(rendered.svg);
   }
 
+  @Post("intake/:batchId/qr-label-sheet")
+  @RequirePermission("inventory.qr_labels.manage")
+  async printIntakeSheet(
+    @Req() request: Request,
+    @Param("batchId") batchId: string,
+    @Headers("idempotency-key") idempotencyKey: string | undefined,
+    @Res() response: Response,
+  ): Promise<void> {
+    const rendered = await this.qrLabels.printIntakeSheet(
+      batchId,
+      this.context(request, QrLabelService.parseIdempotencyKey(idempotencyKey)),
+    );
+    response
+      .status(200)
+      .set({
+        "Cache-Control": "private, no-store",
+        "Content-Disposition": `attachment; filename="${rendered.filename}"`,
+        "Content-Type": "application/pdf",
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "X-Content-Type-Options": "nosniff",
+      })
+      .send(rendered.pdf);
+  }
+
   @Post("qr-labels/resolve")
   @RequirePermission("inventory.machines.read")
   resolve(@Req() request: Request, @Body() body: unknown) {

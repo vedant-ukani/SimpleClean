@@ -110,11 +110,11 @@ describe("QR label renderer", () => {
       fallbackCode: "01ARZ3NDEKTSV4RR",
     });
     expect(rendered.filename).toBe(
-      "simply-clean-equipment-01ARZ3NDEKTSV4RR.svg",
+      "simple-clean-equipment-01ARZ3NDEKTSV4RR.svg",
     );
     expect(rendered.svg).toContain('viewBox="0 0 432 576"');
     expect(rendered.svg).toContain('role="img"');
-    expect(rendered.svg).toContain("Simply Clean Equipment");
+    expect(rendered.svg).toContain("Simple Clean Equipment");
     expect(rendered.svg).toContain("01ARZ3NDEKTSV4RR");
     const encoded = /base64,([^"']+)/.exec(rendered.svg)?.[1];
     expect(encoded).toBeDefined();
@@ -134,5 +134,33 @@ describe("QR label renderer", () => {
     });
     expect(rendered.svg).not.toContain("<script>");
     expect(rendered.svg).toContain("&lt;script&gt;&amp;bad");
+  });
+
+  it("renders a paginated nine-up PDF sheet with readable label facts", async () => {
+    const rendered = await new QrLabelRenderer().renderSheet({
+      labels: Array.from({ length: 10 }, (_, index) => ({
+        url: `https://platform.example.test/scan#label-${index}`,
+        fallbackCode: `01ARZ3NDEKTSV4R${index}`,
+        manufacturer: "Dexter",
+        capacityLb: index === 9 ? null : 40,
+        machineType: "washer" as const,
+        serial: `SERIAL-${index}`,
+      })),
+    });
+    expect(rendered.filename).toBe("laundrorama-intake-qr-labels-10.pdf");
+    expect(rendered.pdf.subarray(0, 8).toString()).toBe("%PDF-1.4");
+    expect(rendered.pdf.toString()).toContain("Dexter");
+    expect(rendered.pdf.toString()).toContain("40 LB - Washer");
+    expect(rendered.pdf.toString()).toContain("Capacity unknown - Washer");
+    expect(rendered.pdf.toString()).toContain("SERIAL-9");
+    const pdfText = rendered.pdf.toString();
+    const firstLabelText = pdfText.indexOf("(LAUNDRORAMA)");
+    expect(firstLabelText).toBeGreaterThan(-1);
+    expect(pdfText.lastIndexOf("0 0 0 rg", firstLabelText)).toBeGreaterThan(
+      pdfText.lastIndexOf("1 1 1 rg", firstLabelText),
+    );
+    expect(
+      (rendered.pdf.toString().match(/\/Type \/Page /g) ?? []).length,
+    ).toBe(2);
   });
 });

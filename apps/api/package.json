@@ -9,9 +9,12 @@
     "start": "node dist/main.js",
     "test:browser:server": "tsx ../../tests/browser/start-api.ts",
     "auth:provision": "tsx src/auth-provision.ts",
+    "catalog:import": "tsx src/catalog-import.ts",
+    "catalog:coverage": "tsx src/catalog-coverage.ts",
+    "catalog:backfill": "tsx src/catalog-backfill.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run test/health.service.test.ts test/files.storage.test.ts test/import-download-header.test.ts test/inventory-normalization.test.ts test/import-parser.test.ts test/qr-label.test.ts",
-    "test:integration": "vitest run --no-file-parallelism --maxWorkers=1 --testTimeout=10000 --hookTimeout=10000 test/health.integration.test.ts test/identity.integration.test.ts test/inventory.integration.test.ts test/files.integration.test.ts test/operations.integration.test.ts test/imports.integration.test.ts test/qr-label.integration.test.ts"
+    "test": "vitest run test/health.service.test.ts test/files.storage.test.ts test/import-download-header.test.ts test/inventory-normalization.test.ts test/import-parser.test.ts test/qr-label.test.ts test/intake-files.test.ts test/intake-heic-limits.test.ts test/recognition.providers.test.ts test/recognition.evaluation.test.ts test/intake-recognition-policy.test.ts test/catalog.test.ts test/catalog.discovery.test.ts test/catalog.coverage.test.ts test/catalog-backfill.test.ts",
+    "test:integration": "vitest run --no-file-parallelism --maxWorkers=1 --testTimeout=10000 --hookTimeout=10000 test/health.integration.test.ts test/identity.integration.test.ts test/inventory.integration.test.ts test/intake.integration.test.ts test/intake-recognition.integration.test.ts test/files.integration.test.ts test/operations.integration.test.ts test/imports.integration.test.ts test/qr-label.integration.test.ts test/catalog.integration.test.ts test/production.integration.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
@@ -26,11 +29,13 @@
     "csv-parse": "^7.0.2",
     "csv-stringify": "^6.8.3",
     "exceljs": "^4.4.0",
+    "heic-decode": "^2.1.0",
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
+    "sharp": "^0.35.4",
     "unzipper": "^0.12.5"
   },
   "devDependencies": {

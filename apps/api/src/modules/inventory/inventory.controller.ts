@@ -178,6 +178,21 @@ export class InventoryController {
     };
   }
 
+  @Patch("machines/:machineId/actual-specs")
+  @RequirePermission("inventory.machines.manage")
+  updateActualSpecs(
+    @Req() request: Request,
+    @Param("machineId") machineId: string,
+    @Body() body: unknown,
+  ) {
+    return this.inventory.updateActualSpecs(
+      machineId,
+      body,
+      currentIdentityFromRequest(request),
+      this.context(request),
+    );
+  }
+
   @Post("machines/:machineId/verify")
   @RequirePermission("inventory.machines.verify")
   async verifyMachine(

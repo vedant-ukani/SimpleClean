@@ -29,6 +29,19 @@ export const OPERATIONS_ACTIONS = [
   "imports.run.approved",
   "imports.run.committed",
   "imports.run.commit_failed",
+  "inventory.intake.batch.created",
+  "inventory.intake.batch.reviewed",
+  "inventory.intake.batch.committed",
+  "inventory.intake.recognition.requested",
+  "inventory.intake.recognition.completed",
+  "catalog.snapshot.imported",
+  "catalog.machine.resolved",
+  "catalog.discovery.requested",
+  "catalog.discovery.completed",
+  "inventory.machine.actual_specs_updated",
+  "production.preliminary_inspection.recorded",
+  "production.disposition.recorded",
+  "inventory.machine.lifecycle_updated",
 ] as const;
 
 export const OPERATIONS_TARGET_TYPES = [
@@ -41,6 +54,14 @@ export const OPERATIONS_TARGET_TYPES = [
   "file",
   "outbox_job",
   "import_run",
+  "intake_batch",
+  "intake_recognition_run",
+  "catalog_snapshot",
+  "catalog_resolution",
+  "catalog_discovery_run",
+  "machine_actual_specs",
+  "preliminary_inspection",
+  "preliminary_disposition",
 ] as const;
 
 export const AuditActorKindSchema = z.enum(["user", "system"]);

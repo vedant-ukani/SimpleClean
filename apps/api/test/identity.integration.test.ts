@@ -120,6 +120,12 @@ describe("identity authentication", () => {
             "operations.jobs.manage",
             "imports.read",
             "imports.manage",
+            "intake.read",
+            "intake.manage",
+            "catalog.read",
+            "production.read",
+            "production.manage",
+            "production.disposition.approve",
           ],
         });
       });

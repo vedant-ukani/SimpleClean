@@ -4,6 +4,8 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  ForbiddenException,
+  Optional,
 } from "@nestjs/common";
 import {
   CreateAcquisitionLoadRequestSchema,
@@ -18,6 +20,9 @@ import {
   UpdateMachineIdentityRequestSchema,
   VerifyMachineIdentityRequestSchema,
   VersionedRequestSchema,
+  UpdateMachineActualSpecsRequestSchema,
+  roleHasPermission,
+  type IdentityUser,
   type AcquisitionLoad,
   type InventoryLocation,
   type Machine,
@@ -25,6 +30,11 @@ import {
   type MachineSearchResponse,
 } from "@simply-clean/contracts";
 import type { DatabaseExecutor } from "@simply-clean/database";
+import {
+  CATALOG_OPERATIONS,
+  type CatalogOperations,
+} from "../catalog/catalog.service.js";
+import { effectiveMachineSpecs } from "./actual-specs.js";
 
 import {
   IdempotencyKeyReuseError,
@@ -99,6 +109,21 @@ export interface InventoryOperations {
     input: ImportMachineCandidate & { sourceLoadId: string },
     context: InventoryActorContext,
   ): Promise<Machine>;
+  findMachineForProduction(
+    database: DatabaseExecutor,
+    machineId: string,
+  ): Promise<Machine | undefined>;
+  updatePreliminaryLifecycle(
+    database: DatabaseExecutor,
+    input: {
+      machineId: string;
+      expectedVersion: number;
+      inventoryState: "on_hand" | "scrapped";
+      productionState: "preliminary_passed" | "blocked";
+      actorUserId: string;
+      requestId: string;
+    },
+  ): Promise<Machine | undefined>;
 }
 
 export interface ImportMachineCandidate {
@@ -106,7 +131,8 @@ export interface ImportMachineCandidate {
   manufacturer: string | null;
   model: string | null;
   serial: string | null;
-  inventoryState: "expected" | "on_hand";
+  inventoryState: Machine["inventoryState"];
+  capacityLb?: number | null;
 }
 
 export interface ImportCandidateMatch {
@@ -120,7 +146,24 @@ export class InventoryService implements InventoryOperations {
   constructor(
     @Inject(InventoryRepository)
     private readonly repository: InventoryRepository,
+    @Optional()
+    @Inject(CATALOG_OPERATIONS)
+    private readonly catalog?: CatalogOperations,
   ) {}
+
+  findMachineForProduction(
+    database: DatabaseExecutor,
+    machineId: string,
+  ): Promise<Machine | undefined> {
+    return this.repository.findMachineForProduction(database, machineId);
+  }
+
+  updatePreliminaryLifecycle(
+    database: DatabaseExecutor,
+    input: Parameters<InventoryOperations["updatePreliminaryLifecycle"]>[1],
+  ): Promise<Machine | undefined> {
+    return this.repository.updatePreliminaryLifecycle(database, input);
+  }
 
   async createLoad(
     rawInput: unknown,
@@ -240,7 +283,79 @@ export class InventoryService implements InventoryOperations {
   async getMachine(rawId: string): Promise<MachineDetail> {
     const detail = await this.repository.getMachineDetail(this.id(rawId));
     if (!detail) throw new NotFoundException("Machine not found");
+    if (this.catalog) {
+      const [resolution, actualSpecs] = await Promise.all([
+        this.catalog
+          .currentMachineResolution(detail.machine.id, detail.machine)
+          .catch(() => undefined),
+        this.repository.actualSpecs(detail.machine.id),
+      ]);
+      if (resolution)
+        detail.catalog = {
+          resolutionId: resolution.id,
+          identityVersion: resolution.identityVersion,
+          pendingIdentityResolution: !resolution.identityMatches,
+          status: resolution.identityMatches
+            ? resolution.status
+            : "insufficient_input",
+          matchKind: resolution.identityMatches ? resolution.matchKind : null,
+          resolvedAt: resolution.resolvedAt,
+          revision: resolution.identityMatches ? resolution.detail : null,
+          manufactureDate:
+            resolution.identityMatches && resolution.manufactureDate
+              ? resolution.manufactureDate
+              : { kind: "unknown", reason: "serial_rule_unavailable" },
+          actualSpecs,
+          effectiveSpecs: effectiveMachineSpecs(
+            actualSpecs,
+            detail.machine.capacityLb,
+            resolution.identityMatches
+              ? (resolution.detail?.specs ?? null)
+              : null,
+          ),
+        };
+      else
+        detail.catalog = {
+          resolutionId: null,
+          pendingIdentityResolution: true,
+          status: "insufficient_input",
+          matchKind: null,
+          resolvedAt: null,
+          revision: null,
+          manufactureDate: {
+            kind: "unknown",
+            reason: "serial_rule_unavailable",
+          },
+          actualSpecs,
+          effectiveSpecs: effectiveMachineSpecs(
+            actualSpecs,
+            detail.machine.capacityLb,
+            null,
+          ),
+        };
+    }
     return detail;
+  }
+
+  async updateActualSpecs(
+    rawId: string,
+    rawInput: unknown,
+    identity: IdentityUser,
+    context: InventoryActorContext,
+  ): Promise<MachineDetail> {
+    if (
+      !identity.active ||
+      identity.id !== context.actorUserId ||
+      !roleHasPermission(identity.role, "inventory.machines.manage")
+    )
+      throw new ForbiddenException();
+    const id = this.id(rawId);
+    const input = this.parse(UpdateMachineActualSpecsRequestSchema, rawInput);
+    this.resolveMutation(
+      await this.repository.updateActualSpecs(id, input, context),
+      "Machine actual specifications",
+    );
+    return this.getMachine(id);
   }
 
   searchMachines(rawQuery: unknown): Promise<MachineSearchResponse> {
@@ -331,6 +446,11 @@ export class InventoryService implements InventoryOperations {
     input: ImportMachineCandidate & { sourceLoadId: string },
     context: InventoryActorContext,
   ): Promise<Machine> {
+    if (input.inventoryState === "scrapped") {
+      throw new BadRequestException(
+        "Scrapped state requires an approved disposition",
+      );
+    }
     const result = await this.repository.createImportedMachine(
       database,
       input,

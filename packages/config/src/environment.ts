@@ -14,6 +14,11 @@ const optionalNonEmptyString = z.preprocess(
   (value) => (value === "" ? undefined : value),
   z.string().min(1).optional(),
 );
+const optionalBoundedNumber = (minimum: number, maximum: number) =>
+  z.preprocess(
+    (value) => (value === "" || value === undefined ? undefined : value),
+    z.coerce.number().min(minimum).max(maximum).optional(),
+  );
 
 const serverEnvironmentSchema = z
   .object({
@@ -80,7 +85,7 @@ const serverEnvironmentSchema = z
       .int()
       .min(5)
       .max(900)
-      .default(60),
+      .default(180),
     OPERATIONS_WORKER_POLL_MS: z.coerce
       .number()
       .int()
@@ -94,6 +99,128 @@ const serverEnvironmentSchema = z
       .max(300_000)
       .default(1_000),
     OPERATIONS_WORKER_POLLING_ENABLED: booleanFromString.optional(),
+    INTAKE_RECOGNITION_ENABLED: booleanFromString.default(false),
+    INTAKE_RECOGNITION_SEMANTIC_PROVIDER: z
+      .enum(["fake", "openai", "gemini", "disabled"])
+      .default("disabled"),
+    INTAKE_RECOGNITION_SEMANTIC_MODEL: z
+      .string()
+      .min(1)
+      .max(120)
+      .default("gpt-6-luna"),
+    INTAKE_RECOGNITION_SEMANTIC_ENDPOINT: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.url().optional(),
+    ),
+    INTAKE_RECOGNITION_SEMANTIC_API_KEY: optionalNonEmptyString,
+    INTAKE_RECOGNITION_VERIFIER_PROVIDER: z
+      .enum(["fake", "paddleocr", "google-vision", "disabled"])
+      .default("disabled"),
+    INTAKE_RECOGNITION_VERIFIER_MODEL: z
+      .string()
+      .min(1)
+      .max(120)
+      .default("paddleocr"),
+    INTAKE_RECOGNITION_VERIFIER_ENDPOINT: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.url().optional(),
+    ),
+    INTAKE_RECOGNITION_VERIFIER_API_KEY: optionalNonEmptyString,
+    INTAKE_RECOGNITION_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(100)
+      .max(120_000)
+      .default(60_000),
+    INTAKE_RECOGNITION_MAX_IMAGE_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .max(25 * 1_024 * 1_024)
+      .default(8 * 1_024 * 1_024),
+    INTAKE_RECOGNITION_MAX_BATCH_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .max(200 * 1_024 * 1_024)
+      .default(40 * 1_024 * 1_024),
+    INTAKE_RECOGNITION_MAX_PIXELS: z.coerce
+      .number()
+      .int()
+      .min(1_000)
+      .max(100_000_000)
+      .default(20_000_000),
+    INTAKE_RECOGNITION_MAX_OUTPUT_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .max(20 * 1_024 * 1_024)
+      .default(2 * 1_024 * 1_024),
+    INTAKE_RECOGNITION_POLICY_VERSION: z
+      .string()
+      .min(1)
+      .max(120)
+      .default("intake-nameplate-policy-v4"),
+    INTAKE_RECOGNITION_GROUP_FLOOR: optionalBoundedNumber(0, 1),
+    INTAKE_RECOGNITION_FIELD_FLOOR: optionalBoundedNumber(0, 1),
+    INTAKE_RECOGNITION_OCR_FLOOR: optionalBoundedNumber(0, 1),
+    CATALOG_DISCOVERY_ENABLED: booleanFromString.default(false),
+    CATALOG_DISCOVERY_PROVIDER: z
+      .enum(["fake", "openai", "disabled"])
+      .default("disabled"),
+    CATALOG_DISCOVERY_MODEL: z.string().min(1).max(120).default("gpt-6-luna"),
+    CATALOG_DISCOVERY_ENDPOINT: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.url().optional(),
+    ),
+    CATALOG_DISCOVERY_API_KEY: optionalNonEmptyString,
+    CATALOG_DISCOVERY_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(100)
+      .max(120_000)
+      .default(60_000),
+    CATALOG_DISCOVERY_MAX_OUTPUT_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .max(20 * 1_024 * 1_024)
+      .default(1_048_576),
+    CATALOG_DISCOVERY_PROMPT_VERSION: z
+      .string()
+      .min(1)
+      .max(120)
+      .default("catalog-discovery-prompt-v2"),
+    CATALOG_DISCOVERY_SCHEMA_VERSION: z
+      .string()
+      .min(1)
+      .max(120)
+      .default("catalog-discovery-schema-v1"),
+    CATALOG_DISCOVERY_POLICY_VERSION: z
+      .string()
+      .min(1)
+      .max(120)
+      .default("automatic-official-source-policy-v2"),
+    CATALOG_DISCOVERY_PRICING_VERSION: z
+      .string()
+      .min(1)
+      .max(120)
+      .default("openai-gpt-6-luna-standard-2026-09-23"),
+    CATALOG_DISCOVERY_INPUT_USD_PER_MILLION_TOKENS: z.coerce
+      .number()
+      .min(0)
+      .max(10_000)
+      .default(0.1),
+    CATALOG_DISCOVERY_OUTPUT_USD_PER_MILLION_TOKENS: z.coerce
+      .number()
+      .min(0)
+      .max(10_000)
+      .default(0.5),
+    CATALOG_DISCOVERY_WEB_SEARCH_USD_PER_CALL: z.coerce
+      .number()
+      .min(0)
+      .max(10_000)
+      .default(0.01),
   })
   .superRefine((environment, context) => {
     if (
@@ -110,6 +237,138 @@ const serverEnvironmentSchema = z
     const isDeployed =
       environment.NODE_ENV === "staging" ||
       environment.NODE_ENV === "production";
+    if (isDeployed && environment.INTAKE_RECOGNITION_ENABLED) {
+      if (["fake"].includes(environment.INTAKE_RECOGNITION_SEMANTIC_PROVIDER)) {
+        context.addIssue({
+          code: "custom",
+          path: ["INTAKE_RECOGNITION_SEMANTIC_PROVIDER"],
+          message: "fake providers are not allowed in deployed environments",
+        });
+      }
+      if (["fake"].includes(environment.INTAKE_RECOGNITION_VERIFIER_PROVIDER)) {
+        context.addIssue({
+          code: "custom",
+          path: ["INTAKE_RECOGNITION_VERIFIER_PROVIDER"],
+          message: "fake providers are not allowed in deployed environments",
+        });
+      }
+    }
+    if (
+      isDeployed &&
+      environment.CATALOG_DISCOVERY_ENABLED &&
+      environment.CATALOG_DISCOVERY_PROVIDER === "fake"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["CATALOG_DISCOVERY_PROVIDER"],
+        message: "fake providers are not allowed in deployed environments",
+      });
+    }
+    if (isDeployed) {
+      for (const key of [
+        "INTAKE_RECOGNITION_SEMANTIC_ENDPOINT",
+        "INTAKE_RECOGNITION_VERIFIER_ENDPOINT",
+        "CATALOG_DISCOVERY_ENDPOINT",
+      ] as const) {
+        const endpoint = environment[key];
+        if (endpoint && !endpoint.startsWith("https://")) {
+          context.addIssue({
+            code: "custom",
+            path: [key],
+            message: "must use HTTPS in staging or production",
+          });
+        }
+      }
+    }
+    if (
+      environment.CATALOG_DISCOVERY_ENABLED &&
+      environment.CATALOG_DISCOVERY_PROVIDER === "disabled"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["CATALOG_DISCOVERY_PROVIDER"],
+        message: "is required when Catalog discovery is enabled",
+      });
+    }
+    if (
+      environment.CATALOG_DISCOVERY_ENABLED &&
+      environment.CATALOG_DISCOVERY_PROVIDER === "openai" &&
+      !environment.CATALOG_DISCOVERY_API_KEY &&
+      !environment.INTAKE_RECOGNITION_SEMANTIC_API_KEY
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["CATALOG_DISCOVERY_API_KEY"],
+        message:
+          "is required for OpenAI Catalog discovery when no Intake OpenAI key is configured",
+      });
+    }
+    if (
+      environment.INTAKE_RECOGNITION_ENABLED &&
+      environment.INTAKE_RECOGNITION_SEMANTIC_PROVIDER === "disabled"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["INTAKE_RECOGNITION_SEMANTIC_PROVIDER"],
+        message: "is required when intake recognition is enabled",
+      });
+    }
+    if (
+      environment.INTAKE_RECOGNITION_ENABLED &&
+      environment.INTAKE_RECOGNITION_VERIFIER_PROVIDER === "disabled"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["INTAKE_RECOGNITION_VERIFIER_PROVIDER"],
+        message: "is required when intake recognition is enabled",
+      });
+    }
+    if (
+      environment.INTAKE_RECOGNITION_ENABLED &&
+      environment.INTAKE_RECOGNITION_SEMANTIC_PROVIDER === "openai" &&
+      !environment.INTAKE_RECOGNITION_SEMANTIC_API_KEY
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["INTAKE_RECOGNITION_SEMANTIC_API_KEY"],
+        message: "is required when OpenAI semantic recognition is enabled",
+      });
+    }
+    if (
+      environment.INTAKE_RECOGNITION_ENABLED &&
+      environment.INTAKE_RECOGNITION_SEMANTIC_PROVIDER === "gemini" &&
+      !environment.INTAKE_RECOGNITION_SEMANTIC_API_KEY
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["INTAKE_RECOGNITION_SEMANTIC_API_KEY"],
+        message: "is required when Gemini semantic recognition is enabled",
+      });
+    }
+    if (
+      environment.INTAKE_RECOGNITION_ENABLED &&
+      ["paddleocr", "google-vision"].includes(
+        environment.INTAKE_RECOGNITION_VERIFIER_PROVIDER,
+      ) &&
+      !environment.INTAKE_RECOGNITION_VERIFIER_ENDPOINT
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["INTAKE_RECOGNITION_VERIFIER_ENDPOINT"],
+        message: "is required when OCR verification is enabled",
+      });
+    }
+    if (
+      environment.INTAKE_RECOGNITION_ENABLED &&
+      environment.INTAKE_RECOGNITION_VERIFIER_PROVIDER === "google-vision" &&
+      !environment.INTAKE_RECOGNITION_VERIFIER_API_KEY
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["INTAKE_RECOGNITION_VERIFIER_API_KEY"],
+        message: "is required when Google Vision verification is enabled",
+      });
+    }
     if (
       isDeployed &&
       environment.DATABASE_DRIVER === "pglite" &&
@@ -272,6 +531,39 @@ export interface ServerConfig {
   operationsWorkerPollMs: number;
   operationsWorkerBackoffBaseMs: number;
   operationsWorkerPollingEnabled: boolean;
+  intakeRecognitionEnabled: boolean;
+  intakeRecognitionSemanticProvider: "fake" | "openai" | "gemini" | "disabled";
+  intakeRecognitionSemanticModel: string;
+  intakeRecognitionSemanticEndpoint?: string;
+  intakeRecognitionSemanticApiKey?: string;
+  intakeRecognitionVerifierProvider:
+    "fake" | "paddleocr" | "google-vision" | "disabled";
+  intakeRecognitionVerifierModel: string;
+  intakeRecognitionVerifierEndpoint?: string;
+  intakeRecognitionVerifierApiKey?: string;
+  intakeRecognitionTimeoutMs: number;
+  intakeRecognitionMaxImageBytes: number;
+  intakeRecognitionMaxBatchBytes: number;
+  intakeRecognitionMaxPixels: number;
+  intakeRecognitionMaxOutputBytes: number;
+  intakeRecognitionPolicyVersion: string;
+  intakeRecognitionGroupFloor?: number;
+  intakeRecognitionFieldFloor?: number;
+  intakeRecognitionOcrFloor?: number;
+  catalogDiscoveryEnabled: boolean;
+  catalogDiscoveryProvider: "fake" | "openai" | "disabled";
+  catalogDiscoveryModel: string;
+  catalogDiscoveryEndpoint?: string;
+  catalogDiscoveryApiKey?: string;
+  catalogDiscoveryTimeoutMs: number;
+  catalogDiscoveryMaxOutputBytes: number;
+  catalogDiscoveryPromptVersion: string;
+  catalogDiscoverySchemaVersion: string;
+  catalogDiscoveryPolicyVersion: string;
+  catalogDiscoveryPricingVersion: string;
+  catalogDiscoveryInputUsdPerMillionTokens: number;
+  catalogDiscoveryOutputUsdPerMillionTokens: number;
+  catalogDiscoveryWebSearchUsdPerCall: number;
 }
 
 export interface WebServerConfig {
@@ -312,6 +604,9 @@ export function parseServerEnvironment(
   if (!result.success) {
     throw new EnvironmentValidationError(result.error.issues);
   }
+  const catalogDiscoveryApiKey =
+    result.data.CATALOG_DISCOVERY_API_KEY ??
+    result.data.INTAKE_RECOGNITION_SEMANTIC_API_KEY;
 
   return {
     nodeEnv: result.data.NODE_ENV,
@@ -366,6 +661,91 @@ export function parseServerEnvironment(
     operationsWorkerPollingEnabled:
       result.data.OPERATIONS_WORKER_POLLING_ENABLED ??
       result.data.NODE_ENV !== "test",
+    intakeRecognitionEnabled: result.data.INTAKE_RECOGNITION_ENABLED,
+    intakeRecognitionSemanticProvider:
+      result.data.INTAKE_RECOGNITION_SEMANTIC_PROVIDER,
+    intakeRecognitionSemanticModel:
+      result.data.INTAKE_RECOGNITION_SEMANTIC_MODEL,
+    ...(result.data.INTAKE_RECOGNITION_SEMANTIC_ENDPOINT
+      ? {
+          intakeRecognitionSemanticEndpoint:
+            result.data.INTAKE_RECOGNITION_SEMANTIC_ENDPOINT,
+        }
+      : {}),
+    ...(result.data.INTAKE_RECOGNITION_SEMANTIC_API_KEY
+      ? {
+          intakeRecognitionSemanticApiKey:
+            result.data.INTAKE_RECOGNITION_SEMANTIC_API_KEY,
+        }
+      : {}),
+    intakeRecognitionVerifierProvider:
+      result.data.INTAKE_RECOGNITION_VERIFIER_PROVIDER,
+    intakeRecognitionVerifierModel:
+      result.data.INTAKE_RECOGNITION_VERIFIER_MODEL,
+    ...(result.data.INTAKE_RECOGNITION_VERIFIER_ENDPOINT
+      ? {
+          intakeRecognitionVerifierEndpoint:
+            result.data.INTAKE_RECOGNITION_VERIFIER_ENDPOINT,
+        }
+      : {}),
+    ...(result.data.INTAKE_RECOGNITION_VERIFIER_API_KEY
+      ? {
+          intakeRecognitionVerifierApiKey:
+            result.data.INTAKE_RECOGNITION_VERIFIER_API_KEY,
+        }
+      : {}),
+    intakeRecognitionTimeoutMs: result.data.INTAKE_RECOGNITION_TIMEOUT_MS,
+    intakeRecognitionMaxImageBytes:
+      result.data.INTAKE_RECOGNITION_MAX_IMAGE_BYTES,
+    intakeRecognitionMaxBatchBytes:
+      result.data.INTAKE_RECOGNITION_MAX_BATCH_BYTES,
+    intakeRecognitionMaxPixels: result.data.INTAKE_RECOGNITION_MAX_PIXELS,
+    intakeRecognitionMaxOutputBytes:
+      result.data.INTAKE_RECOGNITION_MAX_OUTPUT_BYTES,
+    intakeRecognitionPolicyVersion:
+      result.data.INTAKE_RECOGNITION_POLICY_VERSION,
+    ...(result.data.INTAKE_RECOGNITION_GROUP_FLOOR === undefined
+      ? {}
+      : {
+          intakeRecognitionGroupFloor:
+            result.data.INTAKE_RECOGNITION_GROUP_FLOOR,
+        }),
+    ...(result.data.INTAKE_RECOGNITION_FIELD_FLOOR === undefined
+      ? {}
+      : {
+          intakeRecognitionFieldFloor:
+            result.data.INTAKE_RECOGNITION_FIELD_FLOOR,
+        }),
+    ...(result.data.INTAKE_RECOGNITION_OCR_FLOOR === undefined
+      ? {}
+      : {
+          intakeRecognitionOcrFloor: result.data.INTAKE_RECOGNITION_OCR_FLOOR,
+        }),
+    catalogDiscoveryEnabled: result.data.CATALOG_DISCOVERY_ENABLED,
+    catalogDiscoveryProvider: result.data.CATALOG_DISCOVERY_PROVIDER,
+    catalogDiscoveryModel: result.data.CATALOG_DISCOVERY_MODEL,
+    ...(result.data.CATALOG_DISCOVERY_ENDPOINT
+      ? { catalogDiscoveryEndpoint: result.data.CATALOG_DISCOVERY_ENDPOINT }
+      : {}),
+    ...(catalogDiscoveryApiKey
+      ? {
+          catalogDiscoveryApiKey,
+        }
+      : {}),
+    catalogDiscoveryTimeoutMs: result.data.CATALOG_DISCOVERY_TIMEOUT_MS,
+    catalogDiscoveryMaxOutputBytes:
+      result.data.CATALOG_DISCOVERY_MAX_OUTPUT_BYTES,
+    catalogDiscoveryPromptVersion: result.data.CATALOG_DISCOVERY_PROMPT_VERSION,
+    catalogDiscoverySchemaVersion: result.data.CATALOG_DISCOVERY_SCHEMA_VERSION,
+    catalogDiscoveryPolicyVersion: result.data.CATALOG_DISCOVERY_POLICY_VERSION,
+    catalogDiscoveryPricingVersion:
+      result.data.CATALOG_DISCOVERY_PRICING_VERSION,
+    catalogDiscoveryInputUsdPerMillionTokens:
+      result.data.CATALOG_DISCOVERY_INPUT_USD_PER_MILLION_TOKENS,
+    catalogDiscoveryOutputUsdPerMillionTokens:
+      result.data.CATALOG_DISCOVERY_OUTPUT_USD_PER_MILLION_TOKENS,
+    catalogDiscoveryWebSearchUsdPerCall:
+      result.data.CATALOG_DISCOVERY_WEB_SEARCH_USD_PER_CALL,
   };
 }
 

@@ -7,6 +7,8 @@ import type {
   InventoryLocation,
   Machine,
   MachineDetail,
+  MachineActualSpecs,
+  UpdateMachineActualSpecsRequest,
   MachineIdentityEvidence,
   MachineIdentityVerificationHistory,
   MachineLocationHistory,
@@ -130,6 +132,10 @@ function machineFromRow(row: RecordRow): Machine {
     voltage: nullableString(row.voltage),
     phase: (row.phase ?? null) as Machine["phase"],
     fuel: (row.fuel ?? null) as Machine["fuel"],
+    capacityLb:
+      row.capacity_lb === null || row.capacity_lb === undefined
+        ? null
+        : Number(row.capacity_lb),
     sourceLoadId: String(row.source_load_id),
     sourceLoadDisplayName: String(row.source_load_display_name),
     currentLocationId: nullableString(row.current_location_id),
@@ -158,6 +164,10 @@ function evidenceFromRow(row: RecordRow): MachineIdentityEvidence {
     voltage: nullableString(row.voltage),
     phase: (row.phase ?? null) as MachineIdentityEvidence["phase"],
     fuel: (row.fuel ?? null) as MachineIdentityEvidence["fuel"],
+    capacityLb:
+      row.capacity_lb === null || row.capacity_lb === undefined
+        ? null
+        : Number(row.capacity_lb),
     actorUserId: String(row.actor_user_id),
     requestId: String(row.request_id),
     createdAt: iso(row.created_at),
@@ -484,70 +494,16 @@ export class InventoryRepository {
           };
         }
       }
-      const id = randomUUID();
-      const manufacturer = normalizeStoredFact(input.manufacturer);
-      const model = normalizeStoredFact(input.model);
-      const serial = normalizeStoredFact(input.serial);
-      const voltage = normalizeStoredFact(input.voltage);
-      await database.execute(sql`
-        insert into inventory_machine (
-          id, machine_type, manufacturer, normalized_manufacturer, model,
-          serial, normalized_serial, voltage, phase, fuel, source_load_id,
-          current_location_id, inventory_state
-        ) values (
-          ${id}, ${input.machineType}, ${manufacturer},
-          ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
-          ${normalizeIdentityMatchValue(serial)}, ${voltage},
-          ${input.phase ?? null}, ${input.fuel ?? null}, ${input.sourceLoadId},
-          ${input.currentLocationId ?? null},
-          ${input.currentLocationId ? "on_hand" : input.inventoryState}
-        )
-      `);
-      await this.insertEvidence(
+      const machine = await this.createMachineInTransaction(
         database,
-        id,
-        {
-          machineType: input.machineType,
-          manufacturer: input.manufacturer ?? null,
-          model: input.model ?? null,
-          serial: input.serial ?? null,
-          voltage: input.voltage ?? null,
-          phase: input.phase ?? null,
-          fuel: input.fuel ?? null,
-          sourceKind: input.sourceKind,
-        },
+        input,
+        input.sourceKind,
         context,
-      );
-      if (input.currentLocationId) {
-        await this.insertLocationHistory(
-          database,
-          id,
-          null,
-          input.currentLocationId,
-          1,
-          context,
-        );
-      }
-      const machine = await this.findMachineWith(database, id);
-      if (!machine) throw new Error("Machine was not created");
-      await this.record(
-        database,
-        "inventory.machine.created",
-        "machine",
-        id,
-        context,
-        [
-          "machine_type",
-          "identity",
-          "source_load_id",
-          "current_location_id",
-          "inventory_state",
-        ],
       );
       await this.idempotency.complete(database, {
         recordId: reservation.recordId!,
         targetType: "machine",
-        targetId: id,
+        targetId: machine.id,
       });
       return { status: "updated", value: machine };
     });
@@ -620,12 +576,12 @@ export class InventoryRepository {
       insert into inventory_machine (
         id, machine_type, manufacturer, normalized_manufacturer, model,
         serial, normalized_serial, voltage, phase, fuel, source_load_id,
-        current_location_id, inventory_state
+        capacity_lb, current_location_id, inventory_state
       ) values (
         ${id}, ${input.machineType}, ${manufacturer},
         ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
         ${normalizeIdentityMatchValue(serial)}, null, null, null,
-        ${input.sourceLoadId}, null, ${input.inventoryState}
+        ${input.sourceLoadId}, ${input.capacityLb ?? null}, null, ${input.inventoryState}
       )
     `);
     await this.insertEvidence(
@@ -639,6 +595,7 @@ export class InventoryRepository {
         voltage: null,
         phase: null,
         fuel: null,
+        capacityLb: input.capacityLb ?? null,
         sourceKind: "spreadsheet_import",
       },
       context,
@@ -656,8 +613,220 @@ export class InventoryRepository {
     return { status: "updated", value: machine };
   }
 
+  /** Creates an intake machine inside the caller's transaction. */
+  async createIntakeMachine(
+    database: DatabaseExecutor,
+    input: CreateMachineRequest,
+    context: InventoryActorContext,
+  ): Promise<Machine | undefined> {
+    if (!(await this.findLoadWith(database, input.sourceLoadId)))
+      return undefined;
+    if (input.currentLocationId) {
+      const location = await this.findLocationWith(
+        database,
+        input.currentLocationId,
+      );
+      if (!location?.active) return undefined;
+    }
+    return this.createMachineInTransaction(
+      database,
+      input,
+      "photo_intake",
+      context,
+    );
+  }
+
+  private async createMachineInTransaction(
+    database: DatabaseExecutor,
+    input: CreateMachineRequest,
+    sourceKind: MachineIdentityEvidence["sourceKind"],
+    context: InventoryActorContext,
+  ): Promise<Machine> {
+    const id = randomUUID();
+    const manufacturer = normalizeStoredFact(input.manufacturer);
+    const model = normalizeStoredFact(input.model);
+    const serial = normalizeStoredFact(input.serial);
+    const voltage = normalizeStoredFact(input.voltage);
+    await database.execute(sql`
+      insert into inventory_machine (
+        id, machine_type, manufacturer, normalized_manufacturer, model,
+        serial, normalized_serial, voltage, phase, fuel, source_load_id,
+        capacity_lb, current_location_id, inventory_state, production_state
+      ) values (
+        ${id}, ${input.machineType}, ${manufacturer},
+        ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
+        ${normalizeIdentityMatchValue(serial)}, ${voltage}, ${input.phase ?? null},
+          ${input.fuel ?? null}, ${input.sourceLoadId}, ${input.capacityLb ?? null},
+        ${input.currentLocationId ?? null}, ${input.currentLocationId ? "on_hand" : input.inventoryState}, 'not_assessed'
+      )
+    `);
+    await this.insertEvidence(
+      database,
+      id,
+      {
+        machineType: input.machineType,
+        manufacturer: input.manufacturer ?? null,
+        model: input.model ?? null,
+        serial: input.serial ?? null,
+        voltage: input.voltage ?? null,
+        phase: input.phase ?? null,
+        fuel: input.fuel ?? null,
+        capacityLb: input.capacityLb ?? null,
+        sourceKind,
+      },
+      context,
+    );
+    if (input.currentLocationId)
+      await this.insertLocationHistory(
+        database,
+        id,
+        null,
+        input.currentLocationId,
+        1,
+        context,
+      );
+    const machine = await this.findMachineWith(database, id);
+    if (!machine) throw new Error("Machine was not created");
+    await this.record(
+      database,
+      "inventory.machine.created",
+      "machine",
+      id,
+      context,
+      [
+        "machine_type",
+        "identity",
+        "source_load_id",
+        "current_location_id",
+        "inventory_state",
+      ],
+    );
+    return machine;
+  }
+
   async findMachine(id: string): Promise<Machine | undefined> {
     return this.findMachineWith(this.connection.database, id);
+  }
+
+  findMachineForProduction(
+    database: DatabaseExecutor,
+    id: string,
+  ): Promise<Machine | undefined> {
+    return this.findMachineWith(database, id);
+  }
+
+  async updatePreliminaryLifecycle(
+    database: DatabaseExecutor,
+    input: {
+      machineId: string;
+      expectedVersion: number;
+      inventoryState: "on_hand" | "scrapped";
+      productionState: "preliminary_passed" | "blocked";
+      actorUserId: string;
+      requestId: string;
+    },
+  ): Promise<Machine | undefined> {
+    const result = await database.execute(sql`
+      update inventory_machine set
+        inventory_state = ${input.inventoryState},
+        production_state = ${input.productionState},
+        version = version + 1,
+        updated_at = now()
+      where id = ${input.machineId} and version = ${input.expectedVersion}
+        and inventory_state = 'on_hand'
+      returning id
+    `);
+    if (!rowsFromResult(result).length) return undefined;
+    await this.mutationRecorder.record(database, {
+      actorKind: "user",
+      actorUserId: input.actorUserId,
+      action: "inventory.machine.lifecycle_updated",
+      targetType: "machine",
+      targetId: input.machineId,
+      requestId: input.requestId,
+      summary: {
+        changedFields: ["inventory_state", "production_state"],
+        outcome: input.inventoryState,
+      },
+    });
+    return this.findMachineWith(database, input.machineId);
+  }
+
+  async actualSpecs(id: string): Promise<MachineActualSpecs | null> {
+    const row = rowsFromResult(
+      await this.connection.database.execute(
+        sql`select * from inventory_machine_actual_specs where machine_id=${id}`,
+      ),
+    )[0];
+    return row
+      ? {
+          widthIn: row.width_in == null ? null : Number(row.width_in),
+          depthIn: row.depth_in == null ? null : Number(row.depth_in),
+          heightIn: row.height_in == null ? null : Number(row.height_in),
+          weightLb: row.weight_lb == null ? null : Number(row.weight_lb),
+          version: Number(row.version),
+          updatedAt: iso(row.updated_at),
+          updatedByUserId: String(row.updated_by_user_id),
+        }
+      : null;
+  }
+
+  async updateActualSpecs(
+    id: string,
+    input: UpdateMachineActualSpecsRequest,
+    context: InventoryActorContext,
+  ): Promise<MutationResult<null>> {
+    return this.connection.transaction(async (database) => {
+      const machine = rowsFromResult(
+        await database.execute(
+          sql`select id from inventory_machine where id=${id} for update`,
+        ),
+      )[0];
+      if (!machine) return { status: "not_found" };
+      const current = rowsFromResult(
+        await database.execute(
+          sql`select * from inventory_machine_actual_specs where machine_id=${id}`,
+        ),
+      )[0];
+      if (Number(current?.version ?? 0) !== input.expectedVersion)
+        return { status: "version_conflict" };
+      const width =
+        input.widthIn === undefined
+          ? (current?.width_in ?? null)
+          : input.widthIn;
+      const depth =
+        input.depthIn === undefined
+          ? (current?.depth_in ?? null)
+          : input.depthIn;
+      const height =
+        input.heightIn === undefined
+          ? (current?.height_in ?? null)
+          : input.heightIn;
+      const weight =
+        input.weightLb === undefined
+          ? (current?.weight_lb ?? null)
+          : input.weightLb;
+      await database.execute(
+        sql`insert into inventory_machine_actual_specs (machine_id, width_in, depth_in, height_in, weight_lb, version, updated_by_user_id) values (${id}, ${width}, ${depth}, ${height}, ${weight}, 1, ${context.actorUserId}) on conflict (machine_id) do update set width_in=excluded.width_in, depth_in=excluded.depth_in, height_in=excluded.height_in, weight_lb=excluded.weight_lb, version=inventory_machine_actual_specs.version+1, updated_by_user_id=excluded.updated_by_user_id, updated_at=now()`,
+      );
+      await this.mutationRecorder.record(database, {
+        actorKind: "user",
+        actorUserId: context.actorUserId,
+        requestId: context.requestId,
+        action: "inventory.machine.actual_specs_updated",
+        targetType: "machine_actual_specs",
+        targetId: id,
+        summary: {
+          changedFields: Object.keys(input)
+            .filter((key) => key !== "expectedVersion")
+            .map((key) =>
+              key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`),
+            ),
+          outcome: "updated",
+        },
+      });
+      return { status: "updated", value: null };
+    });
   }
 
   async getMachineDetail(id: string): Promise<MachineDetail | undefined> {
@@ -768,6 +937,10 @@ export class InventoryRepository {
             : normalizeStoredFact(input.voltage),
         phase: input.phase === undefined ? current.phase : input.phase,
         fuel: input.fuel === undefined ? current.fuel : input.fuel,
+        capacityLb:
+          input.capacityLb === undefined
+            ? current.capacityLb
+            : input.capacityLb,
       };
       await this.insertEvidence(
         database,
@@ -800,6 +973,7 @@ export class InventoryRepository {
           voltage = ${next.voltage},
           phase = ${next.phase},
           fuel = ${next.fuel},
+          capacity_lb = ${next.capacityLb},
           identity_verification_state = 'provisional',
           conflicting_machine_id = null,
           version = version + 1,
@@ -1115,6 +1289,7 @@ export class InventoryRepository {
       voltage: string | null;
       phase: Machine["phase"];
       fuel: Machine["fuel"];
+      capacityLb: Machine["capacityLb"];
       sourceKind: MachineIdentityEvidence["sourceKind"];
     },
     context: InventoryActorContext,
@@ -1122,11 +1297,11 @@ export class InventoryRepository {
     await database.execute(sql`
       insert into machine_identity_evidence (
         id, machine_id, source_kind, machine_type, manufacturer, model,
-        serial, voltage, phase, fuel, actor_user_id, request_id
+        serial, voltage, phase, fuel, capacity_lb, actor_user_id, request_id
       ) values (
         ${randomUUID()}, ${machineId}, ${input.sourceKind}, ${input.machineType},
         ${input.manufacturer}, ${input.model}, ${input.serial}, ${input.voltage},
-        ${input.phase}, ${input.fuel}, ${context.actorUserId}, ${context.requestId}
+        ${input.phase}, ${input.fuel}, ${input.capacityLb}, ${context.actorUserId}, ${context.requestId}
       )
     `);
   }

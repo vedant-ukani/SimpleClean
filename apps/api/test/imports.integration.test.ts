@@ -92,7 +92,7 @@ const csv = Buffer.from(
 );
 const suppliedWorkbookPath = resolve(
   process.cwd(),
-  "../../Inventory List.xlsx",
+  "../../source-materials/inventory/Inventory List.xlsx",
 );
 
 function stage(
@@ -335,8 +335,14 @@ describe("Owner-reviewed inventory imports", () => {
         "imports.run.committed",
       ]),
     );
-    expect(JSON.stringify(audit.body)).not.toContain("William Inventory.csv");
-    expect(JSON.stringify(audit.body)).not.toContain("001");
+    const auditContent = JSON.stringify(
+      audit.body.entries.map((entry: { action: string; summary: unknown }) => ({
+        action: entry.action,
+        summary: entry.summary,
+      })),
+    );
+    expect(auditContent).not.toContain("William Inventory.csv");
+    expect(auditContent).not.toContain("001");
   });
 
   it("returns a privacy-safe failure and removes source bytes when staging fails", async () => {

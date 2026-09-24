@@ -95,6 +95,9 @@ describe("file storage and content policy", () => {
         100,
       ),
     ).toThrow();
+    expect(() => validateUploadGrantRequest({ ...request, purpose: "preliminary_inspection" }, 100)).not.toThrow();
+    expect(() => validateUploadGrantRequest({ ...request, target: { type: "load", id: request.target.id }, purpose: "preliminary_inspection" }, 100)).toThrow();
+    expect(() => validateUploadGrantRequest({ ...request, declaredMediaType: "application/pdf", purpose: "preliminary_inspection" }, 100)).toThrow();
     expect(safeDownloadFilename('receipt\r\n".pdf')).toBe("receipt___.pdf");
   });
 

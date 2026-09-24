@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MachineCatalogEnrichmentSchema } from "./catalog.js";
 
 export const MACHINE_TYPES = ["washer", "dryer", "other"] as const;
 export const MACHINE_PHASES = ["single_phase", "three_phase"] as const;
@@ -8,12 +9,17 @@ export const IDENTITY_VERIFICATION_STATES = [
   "verified",
   "conflict",
 ] as const;
-export const INVENTORY_STATES = ["expected", "on_hand"] as const;
-export const PRODUCTION_STATES = ["not_started"] as const;
+export const INVENTORY_STATES = ["expected", "on_hand", "scrapped"] as const;
+export const PRODUCTION_STATES = [
+  "not_assessed",
+  "preliminary_passed",
+  "blocked",
+] as const;
 export const IDENTITY_SOURCE_KINDS = [
   "manual",
   "other",
   "spreadsheet_import",
+  "photo_intake",
 ] as const;
 export const QR_LABEL_STATES = ["active", "revoked"] as const;
 export const QR_LABEL_ACTIVITY_ACTIONS = [
@@ -40,6 +46,7 @@ export const InventoryIdSchema = z.uuid();
 const VersionSchema = z.number().int().positive();
 const TimestampSchema = z.iso.datetime();
 const NullableFactSchema = z.string().max(240).nullable();
+export const CapacityLbSchema = z.number().int().min(1).max(2_000).nullable();
 export const QrFallbackCodeSchema = z
   .string()
   .regex(/^[0-9A-HJKMNP-TV-Z]{16}$/);
@@ -81,6 +88,7 @@ export const MachineSchema = z.object({
   voltage: NullableFactSchema,
   phase: MachinePhaseSchema.nullable(),
   fuel: MachineFuelSchema.nullable(),
+  capacityLb: CapacityLbSchema.optional(),
   sourceLoadId: InventoryIdSchema,
   sourceLoadDisplayName: z.string().min(1).max(160),
   currentLocationId: InventoryIdSchema.nullable(),
@@ -106,6 +114,7 @@ export const MachineIdentityEvidenceSchema = z.object({
   voltage: NullableFactSchema,
   phase: MachinePhaseSchema.nullable(),
   fuel: MachineFuelSchema.nullable(),
+  capacityLb: CapacityLbSchema.optional(),
   actorUserId: z.string().min(1),
   requestId: z.string().min(1),
   createdAt: TimestampSchema,
@@ -139,6 +148,7 @@ export const MachineDetailSchema = z.object({
   identityEvidence: z.array(MachineIdentityEvidenceSchema),
   verificationHistory: z.array(MachineIdentityVerificationHistorySchema),
   locationHistory: z.array(MachineLocationHistorySchema),
+  catalog: MachineCatalogEnrichmentSchema.optional(),
 });
 
 export const QrLabelSchema = z
@@ -233,13 +243,14 @@ export const MachineIdentityInputSchema = z.object({
   voltage: OptionalNullableTextSchema,
   phase: MachinePhaseSchema.nullable().optional(),
   fuel: MachineFuelSchema.nullable().optional(),
+  capacityLb: CapacityLbSchema.optional(),
   sourceKind: IdentitySourceKindSchema.default("manual"),
 });
 
 export const CreateMachineRequestSchema = MachineIdentityInputSchema.extend({
   sourceLoadId: InventoryIdSchema,
   currentLocationId: InventoryIdSchema.nullable().optional(),
-  inventoryState: InventoryStateSchema.default("expected"),
+  inventoryState: z.enum(["expected", "on_hand"]).default("expected"),
 });
 
 export const UpdateMachineIdentityRequestSchema = z
@@ -251,6 +262,7 @@ export const UpdateMachineIdentityRequestSchema = z
     voltage: OptionalNullableTextSchema,
     phase: MachinePhaseSchema.nullable().optional(),
     fuel: MachineFuelSchema.nullable().optional(),
+    capacityLb: CapacityLbSchema.optional(),
     sourceKind: IdentitySourceKindSchema.default("manual"),
     expectedVersion: VersionSchema,
   })
@@ -320,6 +332,7 @@ export const IdentityConflictResponseSchema = z.object({
 export type AcquisitionLoad = z.infer<typeof AcquisitionLoadSchema>;
 export type InventoryLocation = z.infer<typeof InventoryLocationSchema>;
 export type Machine = z.infer<typeof MachineSchema>;
+export type CapacityLb = z.infer<typeof CapacityLbSchema>;
 export type MachineIdentityEvidence = z.infer<
   typeof MachineIdentityEvidenceSchema
 >;

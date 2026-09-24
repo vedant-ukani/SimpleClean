@@ -27,6 +27,7 @@ import {
 } from "../../operations/operations.ports.js";
 import { isUniqueViolation } from "../inventory.repository.js";
 import { InventoryService } from "../inventory.service.js";
+import { IntakeService } from "../intake/intake.service.js";
 import {
   QrLabelRepository,
   type QrActorContext,
@@ -49,6 +50,7 @@ export class QrLabelService {
     @Inject(QrLabelSigner) private readonly signer: QrLabelSigner,
     @Inject(QrLabelRenderer) private readonly renderer: QrLabelRenderer,
     @Inject(InventoryService) private readonly inventory: InventoryService,
+    @Inject(IntakeService) private readonly intake: IntakeService,
     @Inject(QR_PLATFORM_PUBLIC_ORIGIN)
     private readonly platformPublicOrigin: string,
   ) {}
@@ -159,6 +161,64 @@ export class QrLabelService {
       throw this.safeFailure(error);
     }
     if (!recorded) throw new NotFoundException("QR Label not found");
+    return rendered;
+  }
+
+  async printIntakeSheet(
+    rawBatchId: string,
+    context: AuthorizedQrActorContext,
+  ): Promise<{ pdf: Buffer; filename: string }> {
+    this.authorizeManage(context);
+    const machines = await this.intake.committedMachines(rawBatchId);
+    if (!machines.length)
+      throw new BadRequestException("Intake has no committed Machines");
+    const labels = [];
+    const labelIds: string[] = [];
+    for (const machine of machines) {
+      let label = await this.repository.findActiveLabelForMachine(machine.id);
+      if (!label) {
+        try {
+          const result = await this.repository.create(
+            {
+              machineId: machine.id,
+              labelId: this.signer.createLabelId(),
+              fallbackCode: this.signer.createFallbackCode(),
+            },
+            {
+              ...context,
+              idempotencyKey: `${context.idempotencyKey ?? context.requestId}:${machine.id}`,
+            },
+          );
+          label = this.resolveMutation(result);
+        } catch (error) {
+          if (isUniqueViolation(error))
+            label = await this.repository.findActiveLabelForMachine(machine.id);
+          if (!label) throw this.handleMutationError(error);
+        }
+      }
+      if (!label)
+        throw new InternalServerErrorException("QR label could not be created");
+      labelIds.push(label.id);
+      labels.push({
+        url: this.scanUrl(this.signer.sign(label.id)),
+        fallbackCode: label.fallbackCode,
+        manufacturer: machine.manufacturer,
+        capacityLb: machine.capacityLb ?? null,
+        machineType: machine.machineType,
+        serial: machine.serial,
+      });
+    }
+    const rendered = await this.renderer.renderSheet({ labels });
+    for (const labelId of labelIds) {
+      const recorded = await this.repository.recordPrintedIfActive(
+        labelId,
+        context,
+      );
+      if (!recorded)
+        throw new ConflictException(
+          "A QR label became inactive while printing",
+        );
+    }
     return rendered;
   }
 

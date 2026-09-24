@@ -18,6 +18,29 @@ describe("operations contracts", () => {
       "inventory.qr_label.reissued",
     );
     expect(OperationsTargetTypeSchema.parse("qr_label")).toBe("qr_label");
+    expect(OperationsActionSchema.parse("catalog.discovery.requested")).toBe(
+      "catalog.discovery.requested",
+    );
+    expect(OperationsActionSchema.parse("catalog.discovery.completed")).toBe(
+      "catalog.discovery.completed",
+    );
+    expect(OperationsTargetTypeSchema.parse("catalog_discovery_run")).toBe(
+      "catalog_discovery_run",
+    );
+    expect(
+      OperationsActionSchema.parse(
+        "production.preliminary_inspection.recorded",
+      ),
+    ).toBe("production.preliminary_inspection.recorded");
+    expect(
+      OperationsActionSchema.parse("production.disposition.recorded"),
+    ).toBe("production.disposition.recorded");
+    expect(
+      OperationsActionSchema.parse("inventory.machine.lifecycle_updated"),
+    ).toBe("inventory.machine.lifecycle_updated");
+    expect(OperationsTargetTypeSchema.parse("preliminary_disposition")).toBe(
+      "preliminary_disposition",
+    );
     expect(
       SafeMutationSummarySchema.parse({
         changedFields: ["identity_verification_state"],
