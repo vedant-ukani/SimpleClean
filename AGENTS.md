@@ -8,7 +8,7 @@ Before planning or changing this project, read:
 
 Implementation rules:
 
-- Laundrorama is the used-equipment operation; Simple Clean is the separate new-equipment business. Keep existing repository paths and `@simply-clean/*` package scopes until a dedicated migration changes them consistently.
+- Laundrorama is the used-equipment operation; Simple Clean is the separate new-equipment business. The application workspace uses `@laundrorama/*` under [ADR 0020](./docs/adr/0020-laundrorama-technical-identity.md). The host project directory may still carry its older name and is not an application identity.
 - The Core Operations Platform is authoritative for operational state.
 - Keep inventory, production, listing, sales, payment, and shipment states separate.
 - Build a modular monolith with explicit module interfaces and adapters at external seams.

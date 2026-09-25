@@ -1,3 +1,5 @@
+import { runInNewContext } from "node:vm";
+
 import { describe, expect, it, vi } from "vitest";
 
 import { viewport } from "../src/app/layout";
@@ -11,10 +13,12 @@ import {
 import {
   PWA_CACHE_NAME,
   PWA_CACHE_PREFIX,
+  PWA_LEGACY_CACHE_PREFIX,
   PWA_CLEAR_CACHE_MESSAGE,
   PWA_OFFLINE_PATH,
   createServiceWorkerSource,
   isCacheablePublicAsset,
+  isOwnedPublicPwaCache,
 } from "../src/lib/pwa-cache-policy";
 
 const origin = "https://operations.example.test";
@@ -22,7 +26,7 @@ const origin = "https://operations.example.test";
 describe("PWA install metadata", () => {
   it("describes a scoped standalone application with safe public icons", () => {
     expect(manifest()).toMatchObject({
-      name: "Simple Clean Operations",
+      name: "Laundrorama Operations",
       start_url: "/",
       scope: "/",
       display: "standalone",
@@ -116,12 +120,57 @@ describe("PWA cache policy", () => {
     expect(source).not.toContain('cache.put("/loads');
   });
 
-  it("versions the worker so stale static chunks are purged on activation", () => {
+  it("removes old Laundrorama and legacy public caches on activation and handoff", async () => {
     const source = createServiceWorkerSource();
+    const deleteCache = vi.fn().mockResolvedValue(true);
+    const claim = vi.fn().mockResolvedValue(undefined);
+    const names = [
+      `${PWA_CACHE_PREFIX}v1`,
+      PWA_CACHE_NAME,
+      `${PWA_LEGACY_CACHE_PREFIX}v2`,
+      "other-application-cache",
+      `unrelated-${PWA_LEGACY_CACHE_PREFIX}v2`,
+    ];
+    const listeners: Record<string, (event: unknown) => void> = {};
+    runInNewContext(source, {
+      caches: { keys: vi.fn().mockResolvedValue(names), delete: deleteCache },
+      self: {
+        addEventListener: (
+          name: string,
+          listener: (event: unknown) => void,
+        ) => {
+          listeners[name] = listener;
+        },
+        clients: { claim },
+      },
+    });
+    let completion: Promise<unknown> | undefined;
+    listeners.activate!({
+      waitUntil: (work: Promise<unknown>) => {
+        completion = work;
+      },
+    });
+    await completion;
 
     expect(PWA_CACHE_NAME).toBe(`${PWA_CACHE_PREFIX}v2`);
-    expect(source).toContain(`const CACHE_NAME = "${PWA_CACHE_NAME}"`);
-    expect(source).toContain("removeOldPublicCaches()");
+    expect(deleteCache.mock.calls.map(([name]) => name)).toEqual([
+      `${PWA_CACHE_PREFIX}v1`,
+      `${PWA_LEGACY_CACHE_PREFIX}v2`,
+    ]);
+    expect(claim).toHaveBeenCalledOnce();
+
+    deleteCache.mockClear();
+    listeners.message!({
+      data: { type: PWA_CLEAR_CACHE_MESSAGE },
+      waitUntil: (work: Promise<unknown>) => {
+        completion = work;
+      },
+    });
+    await completion;
+    expect(deleteCache.mock.calls.map(([name]) => name)).toEqual(
+      names.slice(0, 3),
+    );
+    expect(isOwnedPublicPwaCache("other-application-cache")).toBe(false);
   });
 
   it("serves the worker with root scope and no HTTP caching", () => {
@@ -159,6 +208,7 @@ describe("PWA lifecycle", () => {
           .mockResolvedValue([
             `${PWA_CACHE_PREFIX}v0`,
             PWA_CACHE_NAME,
+            `${PWA_LEGACY_CACHE_PREFIX}v1`,
             "other",
           ]),
         delete: deleteCache,
@@ -166,9 +216,10 @@ describe("PWA lifecycle", () => {
       { controller: { postMessage } as unknown as ServiceWorker },
     );
 
-    expect(deleteCache).toHaveBeenCalledTimes(2);
+    expect(deleteCache).toHaveBeenCalledTimes(3);
     expect(deleteCache).toHaveBeenCalledWith(`${PWA_CACHE_PREFIX}v0`);
     expect(deleteCache).toHaveBeenCalledWith(PWA_CACHE_NAME);
+    expect(deleteCache).toHaveBeenCalledWith(`${PWA_LEGACY_CACHE_PREFIX}v1`);
     expect(deleteCache).not.toHaveBeenCalledWith("other");
     expect(postMessage).toHaveBeenCalledWith({
       type: PWA_CLEAR_CACHE_MESSAGE,
@@ -184,6 +235,7 @@ describe("PWA lifecycle", () => {
       .mockResolvedValue([
         `${PWA_CACHE_PREFIX}v1`,
         PWA_CACHE_NAME,
+        `${PWA_LEGACY_CACHE_PREFIX}v1`,
         "other-application-cache",
       ]);
 
@@ -196,6 +248,7 @@ describe("PWA lifecycle", () => {
     expect(unregister).toHaveBeenCalledOnce();
     expect(deleteCache).toHaveBeenCalledWith(`${PWA_CACHE_PREFIX}v1`);
     expect(deleteCache).toHaveBeenCalledWith(PWA_CACHE_NAME);
+    expect(deleteCache).toHaveBeenCalledWith(`${PWA_LEGACY_CACHE_PREFIX}v1`);
     expect(deleteCache).not.toHaveBeenCalledWith("other-application-cache");
   });
 });

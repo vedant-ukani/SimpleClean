@@ -4,9 +4,9 @@ import type {
   CatalogSerialRule,
   ResolveCatalogModelRequest,
   ResolveCatalogModelResponse,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type { z } from "zod";
-import { normalizeCatalogIdentity } from "@simply-clean/contracts";
+import { normalizeCatalogIdentity } from "@laundrorama/contracts";
 
 type ManufactureDate = z.infer<typeof CatalogManufactureDateSchema>;
 

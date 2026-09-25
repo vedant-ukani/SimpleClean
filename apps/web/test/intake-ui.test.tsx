@@ -4,7 +4,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type {
   IntakeBatchDetail,
   IntakeRecognitionStatus,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
@@ -25,7 +25,6 @@ const intakeMocks = vi.hoisted(() => ({
   changeIntakeCandidateCapacity: vi.fn(),
   removeIntakePhoto: vi.fn(),
   requestIntakeRecognition: vi.fn(),
-  setIntakeDestination: vi.fn(),
   submitIntakeRecaptureEvidence: vi.fn(),
   updateIntakeCandidate: vi.fn(),
   IntakeRequestError: class IntakeRequestError extends Error {
@@ -72,13 +71,7 @@ describe("Intake review UI", () => {
     });
     vi.stubGlobal(
       "fetch",
-      vi.fn(() =>
-        Promise.resolve(
-          new Response(JSON.stringify({ locations: [] }), {
-            headers: { "content-type": "application/json" },
-          }),
-        ),
-      ),
+      vi.fn(() => Promise.resolve(new Response("", { status: 404 }))),
     );
   });
 
@@ -99,7 +92,6 @@ describe("Intake review UI", () => {
             id,
             loadId: "00000000-0000-4000-8000-000000000002",
             state: "open",
-            destinationLocationId: null,
             version: 1,
             createdAt: timestamp,
             updatedAt: timestamp,
@@ -138,7 +130,6 @@ describe("Intake review UI", () => {
             id,
             loadId: "00000000-0000-4000-8000-000000000002",
             state: "open",
-            destinationLocationId: null,
             version: 1,
             createdAt: timestamp,
             updatedAt: timestamp,
@@ -198,7 +189,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-0000-0000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 4,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -280,10 +270,6 @@ describe("Intake review UI", () => {
           return new Response(JSON.stringify({ file: { id: fileId } }), {
             status: 201,
           });
-        if (url === "/api/inventory/locations")
-          return new Response(JSON.stringify({ locations: [] }), {
-            status: 200,
-          });
         throw new Error(`Unexpected request: ${url}`);
       }),
     );
@@ -345,7 +331,6 @@ describe("Intake review UI", () => {
           id,
           loadId: id,
           state: "open",
-          destinationLocationId: null,
           version: 1,
           createdAt: timestamp,
           updatedAt: timestamp,
@@ -419,7 +404,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open",
-        destinationLocationId: null,
         version: 2,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -485,10 +469,6 @@ describe("Intake review UI", () => {
       vi.fn((input: RequestInfo | URL) => {
         const url = String(input);
         if (url === "/api/files/upload-grants") return uploadGrant;
-        if (url === "/api/inventory/locations")
-          return Promise.resolve(
-            new Response(JSON.stringify({ locations: [] }), { status: 200 }),
-          );
         throw new Error(`Unexpected request: ${url}`);
       }),
     );
@@ -565,7 +545,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open",
-        destinationLocationId: null,
         version: 4,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -720,7 +699,6 @@ describe("Intake review UI", () => {
           id,
           loadId: "00000000-0000-4000-8000-000000000002",
           state: "open" as const,
-          destinationLocationId: null,
           version: 2,
           createdAt: timestamp,
           updatedAt: timestamp,
@@ -864,7 +842,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open",
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1069,7 +1046,6 @@ describe("Intake review UI", () => {
             id,
             loadId: "00000000-0000-4000-8000-000000000002",
             state: "open",
-            destinationLocationId: null,
             version: 1,
             createdAt: timestamp,
             updatedAt: timestamp,
@@ -1143,7 +1119,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1206,7 +1181,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1323,7 +1297,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1381,7 +1354,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1421,7 +1393,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1461,7 +1432,6 @@ describe("Intake review UI", () => {
             id,
             loadId: "00000000-0000-4000-8000-000000000002",
             state: "committed",
-            destinationLocationId: "00000000-0000-4000-8000-000000000003",
             version: 2,
             createdAt: timestamp,
             updatedAt: timestamp,
@@ -1484,7 +1454,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1548,7 +1517,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1597,11 +1565,6 @@ describe("Intake review UI", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
-        if (url === "/api/inventory/locations") {
-          return new Response(JSON.stringify({ locations: [] }), {
-            headers: { "content-type": "application/json" },
-          });
-        }
         if (url === "/api/files/upload-grants") {
           const body = JSON.parse(String(init?.body)) as {
             originalFilename: string;
@@ -1652,7 +1615,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1666,11 +1628,6 @@ describe("Intake review UI", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
-        if (url === "/api/inventory/locations") {
-          return new Response(JSON.stringify({ locations: [] }), {
-            headers: { "content-type": "application/json" },
-          });
-        }
         if (url === "/api/files/upload-grants") {
           const body = JSON.parse(String(init?.body)) as {
             originalFilename: string;
@@ -1752,7 +1709,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 2,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1809,7 +1765,6 @@ describe("Intake review UI", () => {
         id,
         loadId: "00000000-0000-4000-8000-000000000002",
         state: "open" as const,
-        destinationLocationId: null,
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1869,10 +1824,6 @@ describe("Intake review UI", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
         const url = String(input);
-        if (url === "/api/inventory/locations")
-          return new Response(JSON.stringify({ locations: [] }), {
-            status: 200,
-          });
         if (url === "/api/files/upload-grants")
           return new Response(
             JSON.stringify({

@@ -1,4 +1,4 @@
-import { parseWebServerEnvironment } from "@simply-clean/config";
+import { parseWebServerEnvironment } from "@laundrorama/config";
 import {
   CurrentIdentityResponseSchema,
   IdentityUserListResponseSchema,
@@ -9,7 +9,7 @@ import {
   type CreateIdentityUserRequest,
   type CurrentIdentityResponse,
   type IdentityUser,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 import { requestStatus } from "./request-status";
 

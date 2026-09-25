@@ -1,7 +1,7 @@
 import {
   roleHasPermission,
   type ApplicationRole,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 export interface NavigationItem {
   href: string;
@@ -16,7 +16,7 @@ export interface DashboardItem extends NavigationItem {
 
 /** Presentation metadata for the shared shell. Permission decisions remain here. */
 export type NavigationIconName =
-  "home" | "users" | "loads" | "machines" | "scan" | "catalog";
+  "home" | "users" | "loads" | "machines" | "scan" | "catalog" | "work";
 
 export const ROLE_LABELS: Record<ApplicationRole, string> = {
   owner_admin: "Owner Admin",
@@ -30,10 +30,6 @@ export function canManageUsers(role: ApplicationRole): boolean {
 
 export function canManageLoads(role: ApplicationRole): boolean {
   return roleHasPermission(role, "inventory.loads.manage");
-}
-
-export function canManageMachines(role: ApplicationRole): boolean {
-  return roleHasPermission(role, "inventory.machines.manage");
 }
 
 export function canManageQrLabels(role: ApplicationRole): boolean {
@@ -76,6 +72,14 @@ export function navigationForRole(
       category: "workspace",
     });
   }
+  if (roleHasPermission(role, "production.work.execute")) {
+    navigation.push({
+      href: "/work",
+      label: role === "owner_admin" ? "Production Work" : "My Work",
+      icon: "work",
+      category: "workspace",
+    });
+  }
   if (roleHasPermission(role, "catalog.read")) {
     navigation.push({
       href: "/catalog",
@@ -113,6 +117,13 @@ export function dashboardForRole(
         category: "management",
         description: "Manage individual staff access and roles.",
       },
+      {
+        href: "/work",
+        label: "Production Work",
+        icon: "work",
+        category: "workspace",
+        description: "Review active Washer and Dryer tests.",
+      },
     ];
     return items.filter((item) =>
       navigationForRole(role).some((allowed) => allowed.href === item.href),
@@ -149,6 +160,13 @@ export function dashboardForRole(
   }
 
   const items: DashboardItem[] = [
+    {
+      href: "/work",
+      label: "My Work",
+      icon: "work",
+      category: "workspace",
+      description: "Open matching Washer and Dryer tests.",
+    },
     {
       href: "/machines",
       label: "Machine Search",

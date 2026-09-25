@@ -5,9 +5,9 @@ import "./styles.css";
 import { PwaRegistration } from "./pwa-registration";
 
 export const metadata: Metadata = {
-  title: "Simple Clean Operations",
-  description: "Secure Simple Clean staff operations",
-  applicationName: "Simple Clean Operations",
+  title: "Laundrorama Operations",
+  description: "Secure Laundrorama staff operations",
+  applicationName: "Laundrorama Operations",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/app-icon-v1.svg",

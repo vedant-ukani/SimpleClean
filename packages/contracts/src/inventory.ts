@@ -13,6 +13,10 @@ export const INVENTORY_STATES = ["expected", "on_hand", "scrapped"] as const;
 export const PRODUCTION_STATES = [
   "not_assessed",
   "preliminary_passed",
+  "awaiting_test",
+  "testing",
+  "awaiting_repair",
+  "awaiting_clean",
   "blocked",
 ] as const;
 export const IDENTITY_SOURCE_KINDS = [
@@ -69,16 +73,6 @@ export const AcquisitionLoadSchema = z.object({
   updatedAt: TimestampSchema,
 });
 
-export const InventoryLocationSchema = z.object({
-  id: InventoryIdSchema,
-  code: z.string().min(1).max(80),
-  name: z.string().min(1).max(160),
-  active: z.boolean(),
-  version: VersionSchema,
-  createdAt: TimestampSchema,
-  updatedAt: TimestampSchema,
-});
-
 export const MachineSchema = z.object({
   id: InventoryIdSchema,
   machineType: MachineTypeSchema,
@@ -91,9 +85,6 @@ export const MachineSchema = z.object({
   capacityLb: CapacityLbSchema.optional(),
   sourceLoadId: InventoryIdSchema,
   sourceLoadDisplayName: z.string().min(1).max(160),
-  currentLocationId: InventoryIdSchema.nullable(),
-  currentLocationCode: z.string().min(1).max(80).nullable(),
-  currentLocationName: z.string().min(1).max(160).nullable(),
   identityVerificationState: IdentityVerificationStateSchema,
   conflictingMachineId: InventoryIdSchema.nullable(),
   inventoryState: InventoryStateSchema,
@@ -120,17 +111,6 @@ export const MachineIdentityEvidenceSchema = z.object({
   createdAt: TimestampSchema,
 });
 
-export const MachineLocationHistorySchema = z.object({
-  id: InventoryIdSchema,
-  machineId: InventoryIdSchema,
-  fromLocationId: InventoryIdSchema.nullable(),
-  toLocationId: InventoryIdSchema,
-  actorUserId: z.string().min(1),
-  requestId: z.string().min(1),
-  machineVersion: VersionSchema,
-  createdAt: TimestampSchema,
-});
-
 export const MachineIdentityVerificationHistorySchema = z.object({
   id: InventoryIdSchema,
   machineId: InventoryIdSchema,
@@ -147,7 +127,6 @@ export const MachineDetailSchema = z.object({
   machine: MachineSchema,
   identityEvidence: z.array(MachineIdentityEvidenceSchema),
   verificationHistory: z.array(MachineIdentityVerificationHistorySchema),
-  locationHistory: z.array(MachineLocationHistorySchema),
   catalog: MachineCatalogEnrichmentSchema.optional(),
 });
 
@@ -216,21 +195,6 @@ export const UpdateAcquisitionLoadRequestSchema = z
     { message: "At least one change is required" },
   );
 
-export const CreateInventoryLocationRequestSchema = z.object({
-  code: z.string().trim().min(1).max(80),
-  name: z.string().trim().min(1).max(160),
-});
-
-export const UpdateInventoryLocationRequestSchema = z
-  .object({
-    code: z.string().trim().min(1).max(80).optional(),
-    name: z.string().trim().min(1).max(160).optional(),
-    expectedVersion: VersionSchema,
-  })
-  .refine(({ code, name }) => code !== undefined || name !== undefined, {
-    message: "At least one change is required",
-  });
-
 export const VersionedRequestSchema = z.object({
   expectedVersion: VersionSchema,
 });
@@ -249,7 +213,6 @@ export const MachineIdentityInputSchema = z.object({
 
 export const CreateMachineRequestSchema = MachineIdentityInputSchema.extend({
   sourceLoadId: InventoryIdSchema,
-  currentLocationId: InventoryIdSchema.nullable().optional(),
   inventoryState: z.enum(["expected", "on_hand"]).default("expected"),
 });
 
@@ -274,11 +237,6 @@ export const UpdateMachineIdentityRequestSchema = z
 
 export const VerifyMachineIdentityRequestSchema = VersionedRequestSchema;
 
-export const RelocateMachineRequestSchema = z.object({
-  toLocationId: InventoryIdSchema,
-  expectedVersion: VersionSchema,
-});
-
 export const CreateQrLabelRequestSchema = z.object({}).strict();
 export const ReissueQrLabelRequestSchema = z.object({
   expectedLabelId: InventoryIdSchema,
@@ -302,12 +260,6 @@ export const AcquisitionLoadResponseSchema = z.object({
 export const AcquisitionLoadListResponseSchema = z.object({
   loads: z.array(AcquisitionLoadSchema),
 });
-export const InventoryLocationResponseSchema = z.object({
-  location: InventoryLocationSchema,
-});
-export const InventoryLocationListResponseSchema = z.object({
-  locations: z.array(InventoryLocationSchema),
-});
 export const MachineResponseSchema = z.object({ machine: MachineSchema });
 export const MachineDetailResponseSchema = MachineDetailSchema;
 export const MachineSearchResponseSchema = z.object({
@@ -330,14 +282,10 @@ export const IdentityConflictResponseSchema = z.object({
 });
 
 export type AcquisitionLoad = z.infer<typeof AcquisitionLoadSchema>;
-export type InventoryLocation = z.infer<typeof InventoryLocationSchema>;
 export type Machine = z.infer<typeof MachineSchema>;
 export type CapacityLb = z.infer<typeof CapacityLbSchema>;
 export type MachineIdentityEvidence = z.infer<
   typeof MachineIdentityEvidenceSchema
->;
-export type MachineLocationHistory = z.infer<
-  typeof MachineLocationHistorySchema
 >;
 export type MachineIdentityVerificationHistory = z.infer<
   typeof MachineIdentityVerificationHistorySchema
@@ -353,18 +301,9 @@ export type CreateAcquisitionLoadRequest = z.infer<
 export type UpdateAcquisitionLoadRequest = z.infer<
   typeof UpdateAcquisitionLoadRequestSchema
 >;
-export type CreateInventoryLocationRequest = z.infer<
-  typeof CreateInventoryLocationRequestSchema
->;
-export type UpdateInventoryLocationRequest = z.infer<
-  typeof UpdateInventoryLocationRequestSchema
->;
 export type CreateMachineRequest = z.infer<typeof CreateMachineRequestSchema>;
 export type UpdateMachineIdentityRequest = z.infer<
   typeof UpdateMachineIdentityRequestSchema
->;
-export type RelocateMachineRequest = z.infer<
-  typeof RelocateMachineRequestSchema
 >;
 export type CreateQrLabelRequest = z.infer<typeof CreateQrLabelRequestSchema>;
 export type ReissueQrLabelRequest = z.infer<typeof ReissueQrLabelRequestSchema>;

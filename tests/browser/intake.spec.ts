@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 
 const syntheticNameplate = (byte: number) => ({
   name: `synthetic-nameplate-${byte}.png`,
@@ -13,6 +14,28 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
   page,
 }) => {
   await page.goto("/login");
+  await page.getByLabel("Email").fill("owner.browser@example.test");
+  await page.getByLabel("Password").fill("owner-browser-password");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(
+    page.getByRole("heading", { name: /Welcome back/ }),
+  ).toBeVisible();
+  const loadName = `Browser Intake ${randomUUID()}`;
+  const expectedArrivalAt = `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`;
+  const createdLoad = await page.request.post("/api/inventory/loads", {
+    headers: { "Idempotency-Key": randomUUID() },
+    data: {
+      displayName: loadName,
+      sourceName: "Warehouse-hidden source",
+      sourceReference: "Warehouse-hidden reference",
+      expectedArrivalAt,
+    },
+  });
+  expect(createdLoad.status()).toBe(201);
+  const loadId = ((await createdLoad.json()) as { load: { id: string } }).load
+    .id;
+  await page.context().clearCookies();
+  await page.goto("/login");
   await page.getByLabel("Email").fill("warehouse.browser@example.test");
   await page.getByLabel("Password").fill("warehouse-browser-password");
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -21,7 +44,22 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
   ).toBeVisible();
 
   await page.goto("/loads");
-  await page.getByRole("link", { name: "View Load" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Expected Loads" }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
+  await expect(page.getByText("Expected today")).toBeVisible();
+  await expect(page.getByText("Warehouse-hidden source")).toHaveCount(0);
+  await expect(page.getByText("Warehouse-hidden reference")).toHaveCount(0);
+  const expectedLoad = page
+    .locator("article.inventory-row")
+    .filter({ hasText: loadName });
+  await expect(expectedLoad).toHaveCount(1);
+  const loadHref = `/loads/${loadId}`;
+  await expect(
+    expectedLoad.getByRole("link", { name: "View Load" }),
+  ).toHaveAttribute("href", loadHref);
+  await expectedLoad.getByRole("link", { name: "View Load" }).click();
   await page.getByRole("button", { name: "Start Laundrorama intake" }).click();
   await expect(
     page.getByRole("heading", { name: "Machine intake queue" }),
@@ -172,7 +210,29 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
     );
   expect(committedMachineHrefs).toHaveLength(3);
   await expect(page.locator('a[href^="/machines/"]')).toHaveCount(3);
+  const committedMachine = await page.request.get(
+    `/api/inventory${committedMachineHrefs[0]}`,
+  );
+  expect(committedMachine.status()).toBe(200);
+  const committedDetail = (await committedMachine.json()) as {
+    machine: Record<string, unknown>;
+    locationHistory?: unknown;
+  };
+  expect(committedDetail.machine).not.toHaveProperty("currentLocationId");
+  expect(committedDetail).not.toHaveProperty("locationHistory");
   await expect(finalAction).toBeDisabled();
+
+  await page.goto("/loads");
+  await expect(
+    page.getByRole("heading", { name: "Expected Loads" }),
+  ).toBeVisible();
+  await expect(
+    page.locator("article.inventory-row").filter({ hasText: loadName }),
+  ).toHaveCount(0);
+  await page.goBack();
+  await expect(
+    page.locator("p").filter({ hasText: /Status:\s*committed/ }),
+  ).toBeVisible();
 
   const popupPromise = page.context().waitForEvent("page");
   const pdfResponsePromise = page.waitForResponse(
@@ -199,13 +259,12 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
     page.getByRole("heading", { name: "Machines", exact: true }),
   ).toBeVisible();
   for (const href of committedMachineHrefs) {
-    const row = page
-      .locator("article.inventory-row")
-      .filter({ has: page.locator(`a[href="${href}"]`) });
-    await expect(row).toHaveCount(1);
-    await expect(row).toContainText("Location not assigned");
+    await expect(
+      page.locator(`a.machines-results-row[href="${href}"]`),
+    ).toHaveCount(1);
   }
   await page.goto(committedMachineHrefs[0]!);
+  await page.getByText("Technical catalog provenance", { exact: true }).click();
   await expect(
     page.getByText("Automatically published under the official-source policy."),
   ).toBeVisible({ timeout: 15_000 });

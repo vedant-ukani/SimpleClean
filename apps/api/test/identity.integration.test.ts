@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import request from "supertest";
 import { afterEach, describe, expect, it } from "vitest";
@@ -108,9 +108,6 @@ describe("identity authentication", () => {
             "inventory.machines.read",
             "inventory.machines.manage",
             "inventory.machines.verify",
-            "inventory.machines.relocate",
-            "inventory.locations.read",
-            "inventory.locations.manage",
             "inventory.qr_labels.manage",
             "files.read",
             "files.write",
@@ -126,6 +123,8 @@ describe("identity authentication", () => {
             "production.read",
             "production.manage",
             "production.disposition.approve",
+            "production.work.execute",
+            "production.work.assign",
           ],
         });
       });
@@ -150,6 +149,35 @@ describe("identity authentication", () => {
       "signed_in",
       "signed_out",
     ]);
+  });
+
+  it("allows only an Owner Admin session to read the standalone Catalog", async () => {
+    const app = await createApplication();
+    for (const role of [
+      "owner_admin",
+      "warehouse",
+      "technician_cleaner",
+    ] as const) {
+      const user = await provision(app, {
+        name: role,
+        email: `${role}@example.test`,
+        password: `${role}-password`,
+        role,
+      });
+      const cookies = await login(app, user.email, `${role}-password`);
+      const expectedListStatus = role === "owner_admin" ? 200 : 403;
+      const expectedDetailStatus = role === "owner_admin" ? 404 : 403;
+      await request(app.getHttpServer())
+        .get("/catalog/models")
+        .set("Cookie", cookies)
+        .set("x-role", "owner_admin")
+        .expect(expectedListStatus);
+      await request(app.getHttpServer())
+        .get("/catalog/models/missing-revision")
+        .set("Cookie", cookies)
+        .set("x-role", "owner_admin")
+        .expect(expectedDetailStatus);
+    }
   });
 
   it("enforces Owner Admin user management and ignores forged roles", async () => {

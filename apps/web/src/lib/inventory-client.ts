@@ -1,24 +1,20 @@
-import { parseWebServerEnvironment } from "@simply-clean/config";
+import { parseWebServerEnvironment } from "@laundrorama/config";
 import {
   AcquisitionLoadListResponseSchema,
   AcquisitionLoadResponseSchema,
   IdentityConflictResponseSchema,
-  InventoryLocationListResponseSchema,
   MachineDetailResponseSchema,
   MachineResponseSchema,
   MachineSearchResponseSchema,
   type AcquisitionLoad,
   type CreateAcquisitionLoadRequest,
-  type CreateMachineRequest,
-  type InventoryLocation,
   type Machine,
   type MachineDetail,
   type MachineSearchResponse,
-  type RelocateMachineRequest,
   type UpdateAcquisitionLoadRequest,
   type UpdateMachineIdentityRequest,
   type UpdateMachineActualSpecsRequest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 export class InventoryRequestError extends Error {
   constructor(
@@ -96,20 +92,6 @@ export async function getLoad(
       cookieHeaders(cookie),
     ),
   ).load;
-}
-
-export async function getLocations(
-  fetcher: typeof fetch = fetch,
-  environment: Record<string, string | undefined> = process.env,
-  cookie?: string,
-): Promise<InventoryLocation[]> {
-  return InventoryLocationListResponseSchema.parse(
-    await requestJson(
-      serverUrl("/inventory/locations", environment),
-      fetcher,
-      cookieHeaders(cookie),
-    ),
-  ).locations;
 }
 
 export async function searchMachines(
@@ -198,14 +180,6 @@ export async function updateLoad(
   ).load;
 }
 
-export async function createMachine(
-  input: CreateMachineRequest,
-): Promise<Machine> {
-  return MachineResponseSchema.parse(
-    await browserCreate("/inventory/machines", input),
-  ).machine;
-}
-
 export async function updateMachineIdentity(
   machineId: string,
   input: UpdateMachineIdentityRequest,
@@ -240,18 +214,5 @@ export async function verifyMachine(
     await browserMutation(`/inventory/machines/${machineId}/verify`, "POST", {
       expectedVersion,
     }),
-  ).machine;
-}
-
-export async function relocateMachine(
-  machineId: string,
-  input: RelocateMachineRequest,
-): Promise<Machine> {
-  return MachineResponseSchema.parse(
-    await browserMutation(
-      `/inventory/machines/${machineId}/relocate`,
-      "POST",
-      input,
-    ),
   ).machine;
 }

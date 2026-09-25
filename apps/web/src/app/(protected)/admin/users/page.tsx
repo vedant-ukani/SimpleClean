@@ -6,6 +6,7 @@ import {
   getIdentityUsers,
 } from "../../../../lib/identity-client";
 import { canManageUsers } from "../../../../lib/navigation";
+import { getProductionSpecialties } from "../../../../lib/production-client";
 import { TeamManagement } from "./team-management";
 
 export default async function UsersPage() {
@@ -15,7 +16,10 @@ export default async function UsersPage() {
   if (!canManageUsers(identity.user.role)) {
     redirect("/");
   }
-  const users = await getIdentityUsers(fetch, process.env, cookie);
+  const [users, specialties] = await Promise.all([
+    getIdentityUsers(fetch, process.env, cookie),
+    getProductionSpecialties(fetch, process.env, cookie),
+  ]);
   return (
     <main className="page-main page-main--wide">
       <div className="page-heading">
@@ -26,7 +30,7 @@ export default async function UsersPage() {
           before a shared tablet changes hands.
         </p>
       </div>
-      <TeamManagement initialUsers={users} />
+      <TeamManagement initialUsers={users} initialSpecialties={specialties} />
     </main>
   );
 }

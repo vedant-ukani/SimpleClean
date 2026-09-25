@@ -1,7 +1,7 @@
 import {
   ApplicationRoleSchema,
   type ApplicationRole,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { isAbsolute, resolve } from "node:path";
 import { z } from "zod";
 
@@ -74,6 +74,12 @@ const serverEnvironmentSchema = z
       .min(1_024)
       .max(100 * 1_024 * 1_024)
       .default(15 * 1_024 * 1_024),
+    FILE_VIDEO_MAX_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .max(100 * 1_024 * 1_024)
+      .default(100 * 1_024 * 1_024),
     OPERATIONS_WORKER_MAX_ATTEMPTS: z.coerce
       .number()
       .int()
@@ -526,6 +532,7 @@ export interface ServerConfig {
   fileUploadGrantTtlSeconds: number;
   fileDownloadGrantTtlSeconds: number;
   fileMaxBytes: number;
+  fileVideoMaxBytes: number;
   operationsWorkerMaxAttempts: number;
   operationsWorkerLeaseSeconds: number;
   operationsWorkerPollMs: number;
@@ -653,6 +660,7 @@ export function parseServerEnvironment(
     fileUploadGrantTtlSeconds: result.data.FILE_UPLOAD_GRANT_TTL_SECONDS,
     fileDownloadGrantTtlSeconds: result.data.FILE_DOWNLOAD_GRANT_TTL_SECONDS,
     fileMaxBytes: result.data.FILE_MAX_BYTES,
+    fileVideoMaxBytes: result.data.FILE_VIDEO_MAX_BYTES,
     operationsWorkerMaxAttempts: result.data.OPERATIONS_WORKER_MAX_ATTEMPTS,
     operationsWorkerLeaseSeconds: result.data.OPERATIONS_WORKER_LEASE_SECONDS,
     operationsWorkerPollMs: result.data.OPERATIONS_WORKER_POLL_MS,

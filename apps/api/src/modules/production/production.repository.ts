@@ -7,15 +7,16 @@ import {
 import type {
   CreatePreliminaryInspectionRequest,
   FileAttachment,
+  IdentityUser,
   PreliminaryDispositionDecision,
   PreliminaryInspection,
   PreliminaryInspectionHistoryResponse,
   RecordPreliminaryDispositionRequest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { DATABASE_CONNECTION } from "../../platform/database.module.js";
@@ -34,6 +35,7 @@ import {
   type IdempotencyCoordinator,
   type MutationRecorder,
 } from "../operations/operations.ports.js";
+import { TestWorkRepository } from "./test-work.repository.js";
 
 type Row = Record<string, unknown>;
 type Actor = {
@@ -90,9 +92,12 @@ function decision(row: Row): PreliminaryDispositionDecision {
     createdAt: iso(row.created_at),
   };
 }
-function stateFor(disposition: PreliminaryDispositionDecision["disposition"]): {
+function stateFor(
+  disposition: PreliminaryDispositionDecision["disposition"],
+  machineType: string,
+): {
   inventoryState: "on_hand" | "scrapped";
-  productionState: "preliminary_passed" | "blocked";
+  productionState: "preliminary_passed" | "awaiting_test" | "blocked";
 } {
   return {
     inventoryState:
@@ -100,8 +105,40 @@ function stateFor(disposition: PreliminaryDispositionDecision["disposition"]): {
         ? "scrapped"
         : "on_hand",
     productionState:
-      disposition === "repairable" ? "preliminary_passed" : "blocked",
+      disposition === "repairable"
+        ? machineType === "washer" || machineType === "dryer"
+          ? "awaiting_test"
+          : "preliminary_passed"
+        : "blocked",
   };
+}
+
+// Production-owned narrow read for Test; the immutable preliminary decision stays authoritative.
+export async function latestPassingInitialBearing(
+  database: DatabaseExecutor,
+  machineId: string,
+): Promise<{
+  assessment: "no_concern_observed";
+  actorUserId: string;
+  createdAt: string;
+} | null> {
+  const row = rows(
+    await database.execute(sql`
+    select i.bearing_assessment, i.inspected_by_user_id, i.created_at
+    from production_preliminary_inspection i
+    join production_preliminary_disposition d on d.inspection_id = i.id
+    where i.machine_id = ${machineId} and i.bearing_assessment = 'no_concern_observed'
+      and d.disposition = 'repairable'
+    order by i.created_at desc, i.id desc limit 1
+  `),
+  )[0];
+  return row
+    ? {
+        assessment: "no_concern_observed",
+        actorUserId: String(row.inspected_by_user_id),
+        createdAt: iso(row.created_at),
+      }
+    : null;
 }
 
 @Injectable()
@@ -115,6 +152,7 @@ export class ProductionRepository {
     @Inject(MUTATION_RECORDER) private readonly recorder: MutationRecorder,
     @Inject(IDEMPOTENCY_COORDINATOR)
     private readonly idempotency: IdempotencyCoordinator,
+    @Inject(TestWorkRepository) private readonly testWork: TestWorkRepository,
   ) {}
 
   history(machineId: string): Promise<PreliminaryInspectionHistoryResponse> {
@@ -182,6 +220,7 @@ export class ProductionRepository {
     machineId: string,
     input: CreatePreliminaryInspectionRequest,
     actor: Actor,
+    initialCheckIdentity?: IdentityUser,
   ): Promise<PreliminaryInspectionHistoryResponse> {
     return this.connection.transaction(async (database) => {
       const reservation = await this.reserve(
@@ -197,10 +236,24 @@ export class ProductionRepository {
         machineId,
       );
       if (!machine) throw new NotFoundException("Machine not found");
+      if (initialCheckIdentity)
+        await this.testWork.assertInitialCheckMachine(
+          database,
+          machine,
+          initialCheckIdentity,
+        );
       if (machine.version !== input.expectedMachineVersion)
         throw new ConflictException("Machine was changed by another request");
       if (machine.inventoryState !== "on_hand")
         throw new ConflictException("Only on-hand Machines can be inspected");
+      if (
+        ["testing", "awaiting_repair", "awaiting_clean"].includes(
+          machine.productionState,
+        )
+      )
+        throw new ConflictException(
+          "Test workflow has already started for this Machine",
+        );
       const evidence = await this.files.findReadyPreliminaryEvidence(
         database,
         machineId,
@@ -340,7 +393,20 @@ export class ProductionRepository {
     ) {
       throw new ConflictException("Owner approval is required");
     }
-    const state = stateFor(disposition);
+    const previous = await this.inventory.findMachineForProduction(
+      database,
+      machineId,
+    );
+    if (!previous) throw new NotFoundException("Machine not found");
+    if (
+      ["testing", "awaiting_repair", "awaiting_clean"].includes(
+        previous.productionState,
+      )
+    )
+      throw new ConflictException(
+        "Test workflow has already started for this Machine",
+      );
+    const state = stateFor(disposition, previous.machineType);
     const machine = await this.inventory.updatePreliminaryLifecycle(database, {
       machineId,
       expectedVersion,
@@ -350,6 +416,11 @@ export class ProductionRepository {
     });
     if (!machine)
       throw new ConflictException("Machine was changed by another request");
+    if (state.productionState === "awaiting_test") {
+      await this.testWork.createOnRepairable(database, machine, actor);
+    } else if (previous.productionState === "awaiting_test") {
+      await this.testWork.cancelQueuedForMachine(database, machineId, actor);
+    }
     const decisionId = randomUUID();
     await database.execute(sql`
       insert into production_preliminary_disposition (

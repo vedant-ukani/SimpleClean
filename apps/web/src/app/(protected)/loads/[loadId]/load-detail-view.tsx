@@ -1,6 +1,6 @@
 "use client";
 
-import type { AcquisitionLoad, FileAttachment } from "@simply-clean/contracts";
+import type { AcquisitionLoad, FileAttachment } from "@laundrorama/contracts";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
@@ -9,6 +9,12 @@ import { createIntakeBatch } from "../../../../lib/intake-client";
 import { AttachmentsPanel } from "../../attachments-panel";
 import { useOnlineStatus } from "../../online-status";
 import { useServerState } from "../../use-server-state";
+import {
+  displayExpectedArrival,
+  displayReceived,
+  expectedArrivalDate,
+  expectedArrivalFromDate,
+} from "../load-dates";
 
 export function LoadDetailView({
   initialLoad,
@@ -43,6 +49,9 @@ export function LoadDetailView({
           displayName: String(form.get("displayName") ?? ""),
           sourceName: String(form.get("sourceName") ?? "") || null,
           sourceReference: String(form.get("sourceReference") ?? "") || null,
+          expectedArrivalAt: expectedArrivalFromDate(
+            String(form.get("expectedArrivalDate") ?? ""),
+          ),
           expectedVersion: load.version,
         }),
       );
@@ -70,15 +79,11 @@ export function LoadDetailView({
           </div>
           <div>
             <dt>Expected arrival</dt>
-            <dd>{load.expectedArrivalAt ?? "Not recorded"}</dd>
+            <dd>{displayExpectedArrival(load.expectedArrivalAt)}</dd>
           </div>
           <div>
             <dt>Received</dt>
-            <dd>{load.receivedAt ?? "Not recorded"}</dd>
-          </div>
-          <div>
-            <dt>Version</dt>
-            <dd>{load.version}</dd>
+            <dd>{displayReceived(load.receivedAt)}</dd>
           </div>
         </dl>
         <Link
@@ -155,6 +160,14 @@ export function LoadDetailView({
               <input
                 name="sourceReference"
                 defaultValue={load.sourceReference ?? ""}
+              />
+            </label>
+            <label>
+              Expected arrival date
+              <input
+                name="expectedArrivalDate"
+                type="date"
+                defaultValue={expectedArrivalDate(load.expectedArrivalAt)}
               />
             </label>
             <button type="submit" disabled={busy || !online}>

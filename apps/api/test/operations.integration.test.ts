@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
@@ -134,61 +134,16 @@ describe("Operations reliability foundation", () => {
       concurrentLoads[1]!.body.load.id,
     );
 
-    const concurrentKey = randomUUID();
-    const concurrent = await Promise.all([
-      request(app.getHttpServer())
-        .post("/inventory/locations")
-        .set("Cookie", owner.cookies)
-        .set("Idempotency-Key", concurrentKey)
-        .send({ code: "RELIABLE", name: "Reliable receiving" }),
-      request(app.getHttpServer())
-        .post("/inventory/locations")
-        .set("Cookie", owner.cookies)
-        .set("Idempotency-Key", concurrentKey)
-        .send({ code: "RELIABLE", name: "Reliable receiving" }),
-    ]);
-    expect(concurrent.map((response) => response.status)).toEqual([201, 201]);
-    expect(concurrent[0]!.body.location.id).toBe(
-      concurrent[1]!.body.location.id,
-    );
-    await request(app.getHttpServer())
-      .post("/inventory/locations")
-      .set("Cookie", owner.cookies)
-      .set("Idempotency-Key", concurrentKey)
-      .send({ code: "RELIABLE", name: "Reliable receiving" })
-      .expect(201)
-      .expect(({ body: responseBody }) => {
-        expect(responseBody.location.id).toBe(concurrent[0]!.body.location.id);
-      });
-    await request(app.getHttpServer())
-      .post("/inventory/locations")
-      .set("Cookie", owner.cookies)
-      .set("Idempotency-Key", concurrentKey)
-      .send({ code: "RELIABLE", name: "Changed receiving" })
-      .expect(409);
     const machineKey = randomUUID();
     const machineBody = {
       machineType: "washer",
       sourceLoadId: first.body.load.id,
-      currentLocationId: concurrent[0]!.body.location.id,
     };
     const machine = await request(app.getHttpServer())
       .post("/inventory/machines")
       .set("Cookie", owner.cookies)
       .set("Idempotency-Key", machineKey)
       .send(machineBody)
-      .expect(201);
-    const renamed = await request(app.getHttpServer())
-      .patch(`/inventory/locations/${concurrent[0]!.body.location.id}`)
-      .set("Cookie", owner.cookies)
-      .send({ name: "Reliable storage", expectedVersion: 1 })
-      .expect(200);
-    await request(app.getHttpServer())
-      .post(
-        `/inventory/locations/${concurrent[0]!.body.location.id}/deactivate`,
-      )
-      .set("Cookie", owner.cookies)
-      .send({ expectedVersion: renamed.body.location.version })
       .expect(201);
     await request(app.getHttpServer())
       .post("/inventory/machines")
@@ -262,18 +217,31 @@ describe("Operations reliability foundation", () => {
       .expect(400);
 
     const database = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
-    const locationActions = await database.execute(sql`
-      select action from operations_audit_entry
-      where target_id = ${concurrent[0]!.body.location.id}
-      order by created_at
+    const legacyLocationId = randomUUID();
+    await database.execute(sql`
+      insert into operations_audit_entry (
+        id, actor_kind, actor_user_id, action, target_type, target_id,
+        request_id, safe_summary
+      ) values (
+        ${randomUUID()}, 'user', ${owner.identity.id},
+        'inventory.location.created', 'location', ${legacyLocationId},
+        'historical-location-fixture',
+        ${JSON.stringify({ changedFields: ["code"], outcome: "completed" })}::jsonb
+      )
     `);
-    expect(
-      resultRows<{ action: string }>(locationActions).map((row) => row.action),
-    ).toEqual([
-      "inventory.location.created",
-      "inventory.location.updated",
-      "inventory.location.deactivated",
-    ]);
+    await request(app.getHttpServer())
+      .get("/operations/audit")
+      .query({ targetType: "location", targetId: legacyLocationId })
+      .set("Cookie", owner.cookies)
+      .expect(200)
+      .expect(({ body: responseBody }) => {
+        expect(responseBody.entries).toHaveLength(1);
+        expect(responseBody.entries[0]).toMatchObject({
+          action: "inventory.location.created",
+          targetType: "location",
+          targetId: legacyLocationId,
+        });
+      });
     const stored = await database.execute(sql`
       select key_hash, request_fingerprint from operations_idempotency_record
       where scope = 'inventory.load.create'

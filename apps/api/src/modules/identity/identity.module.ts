@@ -1,5 +1,5 @@
-import { Module, type DynamicModule } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
+import { Global, Module, type DynamicModule } from "@nestjs/common";
+import type { ServerConfig } from "@laundrorama/config";
 
 import { SERVER_CONFIG } from "../../platform/logging.js";
 
@@ -10,6 +10,7 @@ import { IdentityController } from "./identity.controller.js";
 import { IdentityRepository } from "./identity.repository.js";
 import { IdentityService } from "./identity.service.js";
 
+@Global()
 @Module({})
 export class IdentityModule {
   static register(config: ServerConfig): DynamicModule {

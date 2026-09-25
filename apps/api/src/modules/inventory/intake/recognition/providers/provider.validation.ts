@@ -1,11 +1,11 @@
 import {
   IntakeOcrResultSchema,
   IntakeSemanticResultSchema,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   IntakeOcrResult,
   IntakeSemanticResult,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type { ZodType } from "zod";
 
 import { RecognitionProviderError } from "./provider.errors.js";

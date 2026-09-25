@@ -4,7 +4,7 @@ Status: completed and accepted on 2026-09-21. See `reviews/SF-01-review.md` thro
 
 ## Outcome
 
-Create the secure technical foundation for the Simple Clean Core Operations Platform without pretending that the warehouse intake workflow has already been finalized. The result must be a running, tested application skeleton that can safely hold users, roles, loads, provisional machines, locations, files, audit history, spreadsheet imports, and QR labels. It must also provide a simple shared-tablet shell that can be refined after the warehouse observation.
+Create the secure technical foundation for the Laundrorama Core Operations Platform without pretending that the warehouse intake workflow has already been finalized. The result must be a running, tested application skeleton that can safely hold users, roles, loads, provisional machines, locations, files, audit history, spreadsheet imports, and QR labels. It must also provide a simple shared-tablet shell that can be refined after the warehouse observation.
 
 This program is one milestone composed of eight independently reviewable tickets. Each ticket receives its own `code-architect` specification, implementation pass, test pass, review, and durable-memory update.
 
@@ -88,27 +88,27 @@ Require secure sign-in and consistently enforce Owner Admin, Warehouse, and Tech
 - A forged client-side role cannot bypass server authorization.
 - Login, logout, session expiry/revocation, and role-denial tests pass.
 
-## Ticket SF-03 — Loads, machines, locations, and users
+## Ticket SF-03 — Loads, machines, and users
 
 ### Goal
 
-Create the minimum authoritative operational records needed to identify a received machine and locate it without finalizing the detailed intake workflow.
+Create the minimum authoritative operational records needed to identify a received machine without finalizing the detailed intake workflow.
 
 ### Requirements
 
-- Create Acquisition Load, Machine, Location, and User/Profile modules with explicit service interfaces.
+- Create Acquisition Load, Machine, and User/Profile modules with explicit service interfaces.
 - Assign every Machine an immutable internal identifier independent of serial number.
 - Support provisional Machine records because plate data may be incomplete during unloading.
-- Store manufacturer, model, serial, voltage, phase, fuel, machine type, source load, current location, and identity-verification state as nullable/controlled fields.
+- Store manufacturer, model, serial, voltage, phase, fuel, machine type, source load, and identity-verification state as nullable/controlled fields.
 - Preserve raw user-entered or imported identity evidence instead of silently overwriting it.
 - Prevent duplicate confirmed serial numbers within the appropriate manufacturer/identity scope while allowing explicit exception handling.
 - Use separate inventory and production state fields; do not create a single universal status.
 - Use optimistic concurrency or an equivalent mechanism for conflicting updates.
-- Provide API operations and simple Owner/Warehouse views to create, read, update, search, and relocate records.
+- Provide API operations and simple Owner/Warehouse views to create, read, update, and search records.
 
 ### Acceptance criteria
 
-- An authorized warehouse user can create a provisional Machine under a Load, assign a Location, and retrieve it by ID.
+- An authorized warehouse user can create a provisional Machine under a Load and retrieve it by ID.
 - Critical identity changes are validated and audited.
 - Duplicate confirmed identities produce a visible conflict instead of silent duplication.
 - Domain and API integration tests cover authorization, validation, concurrency, and database constraints.

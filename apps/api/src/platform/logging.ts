@@ -4,7 +4,7 @@ import {
   type LoggerService,
   type NestMiddleware,
 } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import type { NextFunction, Request, Response } from "express";
 import { randomUUID } from "node:crypto";
 import pino, { type Logger } from "pino";

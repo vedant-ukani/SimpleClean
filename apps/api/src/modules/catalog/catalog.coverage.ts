@@ -2,7 +2,7 @@ import {
   CatalogSeedManifestSchema,
   normalizeCatalogIdentity,
   type CatalogSeedManifest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { createHash } from "node:crypto";
 import { resolveManifestModel } from "./catalog.logic.js";
 import { catalogManifestChecksum } from "./catalog.service.js";

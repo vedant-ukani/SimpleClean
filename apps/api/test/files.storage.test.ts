@@ -4,8 +4,8 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
-import { parseServerEnvironment } from "@simply-clean/config";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -33,7 +33,7 @@ afterEach(async () => {
 
 describe("file storage and content policy", () => {
   it("stores private local objects with verified metadata and confines keys", async () => {
-    const root = await mkdtemp(join(tmpdir(), "simply-clean-files-"));
+    const root = await mkdtemp(join(tmpdir(), "laundrorama-files-"));
     roots.push(root);
     const storage = new LocalStorageAdapter(root);
     const key =
@@ -95,10 +95,103 @@ describe("file storage and content policy", () => {
         100,
       ),
     ).toThrow();
-    expect(() => validateUploadGrantRequest({ ...request, purpose: "preliminary_inspection" }, 100)).not.toThrow();
-    expect(() => validateUploadGrantRequest({ ...request, target: { type: "load", id: request.target.id }, purpose: "preliminary_inspection" }, 100)).toThrow();
-    expect(() => validateUploadGrantRequest({ ...request, declaredMediaType: "application/pdf", purpose: "preliminary_inspection" }, 100)).toThrow();
+    expect(() =>
+      validateUploadGrantRequest(
+        { ...request, purpose: "preliminary_inspection" },
+        100,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      validateUploadGrantRequest(
+        {
+          ...request,
+          target: { type: "load", id: request.target.id },
+          purpose: "preliminary_inspection",
+        },
+        100,
+      ),
+    ).toThrow();
+    expect(() =>
+      validateUploadGrantRequest(
+        {
+          ...request,
+          declaredMediaType: "application/pdf",
+          purpose: "preliminary_inspection",
+        },
+        100,
+      ),
+    ).toThrow();
     expect(safeDownloadFilename('receipt\r\n".pdf')).toBe("receipt___.pdf");
+  });
+
+  it("accepts only bounded Machine test videos with matching container signatures", () => {
+    const machineId = "3498c172-93d8-4eca-b0f6-0e70fe03516c";
+    const samples = [
+      {
+        type: "video/mp4" as const,
+        bytes: Buffer.from([
+          0, 0, 0, 16, 102, 116, 121, 112, 105, 115, 111, 109, 0, 0, 0, 0,
+        ]),
+      },
+      {
+        type: "video/quicktime" as const,
+        bytes: Buffer.from([
+          0, 0, 0, 16, 102, 116, 121, 112, 113, 116, 32, 32, 0, 0, 0, 0,
+        ]),
+      },
+      {
+        type: "video/webm" as const,
+        bytes: Buffer.from([
+          0x1a, 0x45, 0xdf, 0xa3, 0x42, 0x82, 0x84, 0x77, 0x65, 0x62, 0x6d, 0,
+          0, 0, 0, 0,
+        ]),
+      },
+    ];
+    for (const sample of samples) {
+      const input = {
+        target: { type: "machine" as const, id: machineId },
+        purpose: "production_test_video" as const,
+        originalFilename: "operation",
+        declaredMediaType: sample.type,
+        declaredByteCount: sample.bytes.length,
+      };
+      expect(() => validateUploadGrantRequest(input, 10, 100)).not.toThrow();
+      expect(inspectContent(input, sample.bytes, 10, 100).mediaType).toBe(
+        sample.type,
+      );
+      expect(() =>
+        inspectContent(input, sample.bytes, 10, sample.bytes.length - 1),
+      ).toThrow(FilePolicyError);
+      expect(() =>
+        validateUploadGrantRequest(
+          { ...input, target: { type: "load", id: machineId } },
+          10,
+          100,
+        ),
+      ).toThrow(FilePolicyError);
+      expect(() =>
+        inspectContent(
+          { ...input, declaredMediaType: "image/jpeg" },
+          sample.bytes,
+          10,
+          100,
+        ),
+      ).toThrow(FilePolicyError);
+    }
+    const fake = {
+      target: { type: "machine" as const, id: machineId },
+      purpose: "production_test_video" as const,
+      originalFilename: "fake.mp4",
+      declaredMediaType: "video/mp4" as const,
+      declaredByteCount: 4,
+    };
+    expect(() => inspectContent(fake, Buffer.from("fake"), 10, 100)).toThrow(
+      FilePolicyError,
+    );
+    const photo = { ...fake, purpose: "production_test_evidence" as const };
+    expect(() => validateUploadGrantRequest(photo, 100, 100)).toThrow(
+      FilePolicyError,
+    );
   });
 
   it("maps S3 v3 commands without leaking provider details", async () => {

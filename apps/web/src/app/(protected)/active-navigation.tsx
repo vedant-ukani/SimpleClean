@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApplicationRole } from "@simply-clean/contracts";
+import type { ApplicationRole } from "@laundrorama/contracts";
 import {
   BookOpen,
   Boxes,
@@ -8,6 +8,7 @@ import {
   Menu,
   PackageOpen,
   ScanLine,
+  ClipboardCheck,
   UsersRound,
   X,
   type LucideIcon,
@@ -28,6 +29,7 @@ const icons: Record<NavigationIconName, LucideIcon> = {
   machines: Boxes,
   scan: ScanLine,
   catalog: BookOpen,
+  work: ClipboardCheck,
 };
 
 function isCurrentPath(pathname: string, href: string): boolean {

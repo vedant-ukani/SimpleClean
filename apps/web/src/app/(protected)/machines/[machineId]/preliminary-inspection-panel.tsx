@@ -4,13 +4,11 @@ import type {
   FileAttachment,
   Machine,
   PreliminaryInspectionHistoryResponse,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { createFileDownloadUrl } from "../../../../lib/files-client";
-import {
-  createPreliminaryInspection,
-  finalizePreliminaryDisposition,
-} from "../../../../lib/production-client";
+import { finalizePreliminaryDisposition } from "../../../../lib/production-client";
 import { useOnlineStatus } from "../../online-status";
 
 const dispositionLabel = {
@@ -30,72 +28,23 @@ const bearingLabel = {
 export function PreliminaryInspectionPanel({
   machine,
   history,
-  files,
   canManage,
   canApprove,
   onRecorded,
 }: Readonly<{
   machine: Machine;
   history: PreliminaryInspectionHistoryResponse;
-  files: FileAttachment[];
+  files?: FileAttachment[];
   canManage: boolean;
   canApprove: boolean;
   onRecorded: (history: PreliminaryInspectionHistoryResponse) => void;
 }>) {
   const online = useOnlineStatus();
-  const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>();
-  const readyEvidence = files.filter(
-    (file) =>
-      file.target.type === "machine" &&
-      file.target.id === machine.id &&
-      file.purpose === "preliminary_inspection" &&
-      file.state === "ready",
-  );
   const awaitingOwner =
     history.currentDisposition?.disposition === "owner_review" &&
     history.currentDisposition.inspectionId === history.inspections[0]?.id;
-
-  async function record(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!online) {
-      setMessage("Reconnect before recording an inspection.");
-      return;
-    }
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
-    setBusy(true);
-    try {
-      const updated = await createPreliminaryInspection(
-        machine.id,
-        {
-          expectedMachineVersion: machine.version,
-          condition: String(form.get("condition") ?? "").trim(),
-          bearingAssessment: String(
-            form.get("bearingAssessment"),
-          ) as "no_concern_observed",
-          bearingNotes: String(form.get("bearingNotes") ?? "").trim(),
-          missingParts: String(form.get("missingParts") ?? "").trim(),
-          damage: String(form.get("damage") ?? "").trim(),
-          recommendation: String(form.get("recommendation")) as "repairable",
-          reason: String(form.get("reason") ?? "").trim(),
-          evidenceFileIds: selectedEvidence,
-        },
-        crypto.randomUUID(),
-      );
-      onRecorded(updated);
-      formElement.reset();
-      setSelectedEvidence([]);
-      setMessage("Inspection and disposition recorded.");
-    } catch {
-      setMessage(
-        "Inspection could not be saved. Refresh the Machine and check the evidence before retrying.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function approve(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -160,85 +109,16 @@ export function PreliminaryInspectionPanel({
           {message}
         </p>
       ) : null}
-      {canManage && machine.inventoryState === "on_hand" ? (
-        <form className="preliminary-form" onSubmit={record}>
-          <label>
-            Condition observed
-            <textarea name="condition" maxLength={2000} required />
-          </label>
-          <label>
-            Bearing assessment
-            <select
-              name="bearingAssessment"
-              aria-label="Bearing assessment"
-              required
-            >
-              {Object.entries(bearingLabel).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Bearing notes
-            <textarea name="bearingNotes" maxLength={2000} />
-          </label>
-          <label>
-            Missing parts
-            <textarea name="missingParts" maxLength={2000} />
-          </label>
-          <label>
-            Damage
-            <textarea name="damage" maxLength={2000} />
-          </label>
-          <label>
-            Recommendation
-            <select name="recommendation" aria-label="Recommendation" required>
-              {Object.entries(dispositionLabel).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Reason for recommendation
-            <textarea name="reason" maxLength={2000} required />
-          </label>
-          <fieldset>
-            <legend>Private inspection evidence (optional)</legend>
-            {readyEvidence.length ? (
-              readyEvidence.map((file) => (
-                <label className="preliminary-evidence-option" key={file.id}>
-                  <input
-                    type="checkbox"
-                    checked={selectedEvidence.includes(file.id)}
-                    onChange={(event) =>
-                      setSelectedEvidence((current) =>
-                        event.target.checked
-                          ? [...current, file.id]
-                          : current.filter((id) => id !== file.id),
-                      )
-                    }
-                  />
-                  {file.originalFilename}
-                </label>
-              ))
-            ) : (
-              <p>
-                Upload Preliminary inspection media in Attachments to select it
-                here.
-              </p>
-            )}
-          </fieldset>
-          <button
-            type="submit"
-            disabled={busy || !online || selectedEvidence.length > 12}
-          >
-            Record inspection
-          </button>
-        </form>
+      {canManage &&
+      machine.inventoryState === "on_hand" &&
+      machine.productionState === "not_assessed" &&
+      (machine.machineType === "washer" || machine.machineType === "dryer") ? (
+        <Link
+          className="button-link"
+          href={`/work/initial-check/${machine.id}`}
+        >
+          Open initial check
+        </Link>
       ) : null}
       {canApprove && awaitingOwner && machine.inventoryState === "on_hand" ? (
         <form className="preliminary-form" onSubmit={approve}>
@@ -270,12 +150,10 @@ export function PreliminaryInspectionPanel({
           </button>
         </form>
       ) : null}
-      <div className="inventory-list">
-        <h3>Inspection and decision history</h3>
-        {history.inspections.length === 0 ? (
-          <p className="empty-state">No preliminary inspections recorded.</p>
-        ) : (
-          history.inspections.map((inspection) => (
+      {history.inspections.length > 0 ? (
+        <details className="inventory-list">
+          <summary>Inspection and decision history</summary>
+          {history.inspections.map((inspection) => (
             <article
               className="history-row preliminary-history-entry"
               key={inspection.id}
@@ -334,9 +212,9 @@ export function PreliminaryInspectionPanel({
                   </div>
                 ))}
             </article>
-          ))
-        )}
-      </div>
+          ))}
+        </details>
+      ) : null}
     </section>
   );
 }

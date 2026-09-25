@@ -1,13 +1,6 @@
-import { roleHasPermission } from "@simply-clean/contracts";
 import { headers } from "next/headers";
 
-import { getCurrentIdentity } from "../../../lib/identity-client";
-import {
-  getLoads,
-  getLocations,
-  searchMachines,
-} from "../../../lib/inventory-client";
-import { canManageMachines } from "../../../lib/navigation";
+import { searchMachines } from "../../../lib/inventory-client";
 import { readProtectedRouteData } from "../../../lib/server-route-state";
 import { MachinesView } from "./machines-view";
 
@@ -16,24 +9,16 @@ export default async function MachinesPage({
 }: Readonly<{ searchParams: Promise<{ query?: string; page?: string }> }>) {
   const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
   const cookie = requestHeaders.get("cookie") ?? undefined;
-  const identity = await readProtectedRouteData(
-    getCurrentIdentity(fetch, process.env, cookie),
-  );
-  const canManage = canManageMachines(identity.user.role);
-  const [results, locations, loads] = await readProtectedRouteData(
-    Promise.all([
-      searchMachines(
-        {
-          ...(params.query ? { query: params.query } : {}),
-          page: Number(params.page) || 1,
-        },
-        fetch,
-        process.env,
-        cookie,
-      ),
-      getLocations(fetch, process.env, cookie),
-      canManage ? getLoads(fetch, process.env, cookie) : Promise.resolve([]),
-    ]),
+  const results = await readProtectedRouteData(
+    searchMachines(
+      {
+        ...(params.query ? { query: params.query } : {}),
+        page: Number(params.page) || 1,
+      },
+      fetch,
+      process.env,
+      cookie,
+    ),
   );
   return (
     <main className="page-main page-main--wide">
@@ -46,13 +31,6 @@ export default async function MachinesPage({
       </div>
       <MachinesView
         initialResults={results}
-        loads={loads}
-        locations={locations}
-        canManage={canManage}
-        canRelocate={roleHasPermission(
-          identity.user.role,
-          "inventory.machines.relocate",
-        )}
         initialQuery={params.query ?? ""}
       />
     </main>

@@ -1,5 +1,5 @@
 {
-  "name": "@simply-clean/config",
+  "name": "@laundrorama/config",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,10 +15,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@simply-clean/contracts": "*",
+    "@laundrorama/contracts": "*",
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@simply-clean/test-support": "*"
+    "@laundrorama/test-support": "*"
   }
 }

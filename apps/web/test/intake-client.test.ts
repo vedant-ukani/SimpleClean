@@ -19,7 +19,6 @@ const detail = {
     id,
     loadId: "00000000-0000-4000-8000-000000000002",
     state: "open" as const,
-    destinationLocationId: null,
     version: 1,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -60,7 +59,6 @@ describe("Intake browser client", () => {
       batch: {
         ...detail.batch,
         state: "committed" as const,
-        destinationLocationId: "00000000-0000-4000-8000-000000000003",
         version: 2,
       },
       machines: [id],

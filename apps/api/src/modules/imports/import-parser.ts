@@ -5,7 +5,7 @@ import type {
   ImportMediaType,
   ImportRawCell,
   ImportRawValue,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { parse as parseCsv } from "csv-parse/sync";
 import ExcelJS from "exceljs";
 import { Open } from "unzipper";

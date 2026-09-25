@@ -5,7 +5,7 @@ import type {
   IntakeCandidate,
   IntakePhoto,
   IntakeRecognitionStatus,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { useEffect, useRef, useState } from "react";
 import { useOnlineStatus } from "../../../../online-status";
 import { useServerState } from "../../../../use-server-state";

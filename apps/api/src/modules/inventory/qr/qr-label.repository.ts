@@ -3,11 +3,11 @@ import {
   QrLabelSchema,
   type QrLabel,
   type QrLabelActivityAction,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 

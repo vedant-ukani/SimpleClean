@@ -1,7 +1,7 @@
 import type {
   CreateFileUploadGrantRequest,
   FileMediaType,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import sharp from "sharp";
 import decodeHeic from "heic-decode";
 
@@ -27,15 +27,21 @@ export class FilePolicyError extends Error {
 export function validateUploadGrantRequest(
   input: CreateFileUploadGrantRequest,
   maxBytes: number,
+  videoMaxBytes = maxBytes,
 ): void {
-  if (input.declaredByteCount > maxBytes) {
+  if (
+    input.declaredByteCount >
+    (input.purpose === "production_test_video" ? videoMaxBytes : maxBytes)
+  ) {
     throw new FilePolicyError("size_exceeded");
   }
   if (input.purpose === "nameplate" && input.target.type !== "machine") {
     throw new FilePolicyError("purpose_mismatch");
   }
   if (
-    input.purpose === "preliminary_inspection" &&
+    (input.purpose === "preliminary_inspection" ||
+      input.purpose === "production_test_evidence" ||
+      input.purpose === "production_test_video") &&
     input.target.type !== "machine"
   ) {
     throw new FilePolicyError("purpose_mismatch");
@@ -50,8 +56,12 @@ export function inspectContent(
   input: CreateFileUploadGrantRequest,
   bytes: Buffer,
   maxBytes: number,
+  videoMaxBytes = maxBytes,
 ): { mediaType: FileMediaType; byteCount: number; sha256: string } {
-  if (bytes.byteLength > maxBytes) {
+  if (
+    bytes.byteLength >
+    (input.purpose === "production_test_video" ? videoMaxBytes : maxBytes)
+  ) {
     throw new FilePolicyError("size_exceeded");
   }
   if (bytes.byteLength !== input.declaredByteCount) {
@@ -89,8 +99,14 @@ function validatePurposeMediaType(
     purpose === "nameplate" ||
     purpose === "arrival_condition" ||
     purpose === "intake_evidence" ||
-    purpose === "preliminary_inspection";
+    purpose === "preliminary_inspection" ||
+    purpose === "production_test_evidence";
   const image = mediaType.startsWith("image/");
+  if (purpose === "production_test_video") {
+    if (!mediaType.startsWith("video/"))
+      throw new FilePolicyError("purpose_mismatch");
+    return;
+  }
   if ((photo && !image) || (!photo && mediaType !== "application/pdf")) {
     throw new FilePolicyError("purpose_mismatch");
   }
@@ -286,6 +302,23 @@ export function detectMediaType(bytes: Buffer): FileMediaType | undefined {
     if (/(heic|heif|heix|hevc|hevx|mif1|msf1)/.test(brands)) {
       return /heif/.test(brands) ? "image/heif" : "image/heic";
     }
+    const major = bytes.subarray(8, 12).toString("ascii");
+    if (major === "qt  ") return "video/quicktime";
+    if (
+      ["isom", "iso2", "mp41", "mp42", "avc1", "M4V ", "3gp4"].includes(major)
+    )
+      return "video/mp4";
+  }
+  if (
+    bytes.length >= 16 &&
+    bytes.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]))
+  ) {
+    const header = bytes.subarray(0, Math.min(bytes.length, 4_096));
+    if (
+      header.includes(Buffer.from([0x42, 0x82])) &&
+      header.includes(Buffer.from("webm"))
+    )
+      return "video/webm";
   }
   if (
     bytes.length >= 8 &&

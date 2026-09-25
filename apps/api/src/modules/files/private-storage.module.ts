@@ -1,5 +1,5 @@
 import { Global, Module, type DynamicModule } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 
 import { LocalStorageAdapter } from "./local-storage.adapter.js";
 import { S3StorageAdapter } from "./s3-storage.adapter.js";

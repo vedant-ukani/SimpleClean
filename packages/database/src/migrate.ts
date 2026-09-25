@@ -1,4 +1,4 @@
-import { parseServerEnvironment } from "@simply-clean/config";
+import { parseServerEnvironment } from "@laundrorama/config";
 
 import { migrateDatabase } from "./database.js";
 

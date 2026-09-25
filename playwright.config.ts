@@ -47,7 +47,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "npm run test:browser:server -w @simply-clean/api",
+      command: "npm run test:browser:server -w @laundrorama/api",
       url: `${apiOrigin}/health/ready`,
       timeout: 120_000,
       reuseExistingServer: false,
@@ -55,7 +55,7 @@ export default defineConfig({
       stderr: "pipe",
     },
     {
-      command: "npm run test:browser:server -w @simply-clean/web",
+      command: "npm run test:browser:server -w @laundrorama/web",
       url: `${webOrigin}/login`,
       timeout: 120_000,
       reuseExistingServer: false,

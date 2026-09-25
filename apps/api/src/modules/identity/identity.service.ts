@@ -12,7 +12,7 @@ import {
   permissionsForRole,
   type CurrentIdentityResponse,
   type IdentityUser,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 import {
   BetterAuthAdapter,
@@ -43,6 +43,11 @@ export class IdentityService {
 
   async listUsers(): Promise<IdentityUser[]> {
     return this.repository.list();
+  }
+
+  async activeProductionWorker(userId: string): Promise<IdentityUser | null> {
+    const user = await this.repository.findByUserId(userId);
+    return user?.active && user.role === "technician_cleaner" ? user : null;
   }
 
   async createUser(

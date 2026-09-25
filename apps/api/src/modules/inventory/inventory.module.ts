@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 
 import { SERVER_CONFIG } from "../../platform/logging.js";
 

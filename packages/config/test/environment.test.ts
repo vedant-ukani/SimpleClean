@@ -1,4 +1,4 @@
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -21,7 +21,7 @@ describe("server environment", () => {
   });
 
   it("anchors relative local data paths to the npm workspace root", () => {
-    const workspaceRoot = join("/", "tmp", "simply-clean-workspace");
+    const workspaceRoot = join("/", "tmp", "laundrorama-workspace");
     const config = parseServerEnvironment(
       createTestEnvironment({
         PGLITE_DATA_DIR: ".local-data/pglite",
@@ -116,7 +116,7 @@ describe("server environment", () => {
     const deployed = {
       NODE_ENV: "production",
       DATABASE_DRIVER: "postgres",
-      DATABASE_URL: "postgres://database.example/simply_clean",
+      DATABASE_URL: "postgres://database.example/laundrorama",
       AUTH_SECRET: "unique-production-auth-secret-with-entropy-42!",
       AUTH_BASE_URL: "https://api.example.test",
       AUTH_TRUSTED_ORIGIN: "https://app.example.test",
@@ -148,7 +148,7 @@ describe("server environment", () => {
         createTestEnvironment({
           NODE_ENV: "production",
           DATABASE_DRIVER: "postgres",
-          DATABASE_URL: "postgres://database.example/simply_clean",
+          DATABASE_URL: "postgres://database.example/laundrorama",
           AUTH_BASE_URL: "http://api.example.test",
           AUTH_TRUSTED_ORIGIN: "http://app.example.test",
         }),
@@ -160,7 +160,7 @@ describe("server environment", () => {
         createTestEnvironment({
           NODE_ENV: "production",
           DATABASE_DRIVER: "postgres",
-          DATABASE_URL: "postgres://database.example/simply_clean",
+          DATABASE_URL: "postgres://database.example/laundrorama",
           AUTH_SECRET: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           AUTH_BASE_URL: "https://api.example.test",
           AUTH_TRUSTED_ORIGIN: "https://app.example.test",
@@ -184,7 +184,7 @@ describe("server environment", () => {
     const deployed = {
       NODE_ENV: "production",
       DATABASE_DRIVER: "postgres",
-      DATABASE_URL: "postgres://database.example/simply_clean",
+      DATABASE_URL: "postgres://database.example/laundrorama",
       AUTH_SECRET: "unique-production-auth-secret-with-entropy-42!",
       AUTH_BASE_URL: "https://api.example.test",
       AUTH_TRUSTED_ORIGIN: "https://app.example.test",
@@ -260,6 +260,7 @@ describe("server environment", () => {
       fileUploadGrantTtlSeconds: 300,
       fileDownloadGrantTtlSeconds: 60,
       fileMaxBytes: 15 * 1_024 * 1_024,
+      fileVideoMaxBytes: 100 * 1_024 * 1_024,
     });
 
     expect(() =>
@@ -267,7 +268,7 @@ describe("server environment", () => {
         createTestEnvironment({
           NODE_ENV: "production",
           DATABASE_DRIVER: "postgres",
-          DATABASE_URL: "postgres://database.example/simply_clean",
+          DATABASE_URL: "postgres://database.example/laundrorama",
           AUTH_SECRET: "unique-production-secret-with-entropy-42!",
           AUTH_BASE_URL: "https://api.example.test",
           AUTH_TRUSTED_ORIGIN: "https://app.example.test",
@@ -290,6 +291,16 @@ describe("server environment", () => {
         createTestEnvironment({ FILE_UPLOAD_GRANT_TTL_SECONDS: "5" }),
       ),
     ).toThrow("FILE_UPLOAD_GRANT_TTL_SECONDS");
+    expect(
+      parseServerEnvironment(
+        createTestEnvironment({ FILE_VIDEO_MAX_BYTES: "52428800" }),
+      ).fileVideoMaxBytes,
+    ).toBe(50 * 1_024 * 1_024);
+    expect(() =>
+      parseServerEnvironment(
+        createTestEnvironment({ FILE_VIDEO_MAX_BYTES: "104857601" }),
+      ),
+    ).toThrow("FILE_VIDEO_MAX_BYTES");
   });
 
   it("validates bounded Operations worker settings and disables test polling", () => {

@@ -1,7 +1,7 @@
 import {
   CatalogSeedManifestSchema,
   type CatalogSeedManifest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";

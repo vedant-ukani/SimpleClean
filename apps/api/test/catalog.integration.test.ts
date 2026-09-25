@@ -1,16 +1,16 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
+import { parseServerEnvironment } from "@laundrorama/config";
 import type {
   CatalogSeedManifest,
   IdentityUser,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import {
   CATALOG_SPECIFICATION_ENRICHMENT_FIELDS,
   missingCatalogSpecificationFields,
-} from "@simply-clean/contracts";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+} from "@laundrorama/contracts";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { readFile } from "node:fs/promises";
 import request from "supertest";
@@ -44,7 +44,7 @@ const reader: IdentityUser = {
   id: "catalog-reader",
   name: "Reader",
   email: "reader@example.test",
-  role: "warehouse",
+  role: "owner_admin",
   active: true,
   version: 1,
   createdAt: "2026-09-23T00:00:00.000Z",

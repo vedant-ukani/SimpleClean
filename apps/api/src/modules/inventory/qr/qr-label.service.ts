@@ -19,7 +19,7 @@ import {
   type ApplicationRole,
   type MachineDetail,
   type QrLabel,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 import {
   IdempotencyKeyReuseError,

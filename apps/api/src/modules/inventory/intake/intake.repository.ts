@@ -7,11 +7,11 @@ import type {
   IntakeWarningKind,
   Machine,
   ResolveCatalogModelRequest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql } from "drizzle-orm";
 import { createHash, randomUUID } from "node:crypto";
 
@@ -56,7 +56,6 @@ function batch(row: Row): IntakeBatch {
     id: String(row.id),
     loadId: String(row.load_id),
     state: row.state as IntakeBatch["state"],
-    destinationLocationId: nullable(row.destination_location_id),
     version: Number(row.version),
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
@@ -168,15 +167,14 @@ export class IntakeRepository {
         if (!found) throw new Error("Idempotent Intake target unavailable");
         return found;
       }
-      const load = await database.execute(
-        sql`select id from inventory_load where id = ${loadId}`,
-      );
-      if (!rows(load).length) {
+      const load = await this.inventory.lockLoadForIntake(database, loadId);
+      if (!load) {
         await this.idempotency.release(database, {
           recordId: reservation.recordId!,
         });
         throw new Error("INTAKE_LOAD_NOT_FOUND");
       }
+      if (load.receivedAt) throw new Error("INTAKE_LOAD_RECEIVED");
       const id = randomUUID();
       const result = await database.execute(
         sql`insert into inventory_intake_batch (id, load_id, created_by_user_id) values (${id}, ${loadId}, ${context.actorUserId}) returning *`,
@@ -800,61 +798,6 @@ export class IntakeRepository {
     });
   }
 
-  async setDestination(
-    batchId: string,
-    locationId: string,
-    expectedVersion: number,
-    context: InventoryActorContext,
-  ): Promise<IntakeBatchDetail> {
-    return this.connection.transaction(async (database) => {
-      const reservation = await this.reserve(
-        database,
-        "inventory.intake.destination.set",
-        { batchId, locationId, expectedVersion },
-        context,
-      );
-      if (reservation.existingTargetId) {
-        const existing = await this.detail(database, batchId);
-        if (!existing) throw new Error("INTAKE_BATCH_NOT_FOUND");
-        return existing;
-      }
-      await this.assertOpen(database, batchId, expectedVersion);
-      const existingMapping = await database.execute(
-        sql`select 1 from inventory_intake_machine_mapping where batch_id = ${batchId} limit 1`,
-      );
-      const currentDestination = rows(
-        await database.execute(
-          sql`select destination_location_id from inventory_intake_batch where id = ${batchId}`,
-        ),
-      )[0]?.destination_location_id;
-      if (rows(existingMapping).length && currentDestination !== locationId)
-        throw new Error("INTAKE_DESTINATION_LOCKED");
-      const location = rows(
-        await database.execute(
-          sql`select id from inventory_location where id = ${locationId} and active = true`,
-        ),
-      );
-      if (!location.length) throw new Error("INTAKE_DESTINATION_INVALID");
-      await database.execute(
-        sql`update inventory_intake_batch set destination_location_id = ${locationId} where id = ${batchId}`,
-      );
-      await this.bumpBatch(database, batchId, expectedVersion);
-      await this.record(
-        database,
-        "inventory.intake.batch.reviewed",
-        batchId,
-        context,
-        ["destination"],
-      );
-      await this.idempotency.complete(database, {
-        recordId: reservation.recordId!,
-        targetType: "intake_batch",
-        targetId: batchId,
-      });
-      return (await this.detail(database, batchId))!;
-    });
-  }
-
   async commitCandidate(
     batchId: string,
     candidateId: string,
@@ -871,7 +814,7 @@ export class IntakeRepository {
       );
       const row = rows(
         await database.execute(
-          sql`select c.*, c.state as candidate_state, c.version as candidate_version, b.id as batch_id, b.load_id, b.state as state, b.state as batch_state, b.version as version, b.version as batch_version, b.destination_location_id, b.created_at, b.updated_at from inventory_intake_candidate c inner join inventory_intake_batch b on b.id = c.batch_id where c.id = ${candidateId} and c.batch_id = ${batchId} for update`,
+          sql`select c.*, c.state as candidate_state, c.version as candidate_version, b.id as batch_id, b.load_id, b.state as state, b.state as batch_state, b.version as version, b.version as batch_version, b.created_at, b.updated_at from inventory_intake_candidate c inner join inventory_intake_batch b on b.id = c.batch_id where c.id = ${candidateId} and c.batch_id = ${batchId} for update`,
         ),
       )[0];
       if (
@@ -933,9 +876,6 @@ export class IntakeRepository {
               : Number(row.capacity_lb),
           sourceKind: "photo_intake",
           sourceLoadId: String(row.load_id),
-          currentLocationId: row.destination_location_id
-            ? String(row.destination_location_id)
-            : null,
           inventoryState: "on_hand",
         },
         context,
@@ -990,6 +930,15 @@ export class IntakeRepository {
         { batchId, expectedVersion },
         context,
       );
+      const batchLoad = rows(
+        await database.execute(
+          sql`select load_id from inventory_intake_batch where id = ${batchId}`,
+        ),
+      )[0];
+      if (!batchLoad) throw new Error("INTAKE_BATCH_NOT_FOUND");
+      const loadId = String(batchLoad.load_id);
+      if (!(await this.inventory.lockLoadForIntake(database, loadId)))
+        throw new Error("INTAKE_LOAD_NOT_FOUND");
       const current = rows(
         await database.execute(
           sql`select * from inventory_intake_batch where id = ${batchId} for update`,
@@ -1062,6 +1011,7 @@ export class IntakeRepository {
           context,
           ["state"],
         );
+        await this.receiveLoadIfFinalBatch(database, loadId, context);
         await this.idempotency.complete(database, {
           recordId: reservation.recordId!,
           targetType: "intake_batch",
@@ -1126,9 +1076,6 @@ export class IntakeRepository {
                 : Number(row.capacity_lb),
             sourceKind: "photo_intake",
             sourceLoadId: String(current.load_id),
-            currentLocationId: current.destination_location_id
-              ? String(current.destination_location_id)
-              : null,
             inventoryState: "on_hand",
           },
           context,
@@ -1153,6 +1100,7 @@ export class IntakeRepository {
         context,
         ["state", "machine_mappings"],
       );
+      await this.receiveLoadIfFinalBatch(database, loadId, context);
       await this.idempotency.complete(database, {
         recordId: reservation.recordId!,
         targetType: "intake_batch",
@@ -1160,6 +1108,22 @@ export class IntakeRepository {
       });
       return { batch: batch(rows(result)[0]!), mappings };
     });
+  }
+
+  private async receiveLoadIfFinalBatch(
+    database: DatabaseExecutor,
+    loadId: string,
+    context: InventoryActorContext,
+  ): Promise<void> {
+    const openBatch = rows(
+      await database.execute(sql`
+        select id from inventory_intake_batch
+        where load_id = ${loadId} and state = 'open'
+        limit 1
+      `),
+    )[0];
+    if (!openBatch)
+      await this.inventory.receiveLoadAfterIntake(database, loadId, context);
   }
 
   private async detail(

@@ -9,7 +9,7 @@ import {
   Post,
   Req,
 } from "@nestjs/common";
-import { IdentityUserIdSchema } from "@simply-clean/contracts";
+import { IdentityUserIdSchema } from "@laundrorama/contracts";
 import type { Request } from "express";
 
 import {

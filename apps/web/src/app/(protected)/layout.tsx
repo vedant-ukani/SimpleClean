@@ -34,13 +34,13 @@ export default async function ProtectedLayout({
         Skip to main content
       </a>
       <OnlineStatus />
-      <aside className="app-sidebar" aria-label="Simple Clean workspace">
+      <aside className="app-sidebar" aria-label="Laundrorama workspace">
         <Link className="brand-link brand-link--sidebar" href="/">
           <span className="brand-mark brand-mark--small" aria-hidden="true">
-            SC
+            L
           </span>
           <span>
-            <strong>Simple Clean</strong>
+            <strong>Laundrorama</strong>
             <small>Operations</small>
           </span>
         </Link>
@@ -57,10 +57,10 @@ export default async function ProtectedLayout({
         <header className="app-header">
           <Link className="brand-link brand-link--mobile" href="/">
             <span className="brand-mark brand-mark--small" aria-hidden="true">
-              SC
+              L
             </span>
             <span>
-              <strong>Simple Clean</strong>
+              <strong>Laundrorama</strong>
               <small>Operations</small>
             </span>
           </Link>

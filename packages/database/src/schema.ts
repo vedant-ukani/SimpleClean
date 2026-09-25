@@ -180,28 +180,6 @@ export const inventoryLoad = pgTable(
   ],
 );
 
-export const inventoryLocation = pgTable(
-  "inventory_location",
-  {
-    id: text("id").primaryKey(),
-    code: text("code").notNull(),
-    name: text("name").notNull(),
-    active: boolean("active").notNull().default(true),
-    version: integer("version").notNull().default(1),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    uniqueIndex("inventory_location_code_unique").on(table.code),
-    check("inventory_location_version_check", sql`${table.version} > 0`),
-    index("inventory_location_active_index").on(table.active),
-  ],
-);
-
 export const inventoryMachine = pgTable(
   "inventory_machine",
   {
@@ -219,10 +197,6 @@ export const inventoryMachine = pgTable(
     sourceLoadId: text("source_load_id")
       .notNull()
       .references(() => inventoryLoad.id, { onDelete: "restrict" }),
-    currentLocationId: text("current_location_id").references(
-      () => inventoryLocation.id,
-      { onDelete: "restrict" },
-    ),
     identityVerificationState: text("identity_verification_state")
       .notNull()
       .default("provisional"),
@@ -267,11 +241,10 @@ export const inventoryMachine = pgTable(
     ),
     check(
       "inventory_machine_production_state_check",
-      sql`${table.productionState} in ('not_assessed', 'preliminary_passed', 'blocked')`,
+      sql`${table.productionState} in ('not_assessed', 'preliminary_passed', 'awaiting_test', 'testing', 'awaiting_repair', 'awaiting_clean', 'blocked')`,
     ),
     check("inventory_machine_version_check", sql`${table.version} > 0`),
     index("inventory_machine_load_index").on(table.sourceLoadId),
-    index("inventory_machine_location_index").on(table.currentLocationId),
     index("inventory_machine_serial_index").on(table.normalizedSerial),
     index("inventory_machine_manufacturer_index").on(
       table.normalizedManufacturer,
@@ -393,41 +366,6 @@ export const machineIdentityVerificationHistory = pgTable(
       sql`${table.machineVersion} > 0`,
     ),
     index("machine_identity_verification_history_machine_index").on(
-      table.machineId,
-      table.createdAt,
-    ),
-  ],
-);
-
-export const machineLocationHistory = pgTable(
-  "machine_location_history",
-  {
-    id: text("id").primaryKey(),
-    machineId: text("machine_id")
-      .notNull()
-      .references(() => inventoryMachine.id, { onDelete: "restrict" }),
-    fromLocationId: text("from_location_id").references(
-      () => inventoryLocation.id,
-      { onDelete: "restrict" },
-    ),
-    toLocationId: text("to_location_id")
-      .notNull()
-      .references(() => inventoryLocation.id, { onDelete: "restrict" }),
-    actorUserId: text("actor_user_id")
-      .notNull()
-      .references(() => authUser.id, { onDelete: "restrict" }),
-    requestId: text("request_id").notNull(),
-    machineVersion: integer("machine_version").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    check(
-      "machine_location_history_version_check",
-      sql`${table.machineVersion} > 0`,
-    ),
-    index("machine_location_history_machine_index").on(
       table.machineId,
       table.createdAt,
     ),
@@ -782,7 +720,7 @@ export const fileAttachment = pgTable(
     ),
     check(
       "file_attachment_purpose_check",
-      sql`${table.purpose} in ('nameplate', 'arrival_condition', 'document', 'receipt', 'other', 'intake_evidence', 'preliminary_inspection')`,
+      sql`${table.purpose} in ('nameplate', 'arrival_condition', 'document', 'receipt', 'other', 'intake_evidence', 'preliminary_inspection', 'production_test_evidence', 'production_test_video')`,
     ),
     check(
       "file_attachment_nameplate_target_check",
@@ -797,6 +735,14 @@ export const fileAttachment = pgTable(
       sql`${table.purpose} <> 'preliminary_inspection' or ${table.machineId} is not null`,
     ),
     check(
+      "file_attachment_production_test_target_check",
+      sql`${table.purpose} <> 'production_test_evidence' or ${table.machineId} is not null`,
+    ),
+    check(
+      "file_attachment_production_video_target_check",
+      sql`${table.purpose} <> 'production_test_video' or ${table.machineId} is not null`,
+    ),
+    check(
       "file_attachment_preview_check",
       sql`(${table.previewStorageKey} is null and ${table.previewByteCount} is null and ${table.previewSha256} is null) or (${table.previewStorageKey} is not null and ${table.previewByteCount} > 0 and ${table.previewSha256} ~ '^[a-f0-9]{64}$')`,
     ),
@@ -806,11 +752,11 @@ export const fileAttachment = pgTable(
     ),
     check(
       "file_attachment_declared_media_type_check",
-      sql`${table.declaredMediaType} in ('image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf')`,
+      sql`${table.declaredMediaType} in ('image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf', 'video/mp4', 'video/quicktime', 'video/webm')`,
     ),
     check(
       "file_attachment_detected_media_type_check",
-      sql`${table.detectedMediaType} is null or ${table.detectedMediaType} in ('image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf')`,
+      sql`${table.detectedMediaType} is null or ${table.detectedMediaType} in ('image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf', 'video/mp4', 'video/quicktime', 'video/webm')`,
     ),
     check(
       "file_attachment_byte_count_check",
@@ -909,11 +855,11 @@ export const operationsAuditEntry = pgTable(
     ),
     check(
       "operations_audit_action_check",
-      sql`${table.action} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'inventory.qr_label.created', 'inventory.qr_label.revoked', 'inventory.qr_label.reissued', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed', 'inventory.intake.batch.created', 'inventory.intake.batch.reviewed', 'inventory.intake.batch.committed', 'inventory.intake.recognition.requested', 'inventory.intake.recognition.completed', 'catalog.snapshot.imported', 'catalog.machine.resolved', 'catalog.discovery.requested', 'catalog.discovery.completed', 'inventory.machine.actual_specs_updated', 'production.preliminary_inspection.recorded', 'production.disposition.recorded', 'inventory.machine.lifecycle_updated')`,
+      sql`${table.action} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'inventory.qr_label.created', 'inventory.qr_label.revoked', 'inventory.qr_label.reissued', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed', 'inventory.intake.batch.created', 'inventory.intake.batch.reviewed', 'inventory.intake.batch.committed', 'inventory.intake.recognition.requested', 'inventory.intake.recognition.completed', 'catalog.snapshot.imported', 'catalog.machine.resolved', 'catalog.discovery.requested', 'catalog.discovery.completed', 'inventory.machine.actual_specs_updated', 'production.preliminary_inspection.recorded', 'production.disposition.recorded', 'inventory.machine.lifecycle_updated', 'production.worker_specialty.updated', 'production.test_work_order.created', 'production.test_work_order.claimed', 'production.test_work_order.assignment_changed', 'production.test_step.recorded', 'production.test_work_order.completed', 'production.test_work_order.cancelled', 'production.test_session.created', 'production.test_session.orders_added', 'production.test_session.item_state_changed', 'production.test_session.paused', 'production.test_session.resumed', 'production.test_session.finished', 'production.test_session.item_completed', 'production.test_session.item_removed', 'production.test.bearing_concern_reported')`,
     ),
     check(
       "operations_audit_target_type_check",
-      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'qr_label', 'file', 'outbox_job', 'import_run', 'intake_batch', 'intake_recognition_run', 'catalog_snapshot', 'catalog_resolution', 'catalog_discovery_run', 'machine_actual_specs', 'preliminary_inspection', 'preliminary_disposition')`,
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'qr_label', 'file', 'outbox_job', 'import_run', 'intake_batch', 'intake_recognition_run', 'catalog_snapshot', 'catalog_resolution', 'catalog_discovery_run', 'machine_actual_specs', 'preliminary_inspection', 'preliminary_disposition', 'production_worker_specialty', 'production_test_work_order', 'production_test_step_result', 'production_test_session', 'production_test_session_event', 'production_test_bearing_concern')`,
     ),
     index("operations_audit_created_index").on(table.createdAt),
     index("operations_audit_action_index").on(table.action, table.createdAt),
@@ -967,11 +913,11 @@ export const platformOutboxJob = pgTable(
     ),
     check(
       "platform_outbox_event_type_check",
-      sql`${table.eventType} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'inventory.qr_label.created', 'inventory.qr_label.revoked', 'inventory.qr_label.reissued', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed', 'inventory.intake.batch.created', 'inventory.intake.batch.reviewed', 'inventory.intake.batch.committed', 'inventory.intake.recognition.requested', 'inventory.intake.recognition.completed', 'catalog.snapshot.imported', 'catalog.machine.resolved', 'catalog.discovery.requested', 'catalog.discovery.completed', 'inventory.machine.actual_specs_updated', 'production.preliminary_inspection.recorded', 'production.disposition.recorded', 'inventory.machine.lifecycle_updated')`,
+      sql`${table.eventType} in ('identity.user.created', 'identity.user.role_changed', 'identity.user.activated', 'identity.user.deactivated', 'identity.user.sessions_revoked', 'identity.user.provisioned', 'inventory.load.created', 'inventory.load.updated', 'inventory.location.created', 'inventory.location.updated', 'inventory.location.deactivated', 'inventory.machine.created', 'inventory.machine.identity_updated', 'inventory.machine.verified', 'inventory.machine.identity_conflict', 'inventory.machine.relocated', 'inventory.qr_label.created', 'inventory.qr_label.revoked', 'inventory.qr_label.reissued', 'files.attachment.requested', 'files.attachment.ready', 'files.attachment.failed', 'files.attachment.abandoned', 'operations.job.requeued', 'imports.run.staged', 'imports.run.approved', 'imports.run.committed', 'imports.run.commit_failed', 'inventory.intake.batch.created', 'inventory.intake.batch.reviewed', 'inventory.intake.batch.committed', 'inventory.intake.recognition.requested', 'inventory.intake.recognition.completed', 'catalog.snapshot.imported', 'catalog.machine.resolved', 'catalog.discovery.requested', 'catalog.discovery.completed', 'inventory.machine.actual_specs_updated', 'production.preliminary_inspection.recorded', 'production.disposition.recorded', 'inventory.machine.lifecycle_updated', 'production.worker_specialty.updated', 'production.test_work_order.created', 'production.test_work_order.claimed', 'production.test_work_order.assignment_changed', 'production.test_step.recorded', 'production.test_work_order.completed', 'production.test_work_order.cancelled', 'production.test_session.created', 'production.test_session.orders_added', 'production.test_session.item_state_changed', 'production.test_session.paused', 'production.test_session.resumed', 'production.test_session.finished', 'production.test_session.item_completed', 'production.test_session.item_removed', 'production.test.bearing_concern_reported')`,
     ),
     check(
       "platform_outbox_target_type_check",
-      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'qr_label', 'file', 'outbox_job', 'import_run', 'intake_batch', 'intake_recognition_run', 'catalog_snapshot', 'catalog_resolution', 'catalog_discovery_run', 'machine_actual_specs', 'preliminary_inspection', 'preliminary_disposition')`,
+      sql`${table.targetType} in ('user', 'session', 'load', 'location', 'machine', 'qr_label', 'file', 'outbox_job', 'import_run', 'intake_batch', 'intake_recognition_run', 'catalog_snapshot', 'catalog_resolution', 'catalog_discovery_run', 'machine_actual_specs', 'preliminary_inspection', 'preliminary_disposition', 'production_worker_specialty', 'production_test_work_order', 'production_test_step_result', 'production_test_session', 'production_test_session_event', 'production_test_bearing_concern')`,
     ),
     check(
       "platform_outbox_state_check",
@@ -1031,7 +977,7 @@ export const operationsIdempotencyRecord = pgTable(
     ),
     check(
       "operations_idempotency_target_type_check",
-      sql`${table.targetType} is null or ${table.targetType} in ('load', 'location', 'machine', 'qr_label', 'import_run', 'intake_batch', 'intake_recognition_run', 'preliminary_inspection', 'preliminary_disposition')`,
+      sql`${table.targetType} is null or ${table.targetType} in ('load', 'location', 'machine', 'qr_label', 'import_run', 'intake_batch', 'intake_recognition_run', 'preliminary_inspection', 'preliminary_disposition', 'production_worker_specialty', 'production_test_work_order', 'production_test_step_result', 'production_test_session', 'production_test_session_event', 'production_test_bearing_concern')`,
     ),
     index("operations_idempotency_target_index").on(
       table.targetType,
@@ -1169,10 +1115,6 @@ export const inventoryIntakeBatch = pgTable(
       .notNull()
       .references(() => inventoryLoad.id, { onDelete: "restrict" }),
     state: text("state").notNull().default("open"),
-    destinationLocationId: text("destination_location_id").references(
-      () => inventoryLocation.id,
-      { onDelete: "restrict" },
-    ),
     version: integer("version").notNull().default(1),
     createdByUserId: text("created_by_user_id")
       .notNull()
@@ -1892,6 +1834,356 @@ export const inventoryMachineActualSpecs = pgTable(
       "inventory_machine_actual_specs_version_check",
       sql`${table.version} > 0`,
     ),
+  ],
+);
+
+export const productionWorkerSpecialty = pgTable(
+  "production_worker_specialty",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => identityProfile.userId, { onDelete: "cascade" }),
+    machineType: text("machine_type").notNull(),
+    assignedByUserId: text("assigned_by_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    assignedAt: timestamp("assigned_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.userId, table.machineType],
+      name: "production_worker_specialty_pk",
+    }),
+    check(
+      "production_worker_specialty_type_check",
+      sql`${table.machineType} in ('washer', 'dryer')`,
+    ),
+  ],
+);
+
+export const productionTestTemplate = pgTable(
+  "production_test_template",
+  {
+    id: text("id").primaryKey(),
+    machineType: text("machine_type").notNull(),
+    version: integer("version").notNull(),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("production_test_template_version_unique").on(
+      table.machineType,
+      table.version,
+    ),
+    check(
+      "production_test_template_type_check",
+      sql`${table.machineType} in ('washer', 'dryer')`,
+    ),
+    check("production_test_template_version_check", sql`${table.version} > 0`),
+  ],
+);
+export const productionTestStep = pgTable(
+  "production_test_step",
+  {
+    templateId: text("template_id")
+      .notNull()
+      .references(() => productionTestTemplate.id, { onDelete: "restrict" }),
+    stepKey: text("step_key").notNull(),
+    position: integer("position").notNull(),
+    instruction: text("instruction").notNull(),
+    allowNa: boolean("allow_na").notNull().default(false),
+    stopOnFailure: boolean("stop_on_failure").notNull().default(false),
+    photoRequired: boolean("photo_required").notNull().default(false),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.templateId, table.stepKey],
+      name: "production_test_step_pk",
+    }),
+    uniqueIndex("production_test_step_position_unique").on(
+      table.templateId,
+      table.position,
+    ),
+  ],
+);
+export const productionTestWorkOrder = pgTable(
+  "production_test_work_order",
+  {
+    id: text("id").primaryKey(),
+    machineId: text("machine_id")
+      .notNull()
+      .references(() => inventoryMachine.id, { onDelete: "restrict" }),
+    machineType: text("machine_type").notNull(),
+    state: text("state").notNull(),
+    assignedUserId: text("assigned_user_id").references(() => authUser.id, {
+      onDelete: "restrict",
+    }),
+    activeSessionId: text("active_session_id").references(
+      () => productionTestSession.id,
+      { onDelete: "restrict" },
+    ),
+    queuedAt: timestamp("queued_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    version: integer("version").notNull().default(1),
+  },
+  (table) => [
+    uniqueIndex("production_test_one_open_order")
+      .on(table.machineId)
+      .where(sql`${table.completedAt} is null`),
+    index("production_test_queue_order").on(
+      table.state,
+      table.queuedAt,
+      table.id,
+    ),
+    index("production_test_assignment_order").on(
+      table.assignedUserId,
+      table.state,
+    ),
+    index("production_test_work_order_active_session").on(
+      table.activeSessionId,
+    ),
+  ],
+);
+export const productionTestSession = pgTable(
+  "production_test_session",
+  {
+    id: text("id").primaryKey(),
+    workerUserId: text("worker_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    specialty: text("specialty").notNull(),
+    state: text("state").notNull(),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("production_test_one_open_session_per_worker")
+      .on(table.workerUserId)
+      .where(sql`${table.completedAt} is null`),
+    check(
+      "production_test_session_specialty_check",
+      sql`${table.specialty} in ('washer', 'dryer')`,
+    ),
+    check(
+      "production_test_session_state_check",
+      sql`${table.state} in ('active', 'paused', 'completed')`,
+    ),
+    check("production_test_session_version_check", sql`${table.version} > 0`),
+    check(
+      "production_test_session_completion_check",
+      sql`(${table.state} = 'completed') = (${table.completedAt} is not null)`,
+    ),
+  ],
+);
+export const productionTestSessionItem = pgTable(
+  "production_test_session_item",
+  {
+    id: text("id").primaryKey(),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => productionTestSession.id, { onDelete: "restrict" }),
+    orderId: text("order_id")
+      .notNull()
+      .references(() => productionTestWorkOrder.id, { onDelete: "restrict" }),
+    state: text("state").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("production_test_session_item_unique").on(
+      table.sessionId,
+      table.orderId,
+    ),
+    uniqueIndex("production_test_one_open_session_per_order")
+      .on(table.orderId)
+      .where(sql`${table.endedAt} is null`),
+    index("production_test_session_item_order").on(
+      table.sessionId,
+      table.createdAt,
+      table.id,
+    ),
+    check(
+      "production_test_session_item_state_check",
+      sql`${table.state} in ('working', 'running_cycle', 'waiting', 'completed', 'removed')`,
+    ),
+    check(
+      "production_test_session_item_completion_check",
+      sql`(${table.state} in ('completed', 'removed')) = (${table.endedAt} is not null)`,
+    ),
+  ],
+);
+export const productionTestSessionEvent = pgTable(
+  "production_test_session_event",
+  {
+    id: text("id").primaryKey(),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => productionTestSession.id, { onDelete: "restrict" }),
+    orderId: text("order_id").references(() => productionTestWorkOrder.id, {
+      onDelete: "restrict",
+    }),
+    action: text("action").notNull(),
+    itemState: text("item_state"),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    requestId: text("request_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("production_test_session_event_order").on(
+      table.sessionId,
+      table.createdAt,
+      table.id,
+    ),
+    check(
+      "production_test_session_event_action_check",
+      sql`${table.action} in ('created', 'added', 'item_state_changed', 'paused', 'resumed', 'item_completed', 'item_removed', 'finished')`,
+    ),
+    check(
+      "production_test_session_event_state_check",
+      sql`${table.itemState} is null or ${table.itemState} in ('working', 'running_cycle', 'waiting', 'completed', 'removed')`,
+    ),
+    check(
+      "production_test_session_event_shape_check",
+      sql`(${table.action} in ('created', 'added', 'item_state_changed', 'item_completed', 'item_removed') and ${table.orderId} is not null and ${table.itemState} is not null) or (${table.action} in ('paused', 'resumed', 'finished') and ${table.orderId} is null and ${table.itemState} is null)`,
+    ),
+  ],
+);
+export const productionTestBearingConcern = pgTable(
+  "production_test_bearing_concern",
+  {
+    id: text("id").primaryKey(),
+    orderId: text("order_id")
+      .notNull()
+      .unique()
+      .references(() => productionTestWorkOrder.id, { onDelete: "restrict" }),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    requestId: text("request_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+);
+export const productionTestClaimEvent = pgTable(
+  "production_test_claim_event",
+  {
+    id: text("id").primaryKey(),
+    orderId: text("order_id")
+      .notNull()
+      .references(() => productionTestWorkOrder.id, { onDelete: "restrict" }),
+    action: text("action").notNull(),
+    fromUserId: text("from_user_id").references(() => authUser.id, {
+      onDelete: "restrict",
+    }),
+    toUserId: text("to_user_id").references(() => authUser.id, {
+      onDelete: "restrict",
+    }),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    requestId: text("request_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("production_test_claim_order").on(table.orderId, table.createdAt),
+  ],
+);
+export const productionTestRun = pgTable("production_test_run", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id")
+    .notNull()
+    .unique()
+    .references(() => productionTestWorkOrder.id, { onDelete: "restrict" }),
+  templateId: text("template_id")
+    .notNull()
+    .references(() => productionTestTemplate.id, { onDelete: "restrict" }),
+  startedByUserId: text("started_by_user_id")
+    .notNull()
+    .references(() => authUser.id, { onDelete: "restrict" }),
+  startedAt: timestamp("started_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  videoFileId: text("video_file_id")
+    .unique()
+    .references(() => fileAttachment.id, { onDelete: "restrict" }),
+});
+export const productionTestRunStep = pgTable(
+  "production_test_run_step",
+  {
+    runId: text("run_id")
+      .notNull()
+      .references(() => productionTestRun.id, { onDelete: "restrict" }),
+    stepKey: text("step_key").notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.runId, table.stepKey],
+      name: "production_test_run_step_pk",
+    }),
+  ],
+);
+export const productionTestStepResult = pgTable(
+  "production_test_step_result",
+  {
+    id: text("id").primaryKey(),
+    runId: text("run_id")
+      .notNull()
+      .references(() => productionTestRun.id, { onDelete: "restrict" }),
+    stepKey: text("step_key").notNull(),
+    result: text("result").notNull(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "restrict" }),
+    fileId: text("file_id").references(() => fileAttachment.id, {
+      onDelete: "restrict",
+    }),
+    requestId: text("request_id").notNull(),
+    orderVersion: integer("order_version").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("production_test_result_run_order").on(
+      table.runId,
+      table.orderVersion,
+    ),
+    uniqueIndex("production_test_step_result_version_unique").on(
+      table.runId,
+      table.orderVersion,
+    ),
+    uniqueIndex("production_test_result_file_unique")
+      .on(table.fileId)
+      .where(sql`${table.fileId} is not null`),
+    check(
+      "production_test_step_result_order_version_check",
+      sql`${table.orderVersion} > 0`,
+    ),
+    foreignKey({
+      columns: [table.runId, table.stepKey],
+      foreignColumns: [
+        productionTestRunStep.runId,
+        productionTestRunStep.stepKey,
+      ],
+      name: "production_test_step_result_step_fk",
+    }),
   ],
 );
 

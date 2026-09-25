@@ -1,4 +1,4 @@
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { describe, expect, it, vi } from "vitest";
 
 import {

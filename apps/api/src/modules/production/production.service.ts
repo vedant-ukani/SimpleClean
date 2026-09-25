@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import {
   CreatePreliminaryInspectionRequestSchema,
+  RecordInitialCheckRequestSchema,
   IdempotencyKeySchema,
   InventoryIdSchema,
   PreliminaryInspectionHistoryResponseSchema,
@@ -13,7 +14,8 @@ import {
   roleHasPermission,
   type IdentityUser,
   type PreliminaryInspectionHistoryResponse,
-} from "@simply-clean/contracts";
+  type CreatePreliminaryInspectionRequest,
+} from "@laundrorama/contracts";
 import { ProductionRepository } from "./production.repository.js";
 
 @Injectable()
@@ -53,6 +55,60 @@ export class ProductionService {
           "production.disposition.approve",
         ),
       }),
+    );
+  }
+
+  async initialCheck(
+    machineId: string,
+    rawInput: unknown,
+    identity: IdentityUser,
+    context: { requestId: string; idempotencyKey: string | undefined },
+  ): Promise<PreliminaryInspectionHistoryResponse> {
+    this.authorize(identity, "production.manage");
+    const result = RecordInitialCheckRequestSchema.safeParse(rawInput);
+    if (!result.success) throw new BadRequestException("Invalid initial check");
+    const choice = result.data.choice;
+    const input: CreatePreliminaryInspectionRequest = {
+      expectedMachineVersion: result.data.expectedMachineVersion,
+      condition:
+        choice === "smooth"
+          ? "Drum spins smoothly; no bearing concern observed."
+          : choice === "bearing_concern"
+            ? "Bearing noise or movement detected during drum check."
+            : "Drum and bearing could not be assessed.",
+      bearingAssessment:
+        choice === "smooth"
+          ? "no_concern_observed"
+          : choice === "bearing_concern"
+            ? "concern_observed"
+            : "unable_to_assess",
+      bearingNotes: "",
+      missingParts: "",
+      damage: "",
+      recommendation: choice === "smooth" ? "repairable" : "owner_review",
+      reason:
+        choice === "smooth"
+          ? "Initial bearing check passed; proceed to full testing."
+          : choice === "bearing_concern"
+            ? "Bearing concern requires Owner review before further testing."
+            : "Unable to assess bearing; Owner review required.",
+      evidenceFileIds: [],
+    };
+    return PreliminaryInspectionHistoryResponseSchema.parse(
+      await this.repository.create(
+        this.id(machineId),
+        input,
+        {
+          actorUserId: identity.id,
+          requestId: context.requestId,
+          idempotencyKey: this.key(context.idempotencyKey),
+          canApprove: roleHasPermission(
+            identity.role,
+            "production.disposition.approve",
+          ),
+        },
+        identity,
+      ),
     );
   }
 

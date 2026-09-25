@@ -1,8 +1,8 @@
 import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
-import type { ServerConfig } from "@simply-clean/config";
-import type { ApplicationRole } from "@simply-clean/contracts";
-import { authSchema, type DatabaseConnection } from "@simply-clean/database";
+import type { ServerConfig } from "@laundrorama/config";
+import type { ApplicationRole } from "@laundrorama/contracts";
+import { authSchema, type DatabaseConnection } from "@laundrorama/database";
 import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { fromNodeHeaders } from "better-auth/node";

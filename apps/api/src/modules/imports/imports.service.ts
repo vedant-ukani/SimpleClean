@@ -7,7 +7,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import {
   IdempotencyKeySchema,
   ImportApprovalRequestSchema,
@@ -17,7 +17,7 @@ import {
   type ImportCommitResponse,
   type ImportRowListResponse,
   type ImportRun,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { stringify } from "csv-stringify/sync";
 import { createHash, randomUUID } from "node:crypto";
 

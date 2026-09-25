@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
 import { NestFactory } from "@nestjs/core";
-import { parseBootstrapEnvironment } from "@simply-clean/config";
+import { parseBootstrapEnvironment } from "@laundrorama/config";
 import { randomUUID } from "node:crypto";
 
 import { AppModule } from "./app.module.js";

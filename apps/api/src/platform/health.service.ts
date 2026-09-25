@@ -2,8 +2,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import type {
   LivenessResponse,
   ReadinessResponse,
-} from "@simply-clean/contracts";
-import type { DatabaseConnection } from "@simply-clean/database";
+} from "@laundrorama/contracts";
+import type { DatabaseConnection } from "@laundrorama/database";
 
 import { DATABASE_CONNECTION } from "./database.module.js";
 

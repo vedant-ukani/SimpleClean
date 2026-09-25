@@ -1,8 +1,8 @@
+ALTER TABLE inventory_machine DROP CONSTRAINT inventory_machine_production_state_check;--> statement-breakpoint
 UPDATE inventory_machine SET production_state = 'not_assessed' WHERE production_state = 'not_started';--> statement-breakpoint
 ALTER TABLE inventory_machine ALTER COLUMN production_state SET DEFAULT 'not_assessed';--> statement-breakpoint
 ALTER TABLE inventory_machine DROP CONSTRAINT inventory_machine_inventory_state_check;--> statement-breakpoint
 ALTER TABLE inventory_machine ADD CONSTRAINT inventory_machine_inventory_state_check CHECK (inventory_state IN ('expected', 'on_hand', 'scrapped'));--> statement-breakpoint
-ALTER TABLE inventory_machine DROP CONSTRAINT inventory_machine_production_state_check;--> statement-breakpoint
 ALTER TABLE inventory_machine ADD CONSTRAINT inventory_machine_production_state_check CHECK (production_state IN ('not_assessed', 'preliminary_passed', 'blocked'));--> statement-breakpoint
 ALTER TABLE file_attachment DROP CONSTRAINT file_attachment_purpose_check;--> statement-breakpoint
 ALTER TABLE file_attachment ADD CONSTRAINT file_attachment_purpose_check CHECK (purpose IN ('nameplate', 'arrival_condition', 'document', 'receipt', 'other', 'intake_evidence', 'preliminary_inspection'));--> statement-breakpoint

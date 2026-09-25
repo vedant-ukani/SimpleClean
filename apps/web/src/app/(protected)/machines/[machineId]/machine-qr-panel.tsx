@@ -1,7 +1,7 @@
 "use client";
 
-import type { QrLabel } from "@simply-clean/contracts";
-import { useState } from "react";
+import type { QrLabel } from "@laundrorama/contracts";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useOnlineStatus } from "../../online-status";
 import { useServerState } from "../../use-server-state";
@@ -18,9 +18,36 @@ export function MachineQrPanel({
   const [labels, setLabels] = useServerState(initialLabels);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>();
+  const [viewer, setViewer] = useState<{ labelId: string; url: string } | null>(
+    null,
+  );
+  const [printReady, setPrintReady] = useState(false);
+  const viewerUrl = useRef<string | null>(null);
+  const viewerRequest = useRef(0);
+  const previewRef = useRef<HTMLIFrameElement>(null);
   const online = useOnlineStatus();
   const activeLabel = labels.find((label) => label.state === "active");
   const history = labels.filter((label) => label.state === "revoked");
+
+  const closeViewer = useCallback(() => {
+    viewerRequest.current += 1;
+    if (viewerUrl.current) URL.revokeObjectURL(viewerUrl.current);
+    viewerUrl.current = null;
+    setViewer(null);
+    setPrintReady(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      viewerRequest.current += 1;
+      if (viewerUrl.current) URL.revokeObjectURL(viewerUrl.current);
+      viewerUrl.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (viewer && viewer.labelId !== activeLabel?.id) closeViewer();
+  }, [activeLabel?.id, viewer, closeViewer]);
 
   async function refreshLabels() {
     const { listMachineQrLabelsInBrowser } =
@@ -34,7 +61,7 @@ export function MachineQrPanel({
     refresh = true,
   ) {
     if (!online) {
-      setMessage("Reconnect before changing or downloading a QR label.");
+      setMessage("Reconnect before changing or viewing a QR label.");
       return;
     }
     setBusy(true);
@@ -58,6 +85,7 @@ export function MachineQrPanel({
   }
 
   async function revoke(label: QrLabel) {
+    closeViewer();
     const { revokeQrLabel } = await import("../../../../lib/qr-client");
     await run(
       () => revokeQrLabel(label.id, label.version),
@@ -66,6 +94,7 @@ export function MachineQrPanel({
   }
 
   async function reissue(label: QrLabel) {
+    closeViewer();
     const { reissueQrLabel } = await import("../../../../lib/qr-client");
     await run(
       () => reissueQrLabel(machineId, label.id, label.version),
@@ -73,13 +102,35 @@ export function MachineQrPanel({
     );
   }
 
-  async function download(label: QrLabel) {
-    const { downloadQrLabel } = await import("../../../../lib/qr-client");
-    await run(
-      () => downloadQrLabel(label.id),
-      "Printable QR label downloaded.",
-      false,
-    );
+  async function viewLabel(label: QrLabel) {
+    if (!online) {
+      setMessage("Reconnect before viewing a QR label.");
+      return;
+    }
+    closeViewer();
+    const request = viewerRequest.current;
+    setBusy(true);
+    setMessage(undefined);
+    try {
+      const { getPrintableQrLabel } = await import("../../../../lib/qr-client");
+      const printable = await getPrintableQrLabel(label.id);
+      if (request !== viewerRequest.current) return;
+      const url = URL.createObjectURL(printable.blob);
+      viewerUrl.current = url;
+      setViewer({ labelId: label.id, url });
+    } catch {
+      if (request === viewerRequest.current) {
+        setMessage("The printable label could not be opened. Try again.");
+      }
+    } finally {
+      if (request === viewerRequest.current) setBusy(false);
+    }
+  }
+
+  function printLabel() {
+    if (!printReady) return;
+    previewRef.current?.contentWindow?.focus();
+    previewRef.current?.contentWindow?.print();
   }
 
   return (
@@ -121,9 +172,9 @@ export function MachineQrPanel({
                 className="secondary-button"
                 disabled={busy || !online}
                 type="button"
-                onClick={() => void download(activeLabel)}
+                onClick={() => void viewLabel(activeLabel)}
               >
-                Download / Print
+                View / Print
               </button>
               <button
                 className="secondary-button"
@@ -147,12 +198,35 @@ export function MachineQrPanel({
         <p className="empty-state">No active QR label.</p>
       )}
 
-      <div className="qr-label-history">
-        <h3>Label history</h3>
-        {history.length === 0 ? (
-          <p className="empty-state">No revoked labels.</p>
-        ) : (
-          history.map((label) => (
+      {viewer ? (
+        <section
+          aria-label="Printable Machine QR label"
+          className="qr-label-viewer"
+        >
+          <h3>Printable Machine QR label</h3>
+          <iframe
+            className="qr-label-preview"
+            onLoad={() => setPrintReady(true)}
+            ref={previewRef}
+            sandbox="allow-same-origin allow-modals"
+            src={viewer.url}
+            title="Printable Machine QR label preview"
+          />
+          <div className="row-actions">
+            <button disabled={!printReady} type="button" onClick={printLabel}>
+              Print label
+            </button>
+            <button className="secondary-button" type="button" onClick={closeViewer}>
+              Close
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {history.length > 0 ? (
+        <details className="qr-label-history">
+          <summary>Label history</summary>
+          {history.map((label) => (
             <article className="history-row" key={label.id}>
               <div className="section-heading-row">
                 <strong className="fallback-code">{label.fallbackCode}</strong>
@@ -163,9 +237,9 @@ export function MachineQrPanel({
                 {label.revokedAt?.slice(0, 10) ?? "date unavailable"}
               </small>
             </article>
-          ))
-        )}
-      </div>
+          ))}
+        </details>
+      ) : null}
     </section>
   );
 }

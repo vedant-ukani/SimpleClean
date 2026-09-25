@@ -1,7 +1,7 @@
 import {
   CATALOG_SPECIFICATION_ENRICHMENT_FIELDS,
   type CatalogDiscoveryResult,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { describe, expect, it } from "vitest";
 
 import { FakeCatalogDiscoveryProvider } from "../src/modules/catalog/discovery/fake-catalog-discovery.adapter.js";

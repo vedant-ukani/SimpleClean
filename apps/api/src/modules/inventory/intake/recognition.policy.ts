@@ -5,7 +5,7 @@ import type {
   IntakeSemanticResult,
   IntakeOcrResult,
   IntakeFieldDecision,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { normalizeIdentityMatchValue } from "../normalization.js";
 import type {
   IntakeAnalysisImage,

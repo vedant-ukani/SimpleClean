@@ -1,5 +1,5 @@
 import { PGlite } from "@electric-sql/pglite";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import { sql, type SQL } from "drizzle-orm";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import type { PgliteDatabase } from "drizzle-orm/pglite";

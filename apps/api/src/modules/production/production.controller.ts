@@ -46,6 +46,22 @@ export class ProductionController {
     );
   }
 
+  @Post("initial-check")
+  @RequirePermission("production.manage")
+  initialCheck(
+    @Req() request: Request,
+    @Param("machineId") machineId: string,
+    @Headers("idempotency-key") key: string | undefined,
+    @Body() body: unknown,
+  ) {
+    return this.production.initialCheck(
+      machineId,
+      body,
+      currentIdentityFromRequest(request),
+      this.context(request, key),
+    );
+  }
+
   @Post("inspections/:inspectionId/dispositions")
   @RequirePermission("production.disposition.approve")
   finalize(

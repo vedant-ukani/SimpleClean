@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import {
   missingCatalogSpecificationFields,
   normalizeCatalogIdentity,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   CatalogDiscoveryNoResultReason,
   CatalogDiscoveryOperation,
@@ -18,11 +18,11 @@ import type {
   CatalogSpecs,
   ResolveCatalogModelRequest,
   ResolveCatalogModelResponse,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql } from "drizzle-orm";
 import { createHash, randomUUID } from "node:crypto";
 

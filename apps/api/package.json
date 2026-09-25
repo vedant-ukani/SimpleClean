@@ -1,5 +1,5 @@
 {
-  "name": "@simply-clean/api",
+  "name": "@laundrorama/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "catalog:backfill": "tsx src/catalog-backfill.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run test/health.service.test.ts test/files.storage.test.ts test/import-download-header.test.ts test/inventory-normalization.test.ts test/import-parser.test.ts test/qr-label.test.ts test/intake-files.test.ts test/intake-heic-limits.test.ts test/recognition.providers.test.ts test/recognition.evaluation.test.ts test/intake-recognition-policy.test.ts test/catalog.test.ts test/catalog.discovery.test.ts test/catalog.coverage.test.ts test/catalog-backfill.test.ts",
-    "test:integration": "vitest run --no-file-parallelism --maxWorkers=1 --testTimeout=10000 --hookTimeout=10000 test/health.integration.test.ts test/identity.integration.test.ts test/inventory.integration.test.ts test/intake.integration.test.ts test/intake-recognition.integration.test.ts test/files.integration.test.ts test/operations.integration.test.ts test/imports.integration.test.ts test/qr-label.integration.test.ts test/catalog.integration.test.ts test/production.integration.test.ts"
+    "test:integration": "vitest run --no-file-parallelism --maxWorkers=1 --testTimeout=10000 --hookTimeout=10000 test/health.integration.test.ts test/identity.integration.test.ts test/inventory.integration.test.ts test/intake.integration.test.ts test/intake-recognition.integration.test.ts test/files.integration.test.ts test/operations.integration.test.ts test/imports.integration.test.ts test/qr-label.integration.test.ts test/catalog.integration.test.ts test/production.integration.test.ts test/test-work.integration.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
@@ -22,9 +22,9 @@
     "@nestjs/common": "^12.0.3",
     "@nestjs/core": "^12.0.3",
     "@nestjs/platform-express": "^12.0.3",
-    "@simply-clean/config": "*",
-    "@simply-clean/contracts": "*",
-    "@simply-clean/database": "*",
+    "@laundrorama/config": "*",
+    "@laundrorama/contracts": "*",
+    "@laundrorama/database": "*",
     "better-auth": "^1.7.5",
     "csv-parse": "^7.0.2",
     "csv-stringify": "^6.8.3",
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@nestjs/testing": "^12.0.3",
-    "@simply-clean/test-support": "*",
+    "@laundrorama/test-support": "*",
     "@types/express": "^5.0.3",
     "@types/multer": "^2.2.0",
     "@types/qrcode": "^1.5.6",

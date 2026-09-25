@@ -1,4 +1,4 @@
-import { parseWebServerEnvironment } from "@simply-clean/config";
+import { parseWebServerEnvironment } from "@laundrorama/config";
 import {
   IntakeBatchDetailSchema,
   IntakeBatchResponseSchema,
@@ -8,7 +8,7 @@ import {
   type IntakeBatchDetail,
   type IntakeCommitResponse,
   type IntakeRecognitionStatus,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 export class IntakeRequestError extends Error {
   readonly code: string | undefined;
@@ -307,18 +307,6 @@ export async function confirmIntakeCandidate(
       `/inventory/intake/${batchId}/candidates/${candidateId}/confirm`,
       { expectedVersion, acknowledgedWarningKinds },
     ),
-  );
-}
-export async function setIntakeDestination(
-  batchId: string,
-  locationId: string,
-  expectedVersion: number,
-): Promise<IntakeBatchDetail> {
-  return IntakeBatchDetailSchema.parse(
-    await browserMutation(`/inventory/intake/${batchId}/destination`, {
-      locationId,
-      expectedVersion,
-    }),
   );
 }
 export async function commitIntakeBatch(

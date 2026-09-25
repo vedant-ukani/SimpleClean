@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
 import { NestFactory } from "@nestjs/core";
-import { parseServerEnvironment } from "@simply-clean/config";
+import { parseServerEnvironment } from "@laundrorama/config";
 
 import { AppModule } from "./app.module.js";
 import { StructuredLogger } from "./platform/logging.js";

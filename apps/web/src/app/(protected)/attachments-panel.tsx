@@ -4,7 +4,7 @@ import type {
   FileAttachment,
   FilePurpose,
   FileTarget,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { useState, type FormEvent } from "react";
 
 import {
@@ -37,6 +37,9 @@ export function AttachmentsPanel({
   const [files, setFiles] = useServerState(initialFiles);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [purpose, setPurpose] = useState<FilePurpose>(
+    target.type === "machine" ? "nameplate" : "arrival_condition",
+  );
   const online = useOnlineStatus();
 
   async function upload(event: FormEvent<HTMLFormElement>) {
@@ -49,18 +52,17 @@ export function AttachmentsPanel({
     const form = new FormData(formElement);
     const selected = form.get("file");
     if (!(selected instanceof File) || selected.size === 0) {
-      setMessage("Choose a supported image or PDF.");
+      setMessage("Choose a supported file.");
       return;
     }
     setBusy(true);
     try {
-      const purpose = String(form.get("purpose")) as FilePurpose;
+      const selectedPurpose = String(form.get("purpose")) as FilePurpose;
       const granted = await createFileUploadGrant({
         target,
-        purpose,
+        purpose: selectedPurpose,
         originalFilename: selected.name,
-        declaredMediaType: selected.type as
-          "image/jpeg" | "image/png" | "image/webp" | "application/pdf",
+        declaredMediaType: selected.type as FileAttachment["declaredMediaType"],
         declaredByteCount: selected.size,
       });
       setFiles((current) => [granted.file, ...current]);
@@ -118,12 +120,22 @@ export function AttachmentsPanel({
         <form className="inline-form attachments-upload-row" onSubmit={upload}>
           <label>
             Purpose
-            <select name="purpose" required>
+            <select
+              name="purpose"
+              required
+              value={purpose}
+              onChange={(event) =>
+                setPurpose(event.currentTarget.value as FilePurpose)
+              }
+            >
               {target.type === "machine" ? (
                 <>
                   <option value="nameplate">Nameplate</option>
                   <option value="preliminary_inspection">
                     Preliminary inspection media
+                  </option>
+                  <option value="production_test_video">
+                    Production test video
                   </option>
                 </>
               ) : null}
@@ -138,7 +150,11 @@ export function AttachmentsPanel({
             <input
               name="file"
               type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
+              accept={
+                purpose === "production_test_video"
+                  ? "video/mp4,video/quicktime,video/webm"
+                  : "image/jpeg,image/png,image/webp,application/pdf"
+              }
               required
             />
           </label>

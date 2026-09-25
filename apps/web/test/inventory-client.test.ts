@@ -1,4 +1,4 @@
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -22,9 +22,6 @@ const machine = {
   fuel: null,
   sourceLoadId: "f13fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
   sourceLoadDisplayName: "Expected Load",
-  currentLocationId: null,
-  currentLocationCode: null,
-  currentLocationName: null,
   identityVerificationState: "provisional",
   conflictingMachineId: null,
   inventoryState: "expected",
@@ -42,7 +39,6 @@ describe("inventory client", () => {
       machine,
       identityEvidence: [],
       verificationHistory: [],
-      locationHistory: [],
     };
     const fetcher = vi
       .fn<typeof fetch>()
@@ -63,7 +59,6 @@ describe("inventory client", () => {
       machine,
       identityEvidence: [],
       verificationHistory: [],
-      locationHistory: [],
     };
     const fetcher = vi
       .fn<typeof fetch>()
@@ -137,7 +132,6 @@ describe("inventory client", () => {
           machine,
           identityEvidence: [],
           verificationHistory: [],
-          locationHistory: [],
         }),
         { status: 200 },
       ),
@@ -162,7 +156,7 @@ describe("inventory client", () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(
         JSON.stringify({
-          machines: [{ ...machine, productionState: "testing" }],
+          machines: [{ ...machine, productionState: "qa_released" }],
           page: 1,
           pageSize: 25,
           total: 1,

@@ -1,5 +1,5 @@
 {
-  "name": "@simply-clean/database",
+  "name": "@laundrorama/database",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,15 +14,15 @@
     "migrate": "node dist/migrate.js",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run test/database.test.ts",
-    "test:integration": "vitest run test/database.integration.test.ts"
+    "test:integration": "vitest run test/database.integration.test.ts test/production-test.integration.test.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
-    "@simply-clean/config": "*",
+    "@laundrorama/config": "*",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.7"
   },
   "devDependencies": {
-    "@simply-clean/test-support": "*"
+    "@laundrorama/test-support": "*"
   }
 }

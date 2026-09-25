@@ -1,6 +1,6 @@
 # Learning mission
 
-Understand enough about OCR deployment to choose, configure, and evaluate the independent OCR verifier for Simple Clean INT-02.
+Understand enough about OCR deployment to choose, configure, and evaluate the independent OCR verifier for Laundrorama INT-02.
 
 Success means we can:
 

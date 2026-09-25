@@ -27,8 +27,8 @@ import {
   type CatalogSpecificationEnrichmentField,
   type ResolveCatalogModelRequest,
   type ResolveCatalogModelResponse,
-} from "@simply-clean/contracts";
-import type { ServerConfig } from "@simply-clean/config";
+} from "@laundrorama/contracts";
+import type { ServerConfig } from "@laundrorama/config";
 import { createHash } from "node:crypto";
 
 import {

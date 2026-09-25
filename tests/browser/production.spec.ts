@@ -11,75 +11,37 @@ async function signIn(page: Page, email: string, password: string) {
   ).toBeVisible();
 }
 
-test("Warehouse inspection and Owner parts disposition retain private evidence and separate states", async ({
+test("Owner review of a bearing concern retains inspection history and separate states", async ({
   page,
 }, testInfo) => {
   const serial = `PRODUCTION-${testInfo.project.name}`;
   await signIn(
     page,
-    "warehouse.browser@example.test",
-    "warehouse-browser-password",
+    "owner.browser@example.test",
+    "owner-browser-password",
   );
   await page.goto(`/machines?query=${encodeURIComponent(serial)}`);
-  await expect(
-    page.getByText(`Serial: ${serial}`, { exact: true }),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "View Machine" }).click();
+  const machineRow = page.getByRole("link", {
+    name: new RegExp(`Open Machine details for .*serial ${serial}`),
+  });
+  await expect(machineRow).toBeVisible();
+  await machineRow.click();
   await expect(
     page.getByRole("heading", { name: "Preliminary inspection" }),
   ).toBeVisible();
   const machineUrl = page.url();
   const panel = page.locator(".preliminary-inspection");
-  await page.getByLabel("Purpose").selectOption("preliminary_inspection");
-  await page.getByLabel("Private file").setInputFiles({
-    name: "bearing.jpg",
-    mimeType: "image/jpeg",
-    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
-  });
-  await page.getByRole("button", { name: "Upload attachment" }).click();
-  await expect(
-    panel.getByRole("checkbox", { name: "bearing.jpg" }),
-  ).toBeVisible();
-  await panel.getByLabel("Condition observed").fill("Drum turns by hand");
-  await panel.getByLabel("Bearing assessment").selectOption("concern_observed");
-  await panel.getByLabel("Bearing notes").fill("Audible bearing noise");
-  await panel.getByLabel("Missing parts").fill("Coin box key");
-  await panel.getByLabel("Damage").fill("Dented side");
-  await panel
-    .getByLabel("Recommendation", { exact: true })
-    .selectOption("parts_only");
-  await panel
-    .getByLabel("Reason for recommendation")
-    .fill("Owner economic review needed");
-  await panel.getByRole("checkbox", { name: "bearing.jpg" }).check();
-  await panel.getByRole("button", { name: "Record inspection" }).click();
+  await panel.getByRole("link", { name: "Open initial check" }).click();
+  await expect(page.getByRole("heading", { name: "Check the bearing" })).toBeVisible();
+  await page.getByRole("button", { name: /Bearing noise or movement detected/ }).click();
+  await page.goto(machineUrl);
   await expect(
     panel.getByText(/Current disposition: Owner review/),
   ).toBeVisible();
   await expect(page.getByText("On hand", { exact: true })).toBeVisible();
   await expect(page.getByText("Blocked", { exact: true })).toBeVisible();
-  await expect(panel.getByText("Drum turns by hand")).toBeVisible();
-  await expect(
-    panel.getByRole("button", { name: "bearing.jpg" }),
-  ).toBeVisible();
-  await expect(
-    panel.getByRole("button", { name: "Record Owner decision" }),
-  ).toHaveCount(0);
-
-  const menu = page.getByRole("button", { name: "Menu" });
-  if (
-    (await menu.isVisible()) &&
-    !(await page
-      .getByRole("button", { name: "Switch user / sign out" })
-      .isVisible())
-  )
-    await menu.click();
-  await page.getByRole("button", { name: "Switch user / sign out" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Staff sign in" }),
-  ).toBeVisible();
-  await signIn(page, "owner.browser@example.test", "owner-browser-password");
-  await page.goto(machineUrl);
+  await panel.getByText("Inspection and decision history").click();
+  await expect(panel.getByText(/Bearing noise or movement detected during drum check/)).toBeVisible();
   await expect(
     panel.getByRole("button", { name: "Record Owner decision" }),
   ).toBeVisible();
@@ -92,13 +54,9 @@ test("Warehouse inspection and Owner parts disposition retain private evidence a
   await expect(page.getByText("Scrapped", { exact: true })).toBeVisible();
   await expect(page.getByText("Blocked", { exact: true })).toBeVisible();
   await page.reload();
+  await panel.getByText("Inspection and decision history").click();
   await expect(panel.getByText("Approved for donor parts")).toBeVisible();
-  await expect(
-    panel.getByText("Owner economic review needed").first(),
-  ).toBeVisible();
-  await expect(
-    panel.getByRole("button", { name: "bearing.jpg" }),
-  ).toBeVisible();
+  await expect(panel.getByText(/Bearing concern requires Owner review/).first()).toBeVisible();
   await expect(
     panel.getByText(/Current disposition: Parts only/),
   ).toBeVisible();

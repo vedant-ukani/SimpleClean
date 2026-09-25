@@ -1,4 +1,4 @@
-import type { CatalogSeedManifest } from "@simply-clean/contracts";
+import type { CatalogSeedManifest } from "@laundrorama/contracts";
 
 export function catalogImportSummary(
   manifests: readonly CatalogSeedManifest[],

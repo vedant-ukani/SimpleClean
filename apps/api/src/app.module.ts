@@ -6,7 +6,7 @@ import {
   type NestModule,
 } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import { json, urlencoded } from "express";
 
 import { AuthHandlerMiddleware } from "./modules/identity/auth.middleware.js";

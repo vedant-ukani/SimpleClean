@@ -8,6 +8,8 @@ export const FILE_PURPOSES = [
   "other",
   "intake_evidence",
   "preliminary_inspection",
+  "production_test_evidence",
+  "production_test_video",
 ] as const;
 export const FILE_STATES = [
   "pending_upload",
@@ -22,6 +24,9 @@ export const FILE_MEDIA_TYPES = [
   "image/heic",
   "image/heif",
   "application/pdf",
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
 ] as const;
 export const FILE_TARGET_TYPES = ["machine", "load"] as const;
 

@@ -1,9 +1,9 @@
 import "reflect-metadata";
 
 import { NestFactory } from "@nestjs/core";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { randomUUID } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,10 +18,11 @@ import { IdentityService } from "../../apps/api/src/modules/identity/identity.se
 import { InventoryService } from "../../apps/api/src/modules/inventory/inventory.service.js";
 import { OperationsWorker } from "../../apps/api/src/modules/operations/operations.worker.js";
 import { QrLabelService } from "../../apps/api/src/modules/inventory/qr/qr-label.service.js";
+import { ProductionService } from "../../apps/api/src/modules/production/production.service.js";
 import { DATABASE_CONNECTION } from "../../apps/api/src/platform/database.module.js";
 
 const apiOrigin = "http://localhost:3101";
-const webOrigin = "http://localhost:3100";
+const webOrigin = process.env.BROWSER_WEB_ORIGIN ?? "http://localhost:3100";
 const people = [
   {
     name: "Browser Owner",
@@ -44,7 +45,7 @@ const people = [
 ];
 
 async function main(): Promise<void> {
-  const sandboxDirectory = mkdtempSync(join(tmpdir(), "simply-clean-browser-"));
+  const sandboxDirectory = mkdtempSync(join(tmpdir(), "laundrorama-browser-"));
   const config = parseServerEnvironment(
     createTestEnvironment({
       API_PORT: "3101",
@@ -122,6 +123,7 @@ async function main(): Promise<void> {
   const identity = application.get(IdentityService);
   const inventory = application.get(InventoryService);
   const qr = application.get(QrLabelService);
+  const production = application.get(ProductionService);
   const provisioned = new Map<
     (typeof people)[number]["role"],
     Awaited<ReturnType<IdentityService["provisionUser"]>>
@@ -140,6 +142,10 @@ async function main(): Promise<void> {
   if (!owner || !warehouse) {
     throw new Error("Browser users were not provisioned");
   }
+  for (const person of [
+    { name: "Browser Washer Tech", email: "washer.browser@example.test", password: "washer-browser-password", role: "technician_cleaner" as const },
+    { name: "Browser Dryer Tech", email: "dryer.browser@example.test", password: "dryer-browser-password", role: "technician_cleaner" as const },
+  ]) await identity.provisionUser(person, { requestId: `browser-provision-${person.name}` });
 
   const ownerContext = {
     actorUserId: owner.id,
@@ -154,19 +160,6 @@ async function main(): Promise<void> {
     },
     ownerContext,
   );
-  const receiving = await inventory.createLocation(
-    { code: "E2E-REC", name: "Browser receiving" },
-    { ...ownerContext, idempotencyKey: randomUUID() },
-  );
-  await inventory.createLocation(
-    { code: "E2E-STORAGE", name: "Browser storage" },
-    { ...ownerContext, idempotencyKey: randomUUID() },
-  );
-  await inventory.createLocation(
-    { code: "E2E-OFFLINE", name: "Browser reconnect destination" },
-    { ...ownerContext, idempotencyKey: randomUUID() },
-  );
-
   const warehouseContext = {
     actorUserId: warehouse.id,
     requestId: "browser-seed-warehouse",
@@ -195,11 +188,6 @@ async function main(): Promise<void> {
     { expectedVersion: machine.version },
     warehouseContext,
   );
-  machine = await inventory.relocateMachine(
-    machine.id,
-    { toLocationId: receiving.id, expectedVersion: machine.version },
-    warehouseContext,
-  );
   for (const project of [
     "desktop-chromium",
     "tablet-chromium",
@@ -216,6 +204,35 @@ async function main(): Promise<void> {
       },
       { ...warehouseContext, idempotencyKey: randomUUID() },
     );
+    for (const [machineType, serial] of [
+      ["washer", `INITIAL-WASHER-${project}`],
+      ["dryer", `INITIAL-EXCEPTION-${project}`],
+    ] as const) {
+      const unassessed = await inventory.createMachine({
+        machineType, sourceLoadId: load.id, inventoryState: "on_hand",
+        manufacturer: "Dexter", model: machineType === "washer" ? "W-Initial" : "D-Exception", serial,
+      }, { ...warehouseContext, idempotencyKey: randomUUID() });
+      await qr.create(unassessed.id, {}, {
+        actorUserId: warehouse.id, role: "warehouse", requestId: `browser-initial-qr-${project}-${machineType}`,
+        idempotencyKey: randomUUID(),
+      });
+    }
+    for (const machineType of ["washer", "dryer"] as const) {
+      const ready = await inventory.createMachine({
+        machineType, sourceLoadId: load.id, inventoryState: "on_hand",
+        manufacturer: "Dexter", model: machineType === "washer" ? "W-Test" : "D-Test",
+        serial: `TEST-${machineType.toUpperCase()}-${project}`,
+      }, { ...warehouseContext, idempotencyKey: randomUUID() });
+      await production.create(ready.id, {
+        expectedMachineVersion: ready.version, condition: "Ready for full test",
+        bearingAssessment: "no_concern_observed", bearingNotes: "", missingParts: "", damage: "",
+        recommendation: "repairable", reason: "Browser test fixture", evidenceFileIds: [],
+      }, owner, { requestId: `browser-test-${project}-${machineType}`, idempotencyKey: randomUUID() });
+      await qr.create(ready.id, {}, {
+        actorUserId: warehouse.id, role: "warehouse", requestId: `browser-test-qr-${project}-${machineType}`,
+        idempotencyKey: randomUUID(),
+      });
+    }
   }
   await qr.create(
     machine.id,

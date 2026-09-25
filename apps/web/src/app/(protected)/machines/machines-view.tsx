@@ -1,160 +1,146 @@
 "use client";
 
-import type {
-  AcquisitionLoad,
-  InventoryLocation,
-  MachineSearchResponse,
-  Machine as MachineRecord,
-} from "@simply-clean/contracts";
+import type { MachineSearchResponse } from "@laundrorama/contracts";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
 
-import { createMachine } from "../../../lib/inventory-client";
 import { useOnlineStatus } from "../online-status";
 import { useServerState } from "../use-server-state";
-import { MachineIdentityStatus, recorded } from "./machine-labels";
+import { recorded } from "./machine-labels";
+
+function pageHref(page: number, query: string): string {
+  const params = new URLSearchParams();
+  if (query) params.set("query", query);
+  if (page > 1) params.set("page", String(page));
+  const suffix = params.toString();
+  return suffix ? `/machines?${suffix}` : "/machines";
+}
 
 export function MachinesView({
   initialResults,
-  loads,
-  locations,
-  canManage,
-  canRelocate,
   initialQuery,
 }: Readonly<{
   initialResults: MachineSearchResponse;
-  loads: AcquisitionLoad[];
-  locations: InventoryLocation[];
-  canManage: boolean;
-  canRelocate: boolean;
   initialQuery: string;
 }>) {
-  const [machines, setMachines] = useServerState(initialResults.machines);
-  const [message, setMessage] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [machines] = useServerState(initialResults.machines);
   const online = useOnlineStatus();
-
-  async function create(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!online) {
-      setMessage("Reconnect before creating a Machine.");
-      return;
-    }
-    setBusy(true);
-    const form = new FormData(event.currentTarget);
-    try {
-      const locationId = String(form.get("currentLocationId") ?? "");
-      const machine = await createMachine({
-        machineType: String(
-          form.get("machineType") ?? "",
-        ) as MachineRecord["machineType"],
-        sourceLoadId: String(form.get("sourceLoadId") ?? ""),
-        currentLocationId: locationId || null,
-        sourceKind: "manual",
-        inventoryState: "expected",
-      });
-      setMachines((current) => [machine, ...current]);
-      setMessage("Provisional Machine created with an immutable ID.");
-    } catch {
-      setMessage("The Machine could not be created. Check the Load and retry.");
-    } finally {
-      setBusy(false);
-    }
-  }
+  const totalPages = Math.max(
+    1,
+    Math.ceil(initialResults.total / initialResults.pageSize),
+  );
 
   return (
     <div className="inventory-stack">
-      <section className="panel">
-        <form className="search-form" method="get">
-          <label>
-            Search by ID, manufacturer, model, serial, Load, or Location
-            <input name="query" defaultValue={initialQuery} maxLength={160} />
-          </label>
-          <button type="submit" disabled={!online}>
-            Search
-          </button>
+      <section className="panel machines-search-panel">
+        <form className="machines-search-form" method="get">
+          <label htmlFor="machine-query">Search Machines</label>
+          <div className="machines-search-controls">
+            <input
+              id="machine-query"
+              name="query"
+              type="search"
+              placeholder="ID, manufacturer, model, serial, or load"
+              defaultValue={initialQuery}
+              maxLength={160}
+            />
+            <button type="submit" disabled={!online}>
+              Search
+            </button>
+          </div>
         </form>
       </section>
-      {canManage ? (
-        <section className="panel">
-          <h2>Create provisional Machine</h2>
-          {loads.length === 0 ? (
-            <p className="empty-state">
-              Create a Load before creating a Machine.
-            </p>
-          ) : (
-            <form className="inline-form" onSubmit={create}>
-              <label>
-                Type
-                <select name="machineType">
-                  <option value="washer">Washer</option>
-                  <option value="dryer">Dryer</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
-              <label>
-                Source Load
-                <select name="sourceLoadId">
-                  {loads.map((load) => (
-                    <option key={load.id} value={load.id}>
-                      {load.displayName}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {canRelocate ? (
-                <label>
-                  Initial Location
-                  <select name="currentLocationId">
-                    <option value="">Not assigned</option>
-                    {locations
-                      .filter((location) => location.active)
-                      .map((location) => (
-                        <option key={location.id} value={location.id}>
-                          {location.code} — {location.name}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              ) : null}
-              <button type="submit" disabled={busy || !online}>
-                {busy ? "Creating…" : "Create Machine"}
-              </button>
-            </form>
-          )}
-        </section>
-      ) : null}
-      <section className="panel inventory-list">
-        <h2>
+      <section
+        className="panel machines-results-panel"
+        aria-labelledby="machines-results-heading"
+      >
+        <h2 className="sr-only" id="machines-results-heading">
           {initialResults.total} Machine{initialResults.total === 1 ? "" : "s"}
         </h2>
-        {message ? (
-          <p className="form-message" role="status">
-            {message}
-          </p>
-        ) : null}
         {machines.length === 0 ? (
           <p className="empty-state">No Machines match this search.</p>
-        ) : null}
-        {machines.map((machine) => (
-          <article className="inventory-row" key={machine.id}>
-            <div>
-              <strong>
-                {recorded(machine.manufacturer)} {recorded(machine.model)}
-              </strong>
-              <span>Serial: {recorded(machine.serial)}</span>
-              <small>
-                {machine.currentLocationCode ?? "Location not assigned"} ·{" "}
-                {machine.machineType} ·{" "}
-                {machine.capacityLb == null
-                  ? "Capacity unknown"
-                  : `${machine.capacityLb} lb`}
-              </small>
-              <MachineIdentityStatus machine={machine} />
+        ) : (
+          <div className="machines-results">
+            <div className="machines-results-header" aria-hidden="true">
+              <span>Machine</span>
+              <span>Serial</span>
+              <span>Model Number</span>
+              <span>Type / Capacity</span>
+              <span />
             </div>
-            <Link href={`/machines/${machine.id}`}>View Machine</Link>
-          </article>
-        ))}
+            <ul className="machines-results-list">
+              {machines.map((machine) => {
+                const name = `${recorded(machine.manufacturer)} ${recorded(machine.model)}`;
+                const serial = recorded(machine.serial);
+                const modelNumber = recorded(machine.model);
+                const type =
+                  machine.machineType === "washer"
+                    ? "Washer"
+                    : machine.machineType === "dryer"
+                      ? "Dryer"
+                      : "Other";
+                const typeAndCapacity =
+                  machine.capacityLb == null
+                    ? type
+                    : `${type} · ${machine.capacityLb} lb`;
+
+                return (
+                  <li key={machine.id}>
+                    <Link
+                      className="machines-results-row"
+                      href={`/machines/${machine.id}`}
+                      aria-label={`Open Machine details for ${name}, serial ${serial}, model number ${modelNumber}, ${typeAndCapacity}`}
+                    >
+                      <strong className="machines-result-name">{name}</strong>
+                      <span className="machines-result-serial">
+                        <span className="machines-result-mobile-label">
+                          Serial:{" "}
+                        </span>
+                        {serial}
+                      </span>
+                      <span className="machines-result-model">
+                        <span className="machines-result-mobile-label">
+                          Model Number:{" "}
+                        </span>
+                        {modelNumber}
+                      </span>
+                      <span className="machines-result-type">
+                        <span className="machines-result-mobile-label">
+                          Type / Capacity:{" "}
+                        </span>
+                        {typeAndCapacity}
+                      </span>
+                      <ChevronRight
+                        className="machines-result-chevron"
+                        size={20}
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        {totalPages > 1 ? (
+          <nav className="pagination" aria-label="Machines pagination">
+            {initialResults.page > 1 ? (
+              <Link href={pageHref(initialResults.page - 1, initialQuery)}>
+                Previous page
+              </Link>
+            ) : (
+              <span aria-hidden="true" />
+            )}
+            <span>
+              Page {initialResults.page} of {totalPages}
+            </span>
+            {initialResults.page < totalPages ? (
+              <Link href={pageHref(initialResults.page + 1, initialQuery)}>
+                Next page
+              </Link>
+            ) : null}
+          </nav>
+        ) : null}
       </section>
     </div>
   );

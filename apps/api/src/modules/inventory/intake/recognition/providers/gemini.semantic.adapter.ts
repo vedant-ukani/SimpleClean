@@ -1,4 +1,4 @@
-import type { IntakeSemanticResult } from "@simply-clean/contracts";
+import type { IntakeSemanticResult } from "@laundrorama/contracts";
 
 import type {
   IntakeAnalysisImage,

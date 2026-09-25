@@ -7,8 +7,8 @@ import {
   NotFoundException,
   type OnModuleInit,
 } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
+import type { ServerConfig } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
 import {
   IntakeRecognitionStatusSchema,
   IntakeRecognitionAttemptMetricSchema,
@@ -21,7 +21,7 @@ import {
   type IntakeOcrResult,
   type IntakeSemanticResult,
   type IntakeRecognitionAttemptMetric,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { SERVER_CONFIG } from "../../../platform/logging.js";
 import { DATABASE_CONNECTION } from "../../../platform/database.module.js";
 import {

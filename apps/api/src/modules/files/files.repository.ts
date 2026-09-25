@@ -1,15 +1,15 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { FileAttachmentSchema } from "@simply-clean/contracts";
+import { FileAttachmentSchema } from "@laundrorama/contracts";
 import type {
   CreateFileUploadGrantRequest,
   FileAttachment,
   FileMediaType,
   FileTarget,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
@@ -118,6 +118,41 @@ export class FilesRepository {
     @Inject(MUTATION_RECORDER)
     private readonly mutationRecorder: MutationRecorder,
   ) {}
+
+  async findProductionTestEvidence(
+    database: DatabaseExecutor,
+    fileIds: readonly string[],
+    machineId: string,
+  ): Promise<FileAttachment[]> {
+    if (!fileIds.length) return [];
+    const result = await database.execute(sql`
+      select * from file_attachment
+      where purpose = 'production_test_evidence' and state = 'ready'
+        and machine_id = ${machineId}
+        and id in (${sql.join(
+          fileIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})
+    `);
+    return rows(result).map((row) =>
+      FileAttachmentSchema.parse(fileFromRow(row)),
+    );
+  }
+
+  async findProductionTestVideo(
+    database: DatabaseExecutor,
+    fileId: string,
+    machineId: string,
+  ): Promise<PrivateFileAttachment | undefined> {
+    const result = await database.execute(sql`
+      select * from file_attachment
+      where id = ${fileId} and machine_id = ${machineId}
+        and purpose = 'production_test_video' and state = 'ready'
+        and byte_count > 0 and sha256 is not null
+    `);
+    const row = rows(result)[0];
+    return row ? fileFromRow(row) : undefined;
+  }
 
   async findPreliminaryEvidence(
     database: DatabaseExecutor,

@@ -17,7 +17,6 @@ import {
   RemoveIntakePhotoRequestSchema,
   IntakeBatchDetailSchema,
   LinkIntakePhotoRequestSchema,
-  SetIntakeDestinationRequestSchema,
   UpdateIntakeCandidateRequestSchema,
   PrepareIntakeItemRequestSchema,
   ChangeIntakeCandidateTypeRequestSchema,
@@ -30,10 +29,10 @@ import {
   type IntakeBatch,
   type IntakeBatchDetail,
   type Machine,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { IntakeRepository } from "./intake.repository.js";
 import type { InventoryActorContext } from "../inventory.repository.js";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import { SERVER_CONFIG } from "../../../platform/logging.js";
 import {
   CATALOG_OPERATIONS,
@@ -369,26 +368,6 @@ export class IntakeService {
       throw this.map(error);
     }
   }
-  async setDestination(
-    rawId: string,
-    rawInput: unknown,
-    identity: IdentityUser,
-    context: InventoryActorContext,
-  ): Promise<IntakeBatchDetail> {
-    this.manage(identity);
-    this.requireKey(context);
-    const input = this.parse(SetIntakeDestinationRequestSchema, rawInput);
-    try {
-      return await this.repository.setDestination(
-        this.id(rawId),
-        input.locationId,
-        input.expectedVersion,
-        context,
-      );
-    } catch (error) {
-      throw this.map(error);
-    }
-  }
   async commit(
     rawId: string,
     rawInput: unknown,
@@ -463,6 +442,7 @@ export class IntakeService {
       code.includes("ALREADY_LINKED") ||
       code.includes("EXACT_IDENTITY") ||
       code.includes("BATCH_COMMITTED") ||
+      code.includes("LOAD_RECEIVED") ||
       code.includes("DESTINATION_LOCKED") ||
       code.includes("CANDIDATE_COMMITTED")
     )
@@ -488,6 +468,7 @@ export class IntakeService {
       INTAKE_BATCH_NOT_FOUND: "batch_not_found",
       INTAKE_BATCH_COMMITTED: "batch_committed",
       INTAKE_LOAD_NOT_FOUND: "batch_not_found",
+      INTAKE_LOAD_RECEIVED: "load_received",
       INTAKE_FILE_INVALID: "file_invalid",
       INTAKE_FILE_ALREADY_LINKED: "file_already_linked",
       INTAKE_PHOTO_LIMIT: "photo_limit",
@@ -501,9 +482,6 @@ export class IntakeService {
       INTAKE_PHOTO_REQUIRED: "photo_required",
       INTAKE_MACHINE_TYPE_REQUIRED: "machine_type_required",
       INTAKE_PHOTO_NOT_ACCOUNTED: "photo_not_accounted_for",
-      INTAKE_DESTINATION_REQUIRED: "destination_required",
-      INTAKE_DESTINATION_INVALID: "destination_inactive",
-      INTAKE_DESTINATION_LOCKED: "destination_locked",
       INTAKE_EXACT_IDENTITY_MATCH: "exact_identity_match",
       INTAKE_WARNING_ACK_REQUIRED: "warning_acknowledgement_required",
       INTAKE_VERSION_CONFLICT: "version_conflict",

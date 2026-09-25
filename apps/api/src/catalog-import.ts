@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
-import { parseServerEnvironment } from "@simply-clean/config";
+import { parseServerEnvironment } from "@laundrorama/config";
 import { readFile } from "node:fs/promises";
 import { AppModule } from "./app.module.js";
 import { CatalogService } from "./modules/catalog/catalog.service.js";
 import { CANONICAL_CATALOG_DATASET_FILES } from "./modules/catalog/catalog.coverage.js";
 import { catalogImportSummary } from "./catalog-import-summary.js";
-import type { CatalogSeedManifest } from "@simply-clean/contracts";
+import type { CatalogSeedManifest } from "@laundrorama/contracts";
 
 async function main() {
   const explicitPaths = process.argv.slice(2);

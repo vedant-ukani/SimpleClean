@@ -24,6 +24,7 @@ describe("role-aware identity UI", () => {
       "/loads",
       "/machines",
       "/scan",
+      "/work",
       "/catalog",
     ]);
     expect(ownerNavigation.map((item) => item.icon)).toEqual([
@@ -32,6 +33,7 @@ describe("role-aware identity UI", () => {
       "loads",
       "machines",
       "scan",
+      "work",
       "catalog",
     ]);
     expect(ownerNavigation.map((item) => item.category)).toEqual([
@@ -41,17 +43,25 @@ describe("role-aware identity UI", () => {
       "workspace",
       "workspace",
       "workspace",
+      "workspace",
     ]);
+    expect(ownerNavigation.find((item) => item.href === "/work")?.label).toBe(
+      "Production Work",
+    );
+    expect(
+      navigationForRole("technician_cleaner").find(
+        (item) => item.href === "/work",
+      )?.label,
+    ).toBe("My Work");
     expect(navigationForRole("warehouse").map((item) => item.href)).toEqual([
       "/",
       "/loads",
       "/machines",
       "/scan",
-      "/catalog",
     ]);
     expect(
       navigationForRole("technician_cleaner").map((item) => item.href),
-    ).toEqual(["/", "/machines", "/scan", "/catalog"]);
+    ).toEqual(["/", "/machines", "/scan", "/work"]);
     expect(canManageUsers("owner_admin")).toBe(true);
     expect(canManageUsers("warehouse")).toBe(false);
     expect(canManageQrLabels("owner_admin")).toBe(true);
@@ -65,6 +75,7 @@ describe("role-aware identity UI", () => {
       "Loads",
       "Machines",
       "Team",
+      "Production Work",
     ]);
     expect(ownerDashboard.every((item) => item.icon && item.category)).toBe(
       true,
@@ -76,7 +87,7 @@ describe("role-aware identity UI", () => {
     ]);
     expect(
       dashboardForRole("technician_cleaner").map((item) => item.label),
-    ).toEqual(["Machine Search", "Scan"]);
+    ).toEqual(["My Work", "Machine Search", "Scan"]);
   });
 
   it("marks only the current navigation destination", () => {

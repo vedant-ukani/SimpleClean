@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { randomUUID } from "node:crypto";
 
 const accounts = {
   owner: {
@@ -97,7 +98,7 @@ async function expectNoSeriousAccessibilityViolations(page: Page) {
   expect(blocking).toEqual([]);
 }
 
-test("warehouse follows the real load, machine, file, scan, and relocation boundaries", async ({
+test("warehouse follows the real load, machine, file, and scan boundaries", async ({
   page,
 }) => {
   await signIn(page, accounts.warehouse);
@@ -165,17 +166,62 @@ test("warehouse follows the real load, machine, file, scan, and relocation bound
 
   await page.getByRole("link", { name: "Machines", exact: true }).click();
   await expectViewportSizedSidebar(page);
-  await page
-    .getByLabel("Search by ID, manufacturer, model, serial, Load, or Location")
-    .fill("BROWSER-SERIAL-001");
-  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(
-    page.getByText("Serial: BROWSER-SERIAL-001", { exact: true }),
+    page.getByRole("heading", { name: "Create provisional Machine" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Create Machine" }),
+  ).toHaveCount(0);
+  await page.getByLabel("Search Machines").fill("BROWSER-SERIAL-001");
+  await expect(
+    page.getByPlaceholder("ID, manufacturer, model, serial, or load"),
   ).toBeVisible();
-  await page.getByRole("link", { name: "View Machine" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await expect(page.getByRole("region", { name: "1 Machine" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1 Machine" })).toHaveClass(
+    "sr-only",
+  );
+  const machineRow = page.getByRole("link", {
+    name: /Open Machine details for .*serial BROWSER-SERIAL-001/,
+  });
+  await expect(machineRow).toBeVisible();
+  await expect(machineRow).toContainText("BROWSER-SERIAL-001");
+  await expect(machineRow).toContainText("SC30");
+  await expect(machineRow).not.toContainText("Location");
+  await expect(machineRow).toContainText("Washer");
+  if ((await page.evaluate(() => window.innerWidth)) > 900) {
+    const header = page.locator(".machines-results-header");
+    await expect(header).toBeVisible();
+    for (const label of [
+      "Machine",
+      "Serial",
+      "Model Number",
+      "Type / Capacity",
+    ]) {
+      await expect(header).toContainText(label);
+    }
+  }
+  await expect(page.getByRole("link", { name: "View Machine" })).toHaveCount(0);
+  await expect(
+    page.getByText("Identity confirmed", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Identity needs confirmation"),
+  ).toHaveCount(0);
+  await machineRow.click();
+  await expect(
+    page.getByText("Identity confirmed", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Attachments" }),
   ).toBeVisible();
+  await expect(page.getByText("Location", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Relocate Machine" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Location history" }),
+  ).toHaveCount(0);
   await expect(
     page.getByText("No attachments yet.", { exact: true }),
   ).toBeVisible();
@@ -200,16 +246,8 @@ test("warehouse follows the real load, machine, file, scan, and relocation bound
   await page.getByLabel("Enter fallback code").fill(fallbackCode ?? "");
   await page.getByRole("button", { name: "Look up Machine" }).click();
   await expect(page.getByText("Machine found", { exact: true })).toBeVisible();
+  await expect(page.getByText("Location", { exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "Open Machine details" }).click();
-
-  await page
-    .getByLabel("Active destination")
-    .selectOption({ label: "E2E-STORAGE — Browser storage" });
-  await page.getByRole("button", { name: "Record relocation" }).click();
-  await expect(page.getByRole("status")).toContainText("Location updated");
-  await expect(
-    page.getByRole("definition").filter({ hasText: "E2E-STORAGE" }),
-  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
 
@@ -226,7 +264,7 @@ test("technician can read equipment and files but cannot cross management bounda
     technicianDashboard.getByRole("link", { name: /^Scan/ }),
   ).toBeVisible();
   await expect(
-    page.getByText("Not enabled yet", { exact: true }),
+    technicianDashboard.getByRole("link", { name: /^My Work/ }),
   ).toBeVisible();
   await expect(
     technicianDashboard.getByRole("link", { name: /^Expected Loads/ }),
@@ -260,11 +298,21 @@ test("technician can read equipment and files but cannot cross management bounda
 
   const forbidden = await page.request.get("/api/inventory/loads");
   expect(forbidden.status()).toBe(403);
-  const readableLocations = await page.request.get("/api/inventory/locations");
-  expect(readableLocations.status()).toBe(200);
+  const removedLocations = await page.request.get("/api/inventory/locations");
+  expect(removedLocations.status()).toBe(404);
 
   await page.goto("/machines?query=BROWSER-SERIAL-001");
-  await page.getByRole("link", { name: "View Machine" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Create provisional Machine" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Create Machine" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("link", {
+      name: /Open Machine details for .*serial BROWSER-SERIAL-001/,
+    })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Attachments" }),
   ).toBeVisible();
@@ -310,6 +358,18 @@ test("owner sees the retained staff surface and sign-out removes protected acces
       primary.getByRole("link", { name: removedDestination, exact: true }),
     ).toHaveCount(0);
   }
+  await page.goto("/machines?query=BROWSER-SERIAL-001");
+  await expect(
+    page.getByRole("heading", { name: "Create provisional Machine" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Create Machine" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", {
+      name: /Open Machine details for .*serial BROWSER-SERIAL-001/,
+    }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Switch user / sign out" }).click();
   await expect(
     page.getByRole("heading", { name: "Staff sign in" }),
@@ -359,26 +419,32 @@ test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts u
   await expect(primaryNavigation).toBeVisible();
   await expect(page.getByRole("main")).toBeVisible();
 
-  await page.goto("/machines?query=BROWSER-SERIAL-001");
-  await page.getByRole("link", { name: "View Machine" }).click();
-  const locationValue = page
-    .locator("dt", { hasText: "Location" })
-    .locator("..")
-    .locator("dd");
-  const startingLocation = (await locationValue.textContent())?.trim();
-  const destination =
-    startingLocation === "E2E-OFFLINE"
-      ? {
-          code: "E2E-STORAGE",
-          label: "E2E-STORAGE — Browser storage",
-        }
-      : {
-          code: "E2E-OFFLINE",
-          label: "E2E-OFFLINE — Browser reconnect destination",
-        };
+  const loadResponse = await page.request.get("/api/inventory/loads");
+  expect(loadResponse.status()).toBe(200);
+  const load = (await loadResponse.json()) as { loads: { id: string }[] };
+  const loadId = load.loads[0]?.id;
+  expect(loadId).toBeTruthy();
+  const machineResponse = await page.request.post("/api/inventory/machines", {
+    headers: { "Idempotency-Key": randomUUID() },
+    data: {
+      machineType: "other",
+      sourceLoadId: loadId,
+      manufacturer: "Sync Test",
+      model: "Before",
+      serial: `SHELL-SYNC-${randomUUID()}`,
+    },
+  });
+  expect(machineResponse.status()).toBe(201);
+  const syncMachine = (await machineResponse.json()) as {
+    machine: { id: string };
+  };
+  await page.goto(`/machines/${syncMachine.machine.id}`);
+  await expect(
+    page.getByRole("heading", { name: "Sync Test Before" }),
+  ).toBeVisible();
 
   await page.context().setOffline(true);
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator(".offline-banner")).toContainText(
     "Private records are not stored on this device",
   );
 
@@ -388,18 +454,21 @@ test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts u
   try {
     const updater = await updaterContext.newPage();
     await signIn(updater, accounts.warehouse);
-    await updater.goto("/machines?query=BROWSER-SERIAL-001");
-    await updater.getByRole("link", { name: "View Machine" }).click();
+    await updater.goto(`/machines/${syncMachine.machine.id}`);
+    await updater.getByLabel("Model", { exact: true }).fill("After");
     await updater
-      .getByLabel("Active destination")
-      .selectOption({ label: destination.label });
-    await updater.getByRole("button", { name: "Record relocation" }).click();
-    await expect(updater.getByRole("status")).toContainText("Location updated");
+      .getByRole("button", { name: "Save machine identity" })
+      .click();
+    await expect(
+      updater.getByRole("status").filter({ hasText: "Machine identity saved" }),
+    ).toBeVisible();
   } finally {
     await updaterContext.close();
   }
 
-  await expect(locationValue).toHaveText(startingLocation ?? "");
+  await expect(
+    page.getByRole("heading", { name: "Sync Test Before" }),
+  ).toBeVisible();
   const reconnectRefresh = page.waitForRequest((request) => {
     const url = new URL(request.url());
     return (
@@ -408,7 +477,9 @@ test("shell keeps landmarks, keyboard focus, touch targets, and narrow layouts u
   });
   await page.context().setOffline(false);
   await reconnectRefresh;
-  await expect(locationValue).toHaveText(destination.code);
+  await expect(
+    page.getByRole("heading", { name: "Sync Test After" }),
+  ).toBeVisible();
   await expect(
     page.getByText("Private records are not stored on this device"),
   ).toHaveCount(0);

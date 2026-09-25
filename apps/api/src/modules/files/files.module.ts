@@ -1,6 +1,6 @@
 import { Global, Module, type DynamicModule } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import { memoryStorage } from "multer";
 
 import { InventoryModule } from "../inventory/inventory.module.js";
@@ -22,7 +22,10 @@ export class FilesModule {
         InventoryModule,
         MulterModule.register({
           storage: memoryStorage(),
-          limits: { files: 1, fileSize: config.fileMaxBytes },
+          limits: {
+            files: 1,
+            fileSize: Math.max(config.fileMaxBytes, config.fileVideoMaxBytes),
+          },
         }),
       ],
       controllers: [FilesController],

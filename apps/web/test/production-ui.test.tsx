@@ -4,13 +4,11 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
 } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import type {
   Machine,
   PreliminaryInspectionHistoryResponse,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mutations = vi.hoisted(() => ({ create: vi.fn(), finalize: vi.fn() }));
@@ -35,9 +33,6 @@ const machine: Machine = {
   fuel: null,
   sourceLoadId: id,
   sourceLoadDisplayName: "Load",
-  currentLocationId: null,
-  currentLocationCode: null,
-  currentLocationName: null,
   identityVerificationState: "provisional",
   conflictingMachineId: null,
   inventoryState: "on_hand",
@@ -116,6 +111,27 @@ afterEach(() => {
 });
 
 describe("Preliminary Inspection panel", () => {
+  it.each([
+    "preliminary_passed",
+    "awaiting_test",
+    "testing",
+    "awaiting_repair",
+    "awaiting_clean",
+  ] as const)("hides manual inspection after %s", (productionState) => {
+    render(
+      <PreliminaryInspectionPanel
+        machine={{ ...machine, productionState }}
+        history={initial}
+        files={[]}
+        canManage
+        canApprove
+        onRecorded={vi.fn()}
+      />,
+    );
+    expect(screen.queryByLabelText("Condition observed")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Record inspection" })).toBeNull();
+  });
+
   it("shows history to readers and Owner controls only to approvers", () => {
     const read = render(
       <PreliminaryInspectionPanel
@@ -130,6 +146,8 @@ describe("Preliminary Inspection panel", () => {
     expect(screen.getByText(/Condition: Drum turns/)).toBeTruthy();
     expect(screen.getByText(/Bearing: Concern observed/)).toBeTruthy();
     expect(screen.getByText("bearing.jpg")).toBeTruthy();
+    const history = screen.getByText("Inspection and decision history").closest("details");
+    expect(history?.hasAttribute("open")).toBe(false);
     expect(
       screen.queryByRole("button", { name: "Record Owner decision" }),
     ).toBeNull();
@@ -147,14 +165,10 @@ describe("Preliminary Inspection panel", () => {
     expect(
       screen.getByRole("button", { name: "Record Owner decision" }),
     ).toBeTruthy();
-    expect(screen.getByLabelText("Condition observed")).toBeTruthy();
+    expect(screen.queryByLabelText("Condition observed")).toBeNull();
   });
 
-  it("selects ready Machine evidence, records observations, and recovers after failure", async () => {
-    const onRecorded = vi.fn();
-    mutations.create
-      .mockRejectedValueOnce(new Error("network"))
-      .mockResolvedValueOnce(review);
+  it("offers the tap-only initial check without a manual form", () => {
     render(
       <PreliminaryInspectionPanel
         machine={machine}
@@ -169,27 +183,11 @@ describe("Preliminary Inspection panel", () => {
         ]}
         canManage
         canApprove={false}
-        onRecorded={onRecorded}
+        onRecorded={vi.fn()}
       />,
     );
-    const user = userEvent.setup();
-    await user.type(screen.getByLabelText("Condition observed"), "Drum turns");
-    await user.type(
-      screen.getByLabelText("Reason for recommendation"),
-      "Economic review",
-    );
-    await user.click(screen.getByRole("checkbox", { name: "bearing.jpg" }));
-    await user.click(screen.getByRole("button", { name: "Record inspection" }));
-    await waitFor(() =>
-      expect(screen.getByText(/could not be saved/)).toBeTruthy(),
-    );
-    await user.click(screen.getByRole("button", { name: "Record inspection" }));
-    await waitFor(() => expect(onRecorded).toHaveBeenCalledWith(review));
-    expect(mutations.create).toHaveBeenCalledWith(
-      id,
-      expect.objectContaining({ evidenceFileIds: [file.id] }),
-      expect.any(String),
-    );
+    expect(screen.getByRole("link", { name: "Open initial check" }).getAttribute("href")).toBe(`/work/initial-check/${id}`);
+    expect(screen.queryByLabelText("Condition observed")).toBeNull();
   });
 
   it("gates mutations offline", async () => {
@@ -208,10 +206,6 @@ describe("Preliminary Inspection panel", () => {
       />,
     );
     fireEvent(window, new Event("offline"));
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Record inspection" }),
-      ).toHaveProperty("disabled", true),
-    );
+    expect(screen.getByRole("link", { name: "Open initial check" })).toBeTruthy();
   });
 });

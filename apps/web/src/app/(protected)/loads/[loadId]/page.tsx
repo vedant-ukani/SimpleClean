@@ -1,4 +1,4 @@
-import { roleHasPermission } from "@simply-clean/contracts";
+import { roleHasPermission } from "@laundrorama/contracts";
 import { headers } from "next/headers";
 
 import { getFiles } from "../../../../lib/files-client";

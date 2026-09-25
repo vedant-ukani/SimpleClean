@@ -1,4 +1,4 @@
-import { parseWebServerEnvironment } from "@simply-clean/config";
+import { parseWebServerEnvironment } from "@laundrorama/config";
 import {
   FileAttachmentListResponseSchema,
   FileAttachmentResponseSchema,
@@ -7,7 +7,7 @@ import {
   type CreateFileUploadGrantRequest,
   type FileAttachment,
   type FileTarget,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 export class FileRequestError extends Error {
   constructor(readonly status: number) {

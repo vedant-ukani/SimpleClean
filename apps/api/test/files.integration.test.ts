@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -62,7 +62,7 @@ afterEach(async () => {
 async function createApplication(
   storageOverride?: StorageAdapter,
 ): Promise<INestApplication> {
-  const root = await mkdtemp(join(tmpdir(), "simply-clean-integration-files-"));
+  const root = await mkdtemp(join(tmpdir(), "laundrorama-integration-files-"));
   storageRoots.push(root);
   const config = parseServerEnvironment(
     createTestEnvironment({ FILE_LOCAL_DIRECTORY: root }),

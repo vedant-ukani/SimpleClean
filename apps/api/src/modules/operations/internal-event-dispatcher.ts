@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { OperationsAction } from "@simply-clean/contracts";
+import type { OperationsAction } from "@laundrorama/contracts";
 
 import type {
   DispatchableInternalEvent,

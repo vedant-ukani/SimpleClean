@@ -1,7 +1,7 @@
 import {
   CatalogSeedManifestSchema,
   type CatalogSeedManifest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import {

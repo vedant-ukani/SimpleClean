@@ -1,12 +1,12 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
+import { parseServerEnvironment } from "@laundrorama/config";
 import type {
   IntakeOcrResult,
   IntakeSemanticResult,
-} from "@simply-clean/contracts";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+} from "@laundrorama/contracts";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -58,7 +58,7 @@ async function createApplication(overrides?: {
   environment?: Record<string, string>;
 }): Promise<INestApplication> {
   const root = await mkdtemp(
-    join(tmpdir(), "simply-clean-intake-recognition-"),
+    join(tmpdir(), "laundrorama-intake-recognition-"),
   );
   roots.push(root);
   const config = parseServerEnvironment(

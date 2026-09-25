@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
-import { parseWebServerEnvironment } from "@simply-clean/config";
+import { parseWebServerEnvironment } from "@laundrorama/config";
 
 const nextConfig: NextConfig = {
   agentRules: false,
   output: "standalone",
-  transpilePackages: ["@simply-clean/config", "@simply-clean/contracts"],
+  transpilePackages: ["@laundrorama/config", "@laundrorama/contracts"],
   async rewrites() {
     const { apiBaseUrl } = parseWebServerEnvironment(process.env);
     return [

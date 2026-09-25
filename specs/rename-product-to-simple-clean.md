@@ -1,5 +1,7 @@
 # rename-product-to-simple-clean — Rename the visible product brand
 
+> Historical ticket. Its visible-brand decision and technical-identifier exceptions were superseded by the repository-wide Laundrorama migration in [ADR 0020](../docs/adr/0020-laundrorama-technical-identity.md). The original scope and results below are retained as a record of past work.
+
 ## Goal
 
 Rename the user-facing product brand from **Simply Clean** to **Simple Clean** throughout the running application and its generated QR labels, without renaming internal package scopes, cache namespaces, repository paths, or persistence identifiers.

@@ -2,18 +2,16 @@
 
 import type {
   FileAttachment,
-  InventoryLocation,
   Machine,
   MachineDetail,
   QrLabel,
   PreliminaryInspectionHistoryResponse,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { useState, type FormEvent } from "react";
 
 import {
   InventoryRequestError,
   getBrowserMachine,
-  relocateMachine,
   updateMachineActualSpecs,
   updateMachineIdentity,
   verifyMachine,
@@ -27,10 +25,8 @@ import { PreliminaryInspectionPanel } from "./preliminary-inspection-panel";
 
 export function MachineDetailView({
   initialDetail,
-  locations,
   canManage,
   canVerify,
-  canRelocate,
   initialFiles,
   canUploadFiles,
   initialQrLabels,
@@ -40,10 +36,8 @@ export function MachineDetailView({
   canApproveDisposition,
 }: Readonly<{
   initialDetail: MachineDetail;
-  locations: InventoryLocation[];
   canManage: boolean;
   canVerify: boolean;
-  canRelocate: boolean;
   initialFiles: FileAttachment[];
   canUploadFiles: boolean;
   initialQrLabels: QrLabel[];
@@ -61,7 +55,6 @@ export function MachineDetailView({
   const setMachine = (machine: Machine) =>
     setDetail((current) => ({ ...current, machine }));
   const [message, setMessage] = useState<string>();
-  const [files, setFiles] = useServerState(initialFiles);
   const [preliminaryHistory, setPreliminaryHistory] = useServerState(
     initialPreliminaryHistory,
   );
@@ -79,7 +72,7 @@ export function MachineDetailView({
 
   async function updateIdentity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!beginOnlineMutation("Reconnect before saving identity evidence."))
+    if (!beginOnlineMutation("Reconnect before saving machine identity."))
       return;
     const form = new FormData(event.currentTarget);
     const nullable = (name: string) => String(form.get(name) ?? "") || null;
@@ -101,7 +94,7 @@ export function MachineDetailView({
         machine: updatedMachine,
         catalogPending: true,
       }));
-      setMessage("Identity evidence saved. Verification is required again.");
+      setMessage("Machine identity saved. Confirmation is required again.");
     } catch {
       setMessage(
         "The Machine changed elsewhere or the input is invalid. Refresh and retry.",
@@ -112,11 +105,11 @@ export function MachineDetailView({
   }
 
   async function verify() {
-    if (!beginOnlineMutation("Reconnect before verifying Machine identity."))
+    if (!beginOnlineMutation("Reconnect before confirming Machine identity."))
       return;
     try {
       setMachine(await verifyMachine(machine.id, machine.version));
-      setMessage("Machine identity verified.");
+      setMessage("Machine identity confirmed.");
     } catch (error) {
       if (error instanceof InventoryRequestError) {
         const conflict = error.identityConflict();
@@ -129,7 +122,7 @@ export function MachineDetailView({
         }
       }
       setMessage(
-        "Verification failed. Manufacturer and serial are required; refresh if the version changed.",
+        "Confirmation failed. Manufacturer and serial are required; refresh if the record changed.",
       );
     } finally {
       setBusy(false);
@@ -168,34 +161,12 @@ export function MachineDetailView({
   }
 
   async function refreshCatalog() {
-    if (!beginOnlineMutation("Reconnect before refreshing Catalog facts."))
+    if (!beginOnlineMutation("Reconnect before checking Catalog facts."))
       return;
     try {
       setDetail(await getBrowserMachine(machine.id));
     } catch {
-      setMessage("Catalog facts could not be refreshed. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function relocate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!beginOnlineMutation("Reconnect before recording a relocation."))
-      return;
-    const form = new FormData(event.currentTarget);
-    try {
-      setMachine(
-        await relocateMachine(machine.id, {
-          toLocationId: String(form.get("toLocationId") ?? ""),
-          expectedVersion: machine.version,
-        }),
-      );
-      setMessage("Location updated and history recorded.");
-    } catch {
-      setMessage(
-        "Relocation failed. The Location may be inactive or the Machine changed; refresh and retry.",
-      );
+      setMessage("Catalog facts could not be checked. Try again.");
     } finally {
       setBusy(false);
     }
@@ -208,7 +179,6 @@ export function MachineDetailView({
         <h1>
           {recorded(machine.manufacturer)} {recorded(machine.model)}
         </h1>
-        <p className="machine-id">{machine.id}</p>
         <MachineIdentityStatus machine={machine} />
       </div>
       {message ? (
@@ -247,10 +217,6 @@ export function MachineDetailView({
             <dd>{machine.sourceLoadDisplayName}</dd>
           </div>
           <div>
-            <dt>Location</dt>
-            <dd>{machine.currentLocationCode ?? "Not assigned"}</dd>
-          </div>
-          <div>
             <dt>Inventory state</dt>
             <dd>
               {
@@ -269,26 +235,26 @@ export function MachineDetailView({
                 {
                   not_assessed: "Not assessed",
                   preliminary_passed: "Preliminary passed",
+                  awaiting_test: "Awaiting test",
+                  testing: "Testing",
+                  awaiting_repair: "Awaiting repair",
+                  awaiting_clean: "Awaiting clean",
                   blocked: "Blocked",
                 }[machine.productionState]
               }
             </dd>
           </div>
-          <div>
-            <dt>Version</dt>
-            <dd>{machine.version}</dd>
-          </div>
         </dl>
       </section>
       {catalogPending ? (
         <section className="panel">
-          <p role="status">Catalog resolution pending.</p>
+          <p role="status">Matching catalog specifications…</p>
           <button
             type="button"
             disabled={busy || !online}
             onClick={() => void refreshCatalog()}
           >
-            Refresh Catalog
+            Check again
           </button>
         </section>
       ) : catalog ? (
@@ -305,50 +271,7 @@ export function MachineDetailView({
               : catalog.manufactureDate.kind === "range"
                 ? `${catalog.manufactureDate.startYear}–${catalog.manufactureDate.endYear}`
                 : "Unknown"}
-            {catalog.manufactureDate.kind !== "unknown"
-              ? ` · Serial rule ${catalog.manufactureDate.ruleId}, revision ${catalog.manufactureDate.ruleRevision} · Source ${catalog.manufactureDate.sourceId}: ${catalog.manufactureDate.locator}`
-              : null}
           </p>
-          {catalog.revision ? (
-            <>
-              <p>
-                Pinned revision {catalog.revision.revision} ·{" "}
-                {catalog.revision.revisionId}
-              </p>
-              <p>
-                {catalog.revision.manufacturer} {catalog.revision.model} ·{" "}
-                {catalog.revision.equipmentClass.replaceAll("_", " ")}
-              </p>
-              <p>
-                Model production range:{" "}
-                {catalog.revision.productionStartYear ?? "Unknown"}–
-                {catalog.revision.productionEndYear ?? "Unknown"}
-              </p>
-              {catalog.revision.publicationMode ===
-              "automatic_official_source_policy" ? (
-                <p>Automatically published under the official-source policy.</p>
-              ) : null}
-              {catalog.revision.discoveryRun ? (
-                <p>
-                  Discovery usage:{" "}
-                  {catalog.revision.discoveryRun.usage?.inputTokens ?? 0} input
-                  tokens ·{" "}
-                  {catalog.revision.discoveryRun.usage?.outputTokens ?? 0}{" "}
-                  output tokens ·{" "}
-                  {catalog.revision.discoveryRun.webSearchCallCount} web search
-                  call
-                  {catalog.revision.discoveryRun.webSearchCallCount === 1
-                    ? ""
-                    : "s"}{" "}
-                  · {catalog.revision.discoveryRun.pricing.version} · estimated
-                  cost $
-                  {catalog.revision.discoveryRun.estimatedCostUsd.toFixed(4)}
-                </p>
-              ) : null}
-            </>
-          ) : (
-            <p>No approved model revision is linked.</p>
-          )}
           <div className="import-table-wrap">
             <table className="import-table">
               <caption>
@@ -436,67 +359,84 @@ export function MachineDetailView({
                   </div>
                 ))}
               </dl>
-              <h3>Official sources and field evidence</h3>
-              {catalog.revision.sources.map((source) => (
-                <div key={source.id}>
-                  <a href={source.url} target="_blank" rel="noreferrer">
-                    {source.title}
-                  </a>
-                  <p>
-                    Source class:{" "}
-                    {(source.sourceClass ?? "official_manufacturer").replaceAll(
-                      "_",
-                      " ",
-                    )}{" "}
-                    · Document revision:{" "}
-                    {source.documentRevision ?? "Not recorded"} · Retrieved{" "}
-                    {source.retrievedAt.slice(0, 10)}
-                  </p>
-                  {catalog
-                    .revision!.evidence.filter(
-                      (evidence) => evidence.sourceId === source.id,
-                    )
-                    .map((evidence, index) => (
-                      <p key={`${evidence.field}-${index}`}>
-                        {
-                          {
-                            widthIn: "Width",
-                            depthIn: "Depth",
-                            heightIn: "Height",
-                            weightLb: "Weight",
-                            capacityLb: "Capacity",
-                            voltage: "Voltage",
-                            phase: "Phase",
-                            fuel: "Fuel",
-                            configuration: "Configuration",
-                            model: "Model",
-                            equipmentClass: "Equipment class",
-                            productionStartYear: "Production start year",
-                            productionEndYear: "Production end year",
-                          }[evidence.field]
-                        }
-                        : {evidence.locator}
-                        {evidence.officialValue != null
-                          ? ` · Official value: ${evidence.officialValue} ${evidence.officialUnit ?? ""}`
-                          : null}
-                      </p>
-                    ))}
-                </div>
-              ))}
             </>
           ) : null}
+          <details>
+            <summary>Technical catalog provenance</summary>
+            {catalog.manufactureDate.kind !== "unknown" ? (
+              <p>
+                Serial rule {catalog.manufactureDate.ruleId}, revision{" "}
+                {catalog.manufactureDate.ruleRevision} · Source{" "}
+                {catalog.manufactureDate.sourceId}:{" "}
+                {catalog.manufactureDate.locator}
+              </p>
+            ) : null}
+            {catalog.revision ? (
+              <>
+                <p>
+                  {catalog.revision.manufacturer} {catalog.revision.model} ·{" "}
+                  {catalog.revision.equipmentClass.replaceAll("_", " ")}
+                </p>
+                <p>
+                  Model production range:{" "}
+                  {catalog.revision.productionStartYear ?? "Unknown"}–
+                  {catalog.revision.productionEndYear ?? "Unknown"}
+                </p>
+                {catalog.revision.publicationMode ===
+                "automatic_official_source_policy" ? (
+                  <p>
+                    Automatically published under the official-source policy.
+                  </p>
+                ) : null}
+                {catalog.revision.discoveryRun ? (
+                  <p>
+                    Discovery usage:{" "}
+                    {catalog.revision.discoveryRun.usage?.inputTokens ?? 0}{" "}
+                    input tokens ·{" "}
+                    {catalog.revision.discoveryRun.usage?.outputTokens ?? 0}{" "}
+                    output tokens ·{" "}
+                    {catalog.revision.discoveryRun.webSearchCallCount} web
+                    search call
+                    {catalog.revision.discoveryRun.webSearchCallCount === 1
+                      ? ""
+                      : "s"}{" "}
+                    · {catalog.revision.discoveryRun.pricing.version} ·
+                    estimated cost $
+                    {catalog.revision.discoveryRun.estimatedCostUsd.toFixed(4)}
+                  </p>
+                ) : null}
+                <h3>Official sources</h3>
+                {catalog.revision.sources.map((source) => (
+                  <div key={source.id}>
+                    <a href={source.url} target="_blank" rel="noreferrer">
+                      {source.title}
+                    </a>
+                    <p>
+                      Source class:{" "}
+                      {(
+                        source.sourceClass ?? "official_manufacturer"
+                      ).replaceAll("_", " ")}{" "}
+                      · Document revision:{" "}
+                      {source.documentRevision ?? "Not recorded"} · Retrieved{" "}
+                      {source.retrievedAt.slice(0, 10)}
+                    </p>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <p>No approved Catalog model is linked.</p>
+            )}
+          </details>
         </section>
       ) : null}
       <AttachmentsPanel
         target={{ type: "machine", id: machine.id }}
         initialFiles={initialFiles}
         canUpload={canUploadFiles}
-        onFilesChanged={setFiles}
       />
       <PreliminaryInspectionPanel
         machine={machine}
         history={preliminaryHistory}
-        files={files}
         canManage={canManagePreliminary}
         canApprove={canApproveDisposition}
         onRecorded={(history) => {
@@ -549,7 +489,7 @@ export function MachineDetailView({
       ) : null}
       {canManage ? (
         <section className="panel">
-          <h2>Record identity evidence</h2>
+          <h2>Machine identity</h2>
           <form
             key={`identity-${machine.version}`}
             className="inline-form"
@@ -603,7 +543,7 @@ export function MachineDetailView({
               </select>
             </label>
             <button type="submit" disabled={busy || !online}>
-              {busy ? "Saving…" : "Save identity evidence"}
+              {busy ? "Saving…" : "Save machine identity"}
             </button>
             {canVerify ? (
               <button
@@ -612,48 +552,17 @@ export function MachineDetailView({
                 disabled={busy || !online}
                 onClick={() => void verify()}
               >
-                Verify identity
+                Confirm identity
               </button>
             ) : null}
           </form>
         </section>
       ) : null}
-      {canRelocate ? (
-        <section className="panel">
-          <h2>Relocate Machine</h2>
-          <form
-            key={`relocation-${machine.version}`}
-            className="inline-form"
-            onSubmit={relocate}
-          >
-            <label>
-              Active destination
-              <select
-                name="toLocationId"
-                required
-                defaultValue={machine.currentLocationId ?? ""}
-              >
-                <option value="" disabled>
-                  Select a Location
-                </option>
-                {locations
-                  .filter((location) => location.active)
-                  .map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.code} — {location.name}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <button type="submit" disabled={busy || !online}>
-              {busy ? "Saving…" : "Record relocation"}
-            </button>
-          </form>
-        </section>
-      ) : null}
-      <div className="management-grid">
-        <section className="panel inventory-list">
-          <h2>Identity evidence</h2>
+      {initialDetail.identityEvidence.length > 0 ||
+      initialDetail.verificationHistory.length > 0 ? (
+        <details className="panel">
+          <summary>Record history</summary>
+          <div className="inventory-list">
           {initialDetail.identityEvidence.map((evidence) => (
             <article className="history-row" key={evidence.id}>
               <strong>{evidence.sourceKind}</strong>
@@ -663,13 +572,7 @@ export function MachineDetailView({
               <small>{evidence.createdAt}</small>
             </article>
           ))}
-        </section>
-        <section className="panel inventory-list">
-          <h2>Verification history</h2>
-          {initialDetail.verificationHistory.length === 0 ? (
-            <p className="empty-state">No verification decision recorded.</p>
-          ) : (
-            initialDetail.verificationHistory.map((entry) => (
+          {initialDetail.verificationHistory.map((entry) => (
               <article className="history-row" key={entry.id}>
                 <strong>
                   {entry.fromState} → {entry.toState}
@@ -681,26 +584,10 @@ export function MachineDetailView({
                 </span>
                 <small>{entry.createdAt}</small>
               </article>
-            ))
-          )}
-        </section>
-        <section className="panel inventory-list">
-          <h2>Location history</h2>
-          {initialDetail.locationHistory.length === 0 ? (
-            <p className="empty-state">No relocation recorded.</p>
-          ) : (
-            initialDetail.locationHistory.map((entry) => (
-              <article className="history-row" key={entry.id}>
-                <strong>Machine version {entry.machineVersion}</strong>
-                <span>
-                  {entry.fromLocationId ?? "Unassigned"} → {entry.toLocationId}
-                </span>
-                <small>{entry.createdAt}</small>
-              </article>
-            ))
-          )}
-        </section>
-      </div>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

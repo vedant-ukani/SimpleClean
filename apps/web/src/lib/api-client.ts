@@ -1,10 +1,10 @@
-import { parseWebServerEnvironment } from "@simply-clean/config";
+import { parseWebServerEnvironment } from "@laundrorama/config";
 import {
   LivenessResponseSchema,
   ReadinessResponseSchema,
   type LivenessResponse,
   type ReadinessResponse,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 export interface PlatformHealth {
   live: LivenessResponse;
@@ -62,6 +62,15 @@ export async function getServerJson(
   );
 }
 
+/** Read a protected API resource from an interactive browser view. */
+export async function getBrowserJson(
+  path: string,
+  fetcher: typeof fetch = fetch,
+): Promise<unknown> {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return getJson(`/api${normalizedPath}`, fetcher);
+}
+
 /** Idempotent JSON mutation for protected browser views. */
 export async function postBrowserJson(
   path: string,
@@ -70,14 +79,40 @@ export async function postBrowserJson(
   fetcher: typeof fetch = fetch,
 ): Promise<unknown> {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return getJson(`/api${normalizedPath}`, fetcher, {
+  const init: RequestInit = {
     method: "POST",
     headers: {
       "content-type": "application/json",
       "idempotency-key": idempotencyKey,
     },
     body: JSON.stringify(body),
-  });
+  };
+  try {
+    return await getJson(`/api${normalizedPath}`, fetcher, init);
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    return getJson(`/api${normalizedPath}`, fetcher, init);
+  }
+}
+
+/** Idempotent PUT for owner-managed protected settings. */
+export async function putBrowserJson(
+  path: string,
+  body: unknown,
+  idempotencyKey: string,
+  fetcher: typeof fetch = fetch,
+): Promise<unknown> {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const init: RequestInit = {
+    method: "PUT",
+    headers: { "content-type": "application/json", "idempotency-key": idempotencyKey },
+    body: JSON.stringify(body),
+  };
+  try { return await getJson(`/api${normalizedPath}`, fetcher, init); }
+  catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    return getJson(`/api${normalizedPath}`, fetcher, init);
+  }
 }
 
 export async function getPlatformHealth(

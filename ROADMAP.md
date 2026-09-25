@@ -4,7 +4,7 @@
 
 ## Now
 
-- Convert the documented warehouse workflow into reviewed Production tickets without inventing unresolved rules.
+- Define the next bounded Repair execution slice without collapsing Test, Repair, Clean, and QA states.
 
 ## Next
 
@@ -14,6 +14,12 @@
 
 ## Completed
 
+- `production-active-machine-sessions`: dedicated Washer/Dryer assignments, Cleaner isolation, Owner queue focus, bearing-free current templates, multi-Machine sessions, QR resume, and attributable server timing.
+- `warehouse-expected-loads-reset`: UTC date-grouped Warehouse Expected Loads, Warehouse-safe card content, and a recoverable local reset of current Load-rooted records while preserving Identity and Catalog.
+- `technician-triage-and-machine-video`: specialty-filtered tap-only Washer/Dryer bearing checks, QR next-work routing, full Test Work Orders, and verified private Machine video required only for successful Tests.
+- `remove-inventory-location`: Inventory Location, Machine relocation, and Intake destination removed from active contracts, permissions, APIs, search, and UI; historical records remain preserved and Machines now show Model Number in the former Location column.
+- `in-app-camera-scanner`: explicit environment-camera scanning on the protected Scan page, local bounded QR decoding, strict signed-label validation, complete camera cleanup, preserved external-scan/fallback paths, and an in-app individual-label viewer with explicit printing.
+- `AUT-357`: tablet-friendly Preliminary Inspection with optional private evidence, immutable attributable disposition history, conservative Owner review for Parts-only/Scrap, and separate Inventory/Production state coordination.
 - `AUT-346`: observed warehouse workflow documented from the September 16 and 21 transcripts, with the September 21 joint walkthrough accepted by the owner as sufficient evidence.
 - Safe Foundation program (`SF-01` through `SF-08`): platform, identity, Inventory, private files, Operations, spreadsheet import, Machine QR, and shared-tablet PWA.
 - `INT-01`: Laundrorama Load-level bulk photo Intake, private HEIC previews, human grouping/review, and atomic provisional Machine creation.

@@ -1,6 +1,13 @@
-import { parseServerEnvironment } from "@simply-clean/config";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import { createTestEnvironment } from "@laundrorama/test-support";
+import { PGlite } from "@electric-sql/pglite";
 import { sql } from "drizzle-orm";
+import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
+import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { createDatabase, migrateDatabase } from "../src/index.js";
@@ -10,6 +17,51 @@ describe("database migrations", () => {
     await expect(
       migrateDatabase(parseServerEnvironment(createTestEnvironment())),
     ).resolves.toBeUndefined();
+  });
+
+  it("upgrades a populated pre-0015 database without violating the old production check", async () => {
+    const migrationsFolder = fileURLToPath(new URL("../drizzle", import.meta.url));
+    const oldFolder = await mkdtemp(join(tmpdir(), "laundrorama-pre-0015-"));
+    const client = new PGlite();
+    try {
+      const journal = JSON.parse(
+        await readFile(join(migrationsFolder, "meta", "_journal.json"), "utf8"),
+      ) as { entries: { idx: number; tag: string }[] };
+      const previousEntries = journal.entries.filter((entry) => entry.idx < 15);
+      await mkdir(join(oldFolder, "meta"));
+      await writeFile(
+        join(oldFolder, "meta", "_journal.json"),
+        JSON.stringify({ ...journal, entries: previousEntries }),
+      );
+      await Promise.all(
+        previousEntries.map((entry) =>
+          copyFile(
+            join(migrationsFolder, `${entry.tag}.sql`),
+            join(oldFolder, `${entry.tag}.sql`),
+          ),
+        ),
+      );
+      const database = drizzlePglite(client);
+      await migratePglite(database, { migrationsFolder: oldFolder });
+      await database.execute(sql`
+        insert into inventory_load (id, display_name)
+        values ('upgrade-load', 'Existing load')
+      `);
+      await database.execute(sql`
+        insert into inventory_machine (id, machine_type, source_load_id)
+        values ('upgrade-machine', 'washer', 'upgrade-load')
+      `);
+      await migratePglite(database, { migrationsFolder });
+      const result = await database.execute(sql`
+        select production_state from inventory_machine
+        where id = 'upgrade-machine'
+      `);
+      const rows = "rows" in result ? result.rows : result;
+      expect(rows).toMatchObject([{ production_state: "not_assessed" }]);
+    } finally {
+      await client.close();
+      await rm(oldFolder, { recursive: true, force: true });
+    }
   });
 });
 

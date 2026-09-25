@@ -110,11 +110,17 @@ describe("QR label renderer", () => {
       fallbackCode: "01ARZ3NDEKTSV4RR",
     });
     expect(rendered.filename).toBe(
-      "simple-clean-equipment-01ARZ3NDEKTSV4RR.svg",
+      "laundrorama-equipment-01ARZ3NDEKTSV4RR.svg",
     );
     expect(rendered.svg).toContain('viewBox="0 0 432 576"');
     expect(rendered.svg).toContain('role="img"');
-    expect(rendered.svg).toContain("Simple Clean Equipment");
+    expect(rendered.svg).toContain(
+      '<title id="title">Laundrorama Equipment label 01ARZ3NDEKTSV4RR</title>',
+    );
+    expect(rendered.svg).toContain(
+      "enter fallback code 01ARZ3NDEKTSV4RR in the authenticated Laundrorama application.",
+    );
+    expect(rendered.svg).toContain("Laundrorama Equipment");
     expect(rendered.svg).toContain("01ARZ3NDEKTSV4RR");
     const encoded = /base64,([^"']+)/.exec(rendered.svg)?.[1];
     expect(encoded).toBeDefined();

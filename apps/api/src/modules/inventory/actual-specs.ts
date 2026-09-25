@@ -2,7 +2,7 @@ import type {
   CatalogSpecs,
   MachineActualSpecs,
   MachineEffectiveSpecs,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 function effective(
   actual: number | null | undefined,

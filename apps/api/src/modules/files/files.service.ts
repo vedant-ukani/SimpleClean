@@ -7,8 +7,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
-import type { DatabaseExecutor } from "@simply-clean/database";
+import type { ServerConfig } from "@laundrorama/config";
+import type { DatabaseExecutor } from "@laundrorama/database";
 import {
   CreateFileUploadGrantRequestSchema,
   FileIdSchema,
@@ -19,7 +19,7 @@ import {
   type FileGrant,
   type FileTarget,
   type IdentityUser,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import {
@@ -28,6 +28,7 @@ import {
 } from "../inventory/inventory.service.js";
 import {
   FilePolicyError,
+  detectMediaType,
   createIntakeAnalysisImage,
   inspectContent,
   safeDownloadFilename,
@@ -54,6 +55,16 @@ export interface DownloadedFile {
 }
 
 export interface FilesOperations {
+  findReadyTestEvidence(
+    database: DatabaseExecutor,
+    machineId: string,
+    fileIds: readonly string[],
+  ): Promise<FileAttachment[]>;
+  findReadyTestVideo(
+    database: DatabaseExecutor,
+    machineId: string,
+    fileId: string,
+  ): Promise<FileAttachment | undefined>;
   findReadyPreliminaryEvidence(
     database: DatabaseExecutor,
     machineId: string,
@@ -147,6 +158,48 @@ export class FilesService implements FilesOperations {
     @Inject(STORAGE_ADAPTER) private readonly storage: StorageAdapter,
     @Inject(FILES_CONFIG) private readonly config: ServerConfig,
   ) {}
+
+  findReadyTestEvidence(
+    database: DatabaseExecutor,
+    machineId: string,
+    fileIds: readonly string[],
+  ): Promise<FileAttachment[]> {
+    return this.repository.findProductionTestEvidence(
+      database,
+      fileIds,
+      machineId,
+    );
+  }
+
+  async findReadyTestVideo(
+    database: DatabaseExecutor,
+    machineId: string,
+    fileId: string,
+  ): Promise<FileAttachment | undefined> {
+    const file = await this.repository.findProductionTestVideo(
+      database,
+      fileId,
+      machineId,
+    );
+    if (
+      !file ||
+      !file.sha256 ||
+      !file.byteCount ||
+      !file.detectedMediaType?.startsWith("video/")
+    )
+      return undefined;
+    const object = await this.storage.get(file.storageKey);
+    if (
+      !object ||
+      object.byteCount !== file.byteCount ||
+      object.mediaType !== file.detectedMediaType ||
+      object.sha256 !== file.sha256 ||
+      detectMediaType(object.bytes) !== file.detectedMediaType ||
+      createHash("sha256").update(object.bytes).digest("hex") !== file.sha256
+    )
+      return undefined;
+    return file;
+  }
 
   findReadyPreliminaryEvidence(
     database: DatabaseExecutor,
@@ -303,7 +356,11 @@ export class FilesService implements FilesOperations {
     const input = this.parse(CreateFileUploadGrantRequestSchema, rawInput);
     this.assertPermission(identity, "files.write");
     try {
-      validateUploadGrantRequest(input, this.config.fileMaxBytes);
+      validateUploadGrantRequest(
+        input,
+        this.config.fileMaxBytes,
+        this.config.fileVideoMaxBytes,
+      );
     } catch (error) {
       if (error instanceof FilePolicyError) {
         throw new BadRequestException({
@@ -364,7 +421,12 @@ export class FilesService implements FilesOperations {
     let storageAttempted = false;
     try {
       if (!bytes) throw new FilePolicyError("unsupported_content");
-      const metadata = inspectContent(input, bytes, this.config.fileMaxBytes);
+      const metadata = inspectContent(
+        input,
+        bytes,
+        this.config.fileMaxBytes,
+        this.config.fileVideoMaxBytes,
+      );
       const preview =
         input.purpose === "intake_evidence"
           ? await createIntakePreview(bytes, metadata.mediaType)

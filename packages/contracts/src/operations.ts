@@ -42,6 +42,22 @@ export const OPERATIONS_ACTIONS = [
   "production.preliminary_inspection.recorded",
   "production.disposition.recorded",
   "inventory.machine.lifecycle_updated",
+  "production.worker_specialty.updated",
+  "production.test_work_order.created",
+  "production.test_work_order.claimed",
+  "production.test_work_order.assignment_changed",
+  "production.test_step.recorded",
+  "production.test_work_order.completed",
+  "production.test_work_order.cancelled",
+  "production.test_session.created",
+  "production.test_session.orders_added",
+  "production.test_session.item_state_changed",
+  "production.test_session.paused",
+  "production.test_session.resumed",
+  "production.test_session.finished",
+  "production.test_session.item_completed",
+  "production.test_session.item_removed",
+  "production.test.bearing_concern_reported",
 ] as const;
 
 export const OPERATIONS_TARGET_TYPES = [
@@ -62,6 +78,12 @@ export const OPERATIONS_TARGET_TYPES = [
   "machine_actual_specs",
   "preliminary_inspection",
   "preliminary_disposition",
+  "production_worker_specialty",
+  "production_test_work_order",
+  "production_test_step_result",
+  "production_test_session",
+  "production_test_session_event",
+  "production_test_bearing_concern",
 ] as const;
 
 export const AuditActorKindSchema = z.enum(["user", "system"]);

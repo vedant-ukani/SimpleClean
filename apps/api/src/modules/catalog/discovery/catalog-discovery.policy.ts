@@ -5,7 +5,7 @@ import {
   type CatalogSerialRule,
   type CatalogSpecificationEnrichmentField,
   type CatalogSpecs,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 type EquipmentClass = CatalogDiscoveryResult["equipmentClass"];
 

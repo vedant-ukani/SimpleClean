@@ -1,6 +1,6 @@
-# Simple Clean Core Operations Platform
+# Laundrorama Core Operations Platform
 
-This repository contains the greenfield foundation for the Simple Clean operational system of record. It is an npm workspace with a Next.js web application, a NestJS API, and small shared packages for runtime configuration, API contracts, database access, and test setup.
+This repository contains the greenfield foundation for the Laundrorama operational system of record. It is an npm workspace with a Next.js web application, a NestJS API, and small shared packages for runtime configuration, API contracts, database access, and test setup.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ The browser reaches authentication and application APIs through the same-origin 
 
 QR labels use `PLATFORM_PUBLIC_ORIGIN` to construct authenticated `/scan#<token>` links. `QR_SIGNING_SECRET` must be generated independently from `AUTH_SECRET`; rotating it invalidates every existing signed QR token, so rotation requires a planned label reissue operation.
 
-Signed-in staff views are available at Home, `/loads` (when permitted), `/machines`, `/scan`, and Owner Admin-only Team management. A Location is optional during Intake; unassigned Machines remain visible in Inventory and authorized staff can relocate them later from the Machine detail screen. Inventory APIs are served under `/inventory/*`.
+Signed-in staff views are available at Home, `/loads` (when permitted), `/machines`, `/scan`, and Owner Admin-only Team management. Inventory Location, Machine relocation, and Intake destination are not active product capabilities. Inventory APIs are served under `/inventory/*`.
 
 Machine and Acquisition Load detail pages also provide private attachments. File relationships and checksums live in PostgreSQL; bytes are accessed only through short-lived, one-time grants under `/files/*` and are never exposed through static serving.
 
@@ -93,7 +93,7 @@ DATABASE_URL=postgres://...
 
 Local development and tests default to `FILE_STORAGE_DRIVER=local`, with bytes under the gitignored `FILE_LOCAL_DIRECTORY`. Staging and production require S3-compatible storage unless `ALLOW_LOCAL_FILE_STORAGE_IN_DEPLOYED=true` is explicitly set. S3 credentials use the AWS standard provider chain unless both explicit access-key variables are supplied.
 
-The configured size and grant TTL settings apply to every upload and download. JPEG, PNG, WebP, and PDF content is verified from its bytes; an attachment becomes ready only after its stored size, media type, and SHA-256 agree. Laundrorama Intake also accepts bounded JPEG, PNG, WebP, HEIC, and HEIF evidence on Load targets. Originals remain private; the server uses a maintained decoder to create a bounded metadata-stripped JPEG review preview. Intake is online-only and available to Owner Admin and Warehouse users. The active path binds one nameplate photo and worker-selected type to each Machine Intake Item, runs recognition independently, and requires explicit review plus an atomic individual commit before a Machine is created. A destination Location is optional.
+The configured size and grant TTL settings apply to every upload and download. JPEG, PNG, WebP, and PDF content is verified from its bytes; an attachment becomes ready only after its stored size, media type, and SHA-256 agree. Laundrorama Intake also accepts bounded JPEG, PNG, WebP, HEIC, and HEIF evidence on Load targets. Originals remain private; the server uses a maintained decoder to create a bounded metadata-stripped JPEG review preview. Intake is online-only and available to Owner Admin and Warehouse users. The active path binds one nameplate photo and worker-selected type to each Machine Intake Item, runs recognition independently, and requires explicit review plus an atomic individual commit before a Machine is created.
 
 ## Audit and internal work
 

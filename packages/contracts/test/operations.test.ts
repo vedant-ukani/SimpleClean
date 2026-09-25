@@ -11,6 +11,15 @@ import {
 
 describe("operations contracts", () => {
   it("accepts stable actions and privacy-safe summaries", () => {
+    for (const legacyAction of [
+      "inventory.location.created",
+      "inventory.location.updated",
+      "inventory.location.deactivated",
+      "inventory.machine.relocated",
+    ]) {
+      expect(OperationsActionSchema.parse(legacyAction)).toBe(legacyAction);
+    }
+    expect(OperationsTargetTypeSchema.parse("location")).toBe("location");
     expect(OperationsActionSchema.parse("inventory.machine.created")).toBe(
       "inventory.machine.created",
     );
@@ -40,6 +49,17 @@ describe("operations contracts", () => {
     ).toBe("inventory.machine.lifecycle_updated");
     expect(OperationsTargetTypeSchema.parse("preliminary_disposition")).toBe(
       "preliminary_disposition",
+    );
+    for (const action of [
+      "production.test_session.created",
+      "production.test_session.item_state_changed",
+      "production.test_session.finished",
+      "production.test.bearing_concern_reported",
+    ]) {
+      expect(OperationsActionSchema.parse(action)).toBe(action);
+    }
+    expect(OperationsTargetTypeSchema.parse("production_test_session")).toBe(
+      "production_test_session",
     );
     expect(
       SafeMutationSummarySchema.parse({

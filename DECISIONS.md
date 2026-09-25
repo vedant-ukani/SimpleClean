@@ -2,6 +2,58 @@
 
 # Decisions
 
+## 2026-09-25 — Time Washer and Dryer work through active multi-Machine sessions
+
+Treat Washer Technician, Dryer Technician, and Cleaner as Production assignments within the existing Technician/Cleaner security role. A worker has at most one specialty and one open Test session; Cleaners receive no Initial Check or Test work. Owner Admin retains Machine-detail Initial Check and Owner Review access but has no Initial Checks queue.
+
+Every Test start or resume joins the worker's server-owned session. Sessions support 1–20 same-specialty Machines, active/paused/completed states, per-Machine working/running/waiting states, QR resume, and equal elapsed-time allocation across actively timed Machines. Individual immutable Work Orders, checklist results, and private videos remain separate. New Washer/Dryer template revisions omit the duplicate bearing step; historical runs keep their pinned templates. A new bearing concern exits the Test and session to Awaiting Repair without rewriting Initial Check history.
+
+Consequences: technicians can move among several Machines without typing or losing attributable labor time; checklist mutations cannot bypass session timing; session-changing actions use optimistic versions; rejoining a claimed Machine does not invent another claim event. Repair execution, payroll/billing interpretation, and test-bay capacity remain separate future decisions.
+
+## 2026-09-25 — Group Warehouse Expected Loads by UTC arrival date
+
+Warehouse sees every unreceived Load grouped as Overdue, Today, Upcoming, or No arrival date using UTC calendar dates. Missing or past expected dates never hide a Load; only `receivedAt` removes it after the final Intake batch closes. Warehouse cards omit commercial Source and Source Reference, while Owner Load management retains them.
+
+Consequences: arrival date is presentation and planning data, not a new lifecycle state. The authorized local pilot data reset removed Load-rooted records only after a closed-database backup; Identity and Catalog data were preserved, and no production delete endpoint was added.
+
+## 2026-09-25 — Use tap-only initial checks and require private video for successful Tests
+
+Show on-hand, unassessed Washers and Dryers in Technician My Work according to the worker's configured specialty. The initial check accepts only Smooth, Bearing concern, or Unable to assess. Production derives the immutable Preliminary observation and disposition: Smooth creates Test work, while concern or inability blocks further testing in Owner Review. QR resolution remains a Machine lookup and asks Production for the authorized next-work destination.
+
+A full Test with no failed checklist results requires one ready, same-Machine private `production_test_video` linked to that exact Test run. A failed Test routes to Awaiting Repair without requiring or linking a success video. Test video remains private, signature-checked, checksum/storage-verified, bounded to the configured video limit, and distinct from still-photo checklist evidence.
+
+Consequences: technicians do not type preliminary findings or choose lifecycle states; bearing concerns never automatically Scrap or mark Parts-only; specialty and state decisions stay server-owned; successful Test evidence is attributable without implying Cleaning, QA Release, listing approval, or shipment release.
+
+## 2026-09-24 — Remove Inventory Location from the active product
+
+Remove Inventory Location, Machine relocation, and Intake destination from active contracts, permissions, APIs, repository behavior, search, and web interfaces. Show the existing nullable Machine `model` as **Model Number** in the former Location column on the Machines overview. Preserve historical SQL migrations and stored Location, relocation, destination, audit, outbox, and idempotency records without exposing or mutating them through active product paths.
+
+Consequences: current Machine and Intake payloads contain no Location fields, Scan and Machine detail contain no Location surfaces, and workers cannot assign or relocate a Machine. Legacy Operations discriminants remain parseable for immutable history. Seller/pickup addresses, shipping destinations, logistics tracking, browser URLs, and OCR evidence coordinates are unaffected. This supersedes the retained Location-domain behavior in ADR 0009; see [ADR 0019](./docs/adr/0019-remove-inventory-location-from-active-product.md).
+
+## 2026-09-24 — Complete a Load when its final Intake batch closes
+
+Mark an Acquisition Load received in the same transaction that closes its final open Intake Batch. Photo upload, recognition, Candidate review, and historical individual Machine commit do not complete the Load. Because the data model permits several Intake batches for one Load, closing one batch leaves the Load expected while another remains open; the last closing batch sets the receipt timestamp. Starting a new Intake on an already received Load is rejected.
+
+Consequences: Warehouse sees the Load throughout active receiving and it disappears from Expected Loads only after complete receiving. Intake creation and finalization serialize on the Load row, so a concurrent new batch cannot race with receipt and concurrent final batches cannot hide the Load early. Machine creation, mappings, Batch state, Load receipt, audit/outbox records, and idempotency completion commit or roll back together.
+
+## 2026-09-24 — Limit standalone Catalog browsing to Owner Admin
+
+Grant `catalog.read` only to Owner Admin. Warehouse and Technician/Cleaner users do not see or directly access the standalone Catalog workspace, but they continue to receive approved model specifications through the Machine records they are authorized to view. Shared manufacturer facts remain canonical Catalog data; physical measurements, configuration differences, and other unit-specific facts remain Inventory-owned Machine overrides.
+
+Consequences: Warehouse and Technician/Cleaner workflows stay focused on Machines rather than the complete model library, while server-side Catalog list/detail authorization remains authoritative. Specifications are not copied into every Machine, corrections to shared model facts remain reusable, and actual Machine or final packed values continue to override Catalog defaults.
+
+## 2026-09-24 — Decode Machine QR camera frames locally
+
+Add an explicit **Scan QR code** action to the protected Scan page. Prefer the environment-facing camera, sample bounded frames locally in the browser, and accept only an absolute same-origin `/scan#<signed token>` payload before calling the existing authenticated resolver. Never upload, persist, log, or cache camera frames or unrelated decoded content; preserve the printed fallback code and external deep-link paths.
+
+Consequences: camera permission is never requested on page load, all tracks stop after capture, Stop, page hiding, unmount, or error, and invalid QR content produces no API request. A decoded token remains only a lookup reference: the server still verifies its signature, active-label state, current session, and Machine permission.
+
+## 2026-09-24 — Keep preliminary disposition conservative and separate from QA
+
+Record Preliminary Inspections as immutable Production history with optional ready private Machine evidence and an attributable disposition. Repairable sets Production to Preliminary Passed while Inventory remains On Hand. Hold and Owner Review block Production while Inventory remains On Hand. A Warehouse or Technician Parts-only/Scrap recommendation becomes Owner Review; only Owner Admin may finalize Parts-only or Scrap, which sets Inventory to Scrapped and Production to Blocked. Scrapped Machines require a future explicit reviewed workflow for restoration.
+
+Consequences: bearing findings remain observations rather than automatic decisions; no repair-cost threshold, model rule, checklist, or evidence count is invented. Reinspection appends history. Preliminary approval never means tested, repaired, cleaned, QA Released, listing-eligible, sold, or shippable, and future reversal workflows require an explicit reviewed decision.
+
 ## 2026-09-24 — Exact Catalog matches remain usable while missing facts are enriched
 
 Treat exact model resolution and specification completeness as separate Catalog decisions. When an accepted identity resolves to an exact approved revision that still has unknown fields, keep that revision immediately usable and invoke the existing additive specification-enrichment operation for only its missing fields. A verified result publishes an immutable next revision on the same variant; a no-result or unavailable provider leaves the partial revision unchanged. Provider failures remain durable-work failures, but Machine events link the current exact approved revision before propagating the error for retry.
@@ -74,11 +126,11 @@ Use `gpt-6-luna` as the configured OpenAI semantic field-assignment model for li
 
 Fence every Recognition Run execution with a non-secret claim derived from the stable outbox job ID and delivery attempt. A redelivery may reclaim an abandoned `running` run, but apply, requeue, and failure writes succeed only for the currently claimed attempt. This prevents a late expired handler from overwriting a newer retry or creating duplicate recognition artifacts. Existing Recognition Runs and evidence are not rewritten or automatically retried.
 
-## 2026-09-23 — Locationless intake during the pilot
+## 2026-09-23 — Locationless intake during the pilot (superseded)
 
 Make the Intake Batch destination optional. Individual Candidate Commit, compatible historical Batch Commit, and Finish Receiving continue to enforce Load provenance, evidence, approval, idempotency, audit, and outbox invariants; when a destination is supplied they still validate it as active, create the normal initial location history, and preserve the existing destination-lock behavior. When it is absent, Inventory creates an on-hand provisional Machine with a null current location and no initial relocation entry.
 
-The active Intake UI no longer fetches or renders destination choices, so workers can capture, review, approve, and add Machines without any active Locations. Machines without a current location use the shared `Location not assigned` label and remain relocatable later. The legacy destination endpoint and nullable Batch field remain for historical/API compatibility. See [ADR 0009](./docs/adr/0009-locationless-intake.md).
+The active Intake UI no longer fetches or renders destination choices, so workers can capture, review, approve, and add Machines without any active Locations. This compatibility decision was superseded on 2026-09-24 when ADR 0019 removed Inventory Location, relocation, and Intake destination from the active product. See [ADR 0009](./docs/adr/0009-locationless-intake.md) and [ADR 0019](./docs/adr/0019-remove-inventory-location-from-active-product.md).
 
 ## 2026-09-23 — Pipelined recognition with individual Machine approval
 
@@ -121,7 +173,7 @@ Consequences: reliable results can be accepted without field-by-field review, un
 
 Use Laundrorama as the product and business name for the used-equipment Core Operations Platform. Simple Clean is William's separate new-equipment business and must not be treated as the authority for Laundrorama inventory, intake, production, sales, or fulfillment.
 
-Consequences: new used-equipment specifications and UI use Laundrorama. Existing repository paths and `@simply-clean/*` package scopes remain technical identifiers until a dedicated, fully tested migration changes them; feature tickets do not perform opportunistic package or directory renames.
+Consequences: new used-equipment specifications and UI use Laundrorama. The dedicated technical-identity migration uses `@laundrorama/*` package scopes. The host directory name is a separate app-level concern. See [ADR 0020](./docs/adr/0020-laundrorama-technical-identity.md).
 
 ## 2026-09-21 — Files owns private intake-image derivatives
 
@@ -161,7 +213,7 @@ Consequences: filenames and storage providers cannot become authorization bounda
 
 ## 2026-09-21 — Provisional Machine identity and explicit verification claims
 
-Create every received or expected physical Machine with an immutable UUID and allow incomplete provisional plate facts. Preserve raw identity submissions separately from the normalized current view. Verifying manufacturer plus serial acquires one unique normalized identity claim; a duplicate attempt keeps both Machines and persists the attempted Machine as a linked conflict. Identity evidence, verification decisions, and relocations are immutable and attributable, while current operational records use optimistic versions.
+Create every received or expected physical Machine with an immutable UUID and allow incomplete provisional plate facts. Preserve raw identity submissions separately from the normalized current view. Verifying manufacturer plus serial acquires one unique normalized identity claim; a duplicate attempt keeps both Machines and persists the attempted Machine as a linked conflict. Identity evidence and verification decisions are immutable and attributable, while current operational records use optimistic versions.
 
 Consequences: unloading and migration do not stop for catalog enrichment, unknown values remain null rather than guessed, and concurrent verification cannot silently create duplicate confirmed identities. Later OCR/import/QR/production modules call the Inventory service interface and must not reimplement identity normalization or write its tables directly.
 
@@ -193,7 +245,7 @@ The detailed rationale and consequences remain canonical in these ADRs:
 - [ADR 0006 — Supervised, replaceable Intake recognition](./docs/adr/0006-supervised-replaceable-intake-recognition.md)
 - [ADR 0007 — Single-nameplate automated recognition](./docs/adr/0007-single-nameplate-automated-recognition.md)
 - [ADR 0008 — Pipelined recognition and individual Intake commit](./docs/adr/0008-pipelined-individual-intake-commit.md)
-- [ADR 0009 — Locationless Intake during the pilot](./docs/adr/0009-locationless-intake.md)
+- [ADR 0009 — Locationless Intake during the pilot (superseded by ADR 0019)](./docs/adr/0009-locationless-intake.md)
 - [ADR 0010 — Google OCR authoritative Intake assignment](./docs/adr/0010-google-ocr-authoritative-intake-assignment.md)
 - [ADR 0011 — Capacity and whole-Intake QR sheets](./docs/adr/0011-intake-capacity-and-whole-load-qr-sheets.md)
 - [ADR 0012 — Batch nameplate selection and capacity-optional QR sheets](./docs/adr/0012-batch-nameplates-and-capacity-optional-qr-sheets.md)
@@ -203,3 +255,5 @@ The detailed rationale and consequences remain canonical in these ADRs:
 - [ADR 0016 — Immediate nameplate preparation and failed evidence exclusion](./docs/adr/0016-immediate-nameplate-preparation-and-failed-evidence-exclusion.md)
 - [ADR 0017 — Automatic official-source Catalog discovery](./docs/adr/0017-automatic-official-source-catalog-discovery.md)
 - [ADR 0018 — Vision-assisted Intake and documented base models](./docs/adr/0018-vision-assisted-intake-and-documented-base-models.md)
+- [ADR 0019 — Remove Inventory Location from the active product](./docs/adr/0019-remove-inventory-location-from-active-product.md)
+- [ADR 0020 — Laundrorama technical identity migration](./docs/adr/0020-laundrorama-technical-identity.md)

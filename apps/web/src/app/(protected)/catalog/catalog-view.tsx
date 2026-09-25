@@ -1,4 +1,4 @@
-import type { CatalogListResponse } from "@simply-clean/contracts";
+import type { CatalogListResponse } from "@laundrorama/contracts";
 import Link from "next/link";
 
 function equipmentLabel(value: string): string {
@@ -84,7 +84,6 @@ export function CatalogView({
                   <th scope="col">Family</th>
                   <th scope="col">Model</th>
                   <th scope="col">Equipment class</th>
-                  <th scope="col">Revision</th>
                   <th scope="col">
                     <span className="sr-only">Action</span>
                   </th>
@@ -99,7 +98,6 @@ export function CatalogView({
                       <strong>{model.model}</strong>
                     </td>
                     <td>{equipmentLabel(model.equipmentClass)}</td>
-                    <td>{model.revision}</td>
                     <td>
                       <Link
                         className="button-link"

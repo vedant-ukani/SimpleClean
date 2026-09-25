@@ -1,8 +1,8 @@
 {
-  "name": "simply-clean-core-platform",
+  "name": "laundrorama-core-platform",
   "version": "0.1.0",
   "private": true,
-  "description": "Simple Clean Core Operations Platform",
+  "description": "Laundrorama Core Operations Platform",
   "packageManager": "npm@11.13.0",
   "engines": {
     "node": ">=22.12.0"
@@ -16,13 +16,13 @@
     "apps/web"
   ],
   "scripts": {
-    "dev": "npm run build:packages && dotenv -e .env -- concurrently --kill-others-on-fail --names api,web \"npm run dev -w @simply-clean/api\" \"npm run dev -w @simply-clean/web\"",
-    "build:packages": "npm run build -w @simply-clean/test-support && npm run build -w @simply-clean/contracts && npm run build -w @simply-clean/config && npm run build -w @simply-clean/database",
-    "db:migrate": "npm run build:packages && dotenv -e .env -- npm run migrate -w @simply-clean/database",
-    "auth:provision": "npm run build:packages && dotenv -e .env -- npm run auth:provision -w @simply-clean/api",
-    "catalog:import": "npm run build:packages && dotenv -e .env -- npm run catalog:import -w @simply-clean/api",
-    "catalog:coverage": "npm run build:packages && npm run catalog:coverage -w @simply-clean/api",
-    "catalog:backfill": "npm run build:packages && dotenv -e .env -- npm run catalog:backfill -w @simply-clean/api --",
+    "dev": "npm run build:packages && dotenv -e .env -- concurrently --kill-others-on-fail --names api,web \"npm run dev -w @laundrorama/api\" \"npm run dev -w @laundrorama/web\"",
+    "build:packages": "npm run build -w @laundrorama/test-support && npm run build -w @laundrorama/contracts && npm run build -w @laundrorama/config && npm run build -w @laundrorama/database",
+    "db:migrate": "npm run build:packages && dotenv -e .env -- npm run migrate -w @laundrorama/database",
+    "auth:provision": "npm run build:packages && dotenv -e .env -- npm run auth:provision -w @laundrorama/api",
+    "catalog:import": "npm run build:packages && dotenv -e .env -- npm run catalog:import -w @laundrorama/api",
+    "catalog:coverage": "npm run build:packages && npm run catalog:coverage -w @laundrorama/api",
+    "catalog:backfill": "npm run build:packages && dotenv -e .env -- npm run catalog:backfill -w @laundrorama/api --",
     "evaluate:intake-recognition": "npm run build:packages && dotenv -e .env -- tsx apps/api/src/intake-recognition-evaluate.ts",
     "evaluate:ocr-verifiers": "npm run build:packages && dotenv -e .env -- tsx apps/api/src/ocr-verifier-evaluate.ts",
     "format": "prettier --write \"apps/**/*.{ts,tsx,css,json}\" \"packages/**/*.{ts,json}\" \"tests/**/*.{ts,tsx}\" \"*.{json,mjs,ts}\" \".github/**/*.yml\" README.md",
@@ -32,7 +32,7 @@
     "test": "npm run build:packages && npm run test --workspaces --if-present",
     "test:integration": "npm run build:packages && npm run test:integration --workspaces --if-present",
     "test:browser": "API_BASE_URL=http://localhost:3101 npm run build && playwright test",
-    "build": "npm run build:packages && npm run build -w @simply-clean/api && npm run build -w @simply-clean/web"
+    "build": "npm run build:packages && npm run build -w @laundrorama/api && npm run build -w @laundrorama/web"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
@@ -63,27 +63,76 @@ async function foundation(app: INestApplication, ownerCookies: string[]) {
     .set("Idempotency-Key", randomUUID())
     .send({ displayName: "September Phoenix Load", sourceReference: "PO-42" })
     .expect(201);
-  const receiving = await request(app.getHttpServer())
-    .post("/inventory/locations")
-    .set("Cookie", ownerCookies)
-    .set("Idempotency-Key", randomUUID())
-    .send({ code: "REC-01", name: "Receiving bay" })
-    .expect(201);
-  const storage = await request(app.getHttpServer())
-    .post("/inventory/locations")
-    .set("Cookie", ownerCookies)
-    .set("Idempotency-Key", randomUUID())
-    .send({ code: "A-12", name: "Storage aisle A" })
-    .expect(201);
   return {
     load: load.body.load as { id: string; version: number },
-    receiving: receiving.body.location as { id: string; version: number },
-    storage: storage.body.location as { id: string; version: number },
   };
 }
 
 describe("inventory foundation", () => {
-  it("creates, searches, verifies, and relocates a provisional Machine with history", async () => {
+  it("ignores preserved historical Location storage in Machine reads and search", async () => {
+    const app = await createApplication();
+    const owner = await user(app, "owner_admin");
+    const records = await foundation(app, owner.cookies);
+    const created = await request(app.getHttpServer())
+      .post("/inventory/machines")
+      .set("Cookie", owner.cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({
+        machineType: "washer",
+        sourceLoadId: records.load.id,
+        model: "SC30",
+      })
+      .expect(201);
+    const machineId = created.body.machine.id as string;
+    const historicalLocationId = randomUUID();
+    const database = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
+    await database.execute(sql`
+      insert into inventory_location (id, code, name)
+      values (${historicalLocationId}, 'LEGACY-ONLY', 'Preserved historical bay')
+    `);
+    await database.execute(sql`
+      update inventory_machine set current_location_id = ${historicalLocationId}
+      where id = ${machineId}
+    `);
+    await database.execute(sql`
+      insert into machine_location_history (
+        id, machine_id, from_location_id, to_location_id,
+        actor_user_id, request_id, machine_version
+      ) values (
+        ${randomUUID()}, ${machineId}, null, ${historicalLocationId},
+        ${owner.identity.id}, 'historical-location-fixture', 1
+      )
+    `);
+
+    const detail = await request(app.getHttpServer())
+      .get(`/inventory/machines/${machineId}`)
+      .set("Cookie", owner.cookies)
+      .expect(200);
+    expect(detail.body.machine.model).toBe("SC30");
+    expect(detail.body.machine).not.toHaveProperty("currentLocationId");
+    expect(detail.body).not.toHaveProperty("locationHistory");
+    await request(app.getHttpServer())
+      .get("/inventory/machines")
+      .query({ query: "LEGACY-ONLY" })
+      .set("Cookie", owner.cookies)
+      .expect(200)
+      .expect(({ body }) => expect(body.total).toBe(0));
+    const preserved = await database.execute(sql`
+      select m.current_location_id, h.to_location_id
+      from inventory_machine m
+      inner join machine_location_history h on h.machine_id = m.id
+      where m.id = ${machineId}
+    `);
+    const preservedRows = "rows" in preserved ? preserved.rows : preserved;
+    expect(preservedRows).toEqual([
+      {
+        current_location_id: historicalLocationId,
+        to_location_id: historicalLocationId,
+      },
+    ]);
+  });
+
+  it("creates, searches, and verifies a location-free provisional Machine with history", async () => {
     const app = await createApplication();
     const owner = await user(app, "owner_admin");
     const warehouse = await user(app, "warehouse");
@@ -121,6 +170,7 @@ describe("inventory foundation", () => {
       productionState: "not_assessed",
       version: 1,
     });
+    expect(created.body.machine).not.toHaveProperty("currentLocationId");
     const machineId = created.body.machine.id as string;
 
     const identified = await request(app.getHttpServer())
@@ -154,25 +204,14 @@ describe("inventory foundation", () => {
       version: 3,
     });
 
-    const relocated = await request(app.getHttpServer())
-      .post(`/inventory/machines/${machineId}/relocate`)
-      .set("Cookie", warehouse.cookies)
-      .send({ toLocationId: records.receiving.id, expectedVersion: 3 })
-      .expect(201);
-    expect(relocated.body.machine).toMatchObject({
-      currentLocationCode: "REC-01",
-      inventoryState: "on_hand",
-      version: 4,
-    });
-
     const correctedCapacity = await request(app.getHttpServer())
       .patch(`/inventory/machines/${machineId}/identity`)
       .set("Cookie", warehouse.cookies)
-      .send({ capacityLb: 50, expectedVersion: 4 })
+      .send({ capacityLb: 50, expectedVersion: 3 })
       .expect(200);
     expect(correctedCapacity.body.machine).toMatchObject({
       capacityLb: 50,
-      version: 5,
+      version: 4,
     });
 
     await request(app.getHttpServer())
@@ -205,11 +244,8 @@ describe("inventory foundation", () => {
           capacityLb: 50,
           requestId: expect.any(String),
         });
-        expect(body.locationHistory).toHaveLength(1);
-        expect(body.locationHistory[0]).toMatchObject({
-          toLocationId: records.receiving.id,
-          machineVersion: 4,
-        });
+        expect(body).not.toHaveProperty("locationHistory");
+        expect(body.machine).not.toHaveProperty("currentLocationId");
       });
 
     const special = await request(app.getHttpServer())
@@ -252,7 +288,7 @@ describe("inventory foundation", () => {
     await request(app.getHttpServer())
       .patch(`/inventory/machines/${machineId}/identity`)
       .set("Cookie", technician.cookies)
-      .send({ model: "forged", expectedVersion: 5 })
+      .send({ model: "forged", expectedVersion: 4 })
       .expect(403);
     const central = await app.get<DatabaseConnection>(DATABASE_CONNECTION)
       .database.execute(sql`
@@ -265,7 +301,6 @@ describe("inventory foundation", () => {
       "inventory.machine.created",
       "inventory.machine.identity_updated",
       "inventory.machine.verified",
-      "inventory.machine.relocated",
       "inventory.machine.identity_updated",
     ]);
   });
@@ -464,7 +499,7 @@ describe("inventory foundation", () => {
     ]);
   });
 
-  it("rejects stale versions, invalid input, and inactive destinations", async () => {
+  it("rejects stale versions and invalid input while removed routes return 404", async () => {
     const app = await createApplication();
     const owner = await user(app, "owner_admin");
     const warehouse = await user(app, "warehouse");
@@ -482,11 +517,6 @@ describe("inventory foundation", () => {
       .send({ displayName: "Changed", expectedVersion: 99 })
       .expect(409);
     await request(app.getHttpServer())
-      .patch(`/inventory/locations/${records.receiving.id}`)
-      .set("Cookie", owner.cookies)
-      .send({ name: "Changed", expectedVersion: 99 })
-      .expect(409);
-    await request(app.getHttpServer())
       .patch(`/inventory/machines/${created.body.machine.id}/identity`)
       .set("Cookie", warehouse.cookies)
       .send({ model: "stale", expectedVersion: 99 })
@@ -497,15 +527,23 @@ describe("inventory foundation", () => {
       .send({ phase: "unknown", expectedVersion: 1 })
       .expect(400);
     await request(app.getHttpServer())
-      .post(`/inventory/locations/${records.storage.id}/deactivate`)
+      .get("/inventory/locations")
       .set("Cookie", owner.cookies)
-      .send({ expectedVersion: records.storage.version })
-      .expect(201);
+      .expect(404);
+    await request(app.getHttpServer())
+      .post("/inventory/locations")
+      .set("Cookie", owner.cookies)
+      .send({ code: "REMOVED", name: "Removed" })
+      .expect(404);
+    await request(app.getHttpServer())
+      .get(`/inventory/locations/${randomUUID()}`)
+      .set("Cookie", owner.cookies)
+      .expect(404);
     await request(app.getHttpServer())
       .post(`/inventory/machines/${created.body.machine.id}/relocate`)
       .set("Cookie", warehouse.cookies)
-      .send({ toLocationId: records.storage.id, expectedVersion: 1 })
-      .expect(409);
+      .send({ toLocationId: randomUUID(), expectedVersion: 1 })
+      .expect(404);
 
     const connection = app.get<DatabaseConnection>(DATABASE_CONNECTION);
     const evidence = await connection.database.execute(sql`

@@ -1,7 +1,7 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import request from "supertest";
 import { afterEach, describe, expect, it } from "vitest";
 

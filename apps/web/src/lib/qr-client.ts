@@ -1,4 +1,4 @@
-import { parseWebServerEnvironment } from "@simply-clean/config";
+import { parseWebServerEnvironment } from "@laundrorama/config";
 import {
   QrLabelListResponseSchema,
   QrLabelResponseSchema,
@@ -7,7 +7,7 @@ import {
   type MachineDetail,
   type QrLabel,
   type ResolveQrLabelRequest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 export function tokenFromFragment(hash: string): string | undefined {
   if (!hash.startsWith("#") || hash.length === 1) return undefined;
@@ -16,6 +16,28 @@ export function tokenFromFragment(hash: string): string | undefined {
       decodeURIComponent(hash.slice(1)).trim(),
     );
     return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function tokenFromPrintedQrValue(
+  value: string,
+  currentOrigin: string,
+): string | undefined {
+  if (value.trim() !== value) return undefined;
+  try {
+    const url = new URL(value);
+    if (
+      url.origin !== currentOrigin ||
+      url.pathname !== "/scan" ||
+      url.search ||
+      url.username ||
+      url.password
+    ) {
+      return undefined;
+    }
+    return tokenFromFragment(url.hash);
   } catch {
     return undefined;
   }
@@ -194,14 +216,6 @@ export async function resolveQrLabel(
 
 export interface PrintableQrLabel {
   blob: Blob;
-  filename: string;
-}
-
-function printFilename(disposition: string | null): string {
-  const candidate = disposition?.match(/filename="([^"]+)"/i)?.[1];
-  return candidate && /^simple-clean-equipment-[0-9A-Z-]+\.svg$/.test(candidate)
-    ? candidate
-    : "simple-clean-equipment-label.svg";
 }
 
 export async function getPrintableQrLabel(
@@ -217,20 +231,7 @@ export async function getPrintableQrLabel(
   }
   return {
     blob: await response.blob(),
-    filename: printFilename(response.headers.get("content-disposition")),
   };
-}
-
-export async function downloadQrLabel(labelId: string): Promise<void> {
-  const printable = await getPrintableQrLabel(labelId);
-  const url = URL.createObjectURL(printable.blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = printable.filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export type IntakeQrLabelSheetPresentation = "opened" | "downloaded";

@@ -1,5 +1,5 @@
 {
-  "name": "@simply-clean/web",
+  "name": "@laundrorama/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,16 +12,17 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@simply-clean/config": "*",
-    "@simply-clean/contracts": "*",
+    "@laundrorama/config": "*",
+    "@laundrorama/contracts": "*",
     "better-auth": "^1.7.5",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.468.0",
     "next": "^16.3.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@simply-clean/test-support": "*",
+    "@laundrorama/test-support": "*",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.1.16",

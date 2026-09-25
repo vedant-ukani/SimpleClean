@@ -11,7 +11,7 @@ import {
   type AuditListResponse,
   type JobListResponse,
   type OutboxJob,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 import {
   MUTATION_RECORDER,

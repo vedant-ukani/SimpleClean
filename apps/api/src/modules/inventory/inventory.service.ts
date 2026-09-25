@@ -9,27 +9,22 @@ import {
 } from "@nestjs/common";
 import {
   CreateAcquisitionLoadRequestSchema,
-  CreateInventoryLocationRequestSchema,
   CreateMachineRequestSchema,
   IdempotencyKeySchema,
   InventoryIdSchema,
   MachineSearchQuerySchema,
-  RelocateMachineRequestSchema,
   UpdateAcquisitionLoadRequestSchema,
-  UpdateInventoryLocationRequestSchema,
   UpdateMachineIdentityRequestSchema,
   VerifyMachineIdentityRequestSchema,
-  VersionedRequestSchema,
   UpdateMachineActualSpecsRequestSchema,
   roleHasPermission,
   type IdentityUser,
   type AcquisitionLoad,
-  type InventoryLocation,
   type Machine,
   type MachineDetail,
   type MachineSearchResponse,
-} from "@simply-clean/contracts";
-import type { DatabaseExecutor } from "@simply-clean/database";
+} from "@laundrorama/contracts";
+import type { DatabaseExecutor } from "@laundrorama/database";
 import {
   CATALOG_OPERATIONS,
   type CatalogOperations,
@@ -63,22 +58,6 @@ export interface InventoryOperations {
     rawInput: unknown,
     context: InventoryActorContext,
   ): Promise<AcquisitionLoad>;
-  createLocation(
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<InventoryLocation>;
-  listLocations(): Promise<InventoryLocation[]>;
-  getLocation(locationId: string): Promise<InventoryLocation>;
-  updateLocation(
-    locationId: string,
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<InventoryLocation>;
-  deactivateLocation(
-    locationId: string,
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<InventoryLocation>;
   createMachine(
     rawInput: unknown,
     context: InventoryActorContext,
@@ -91,11 +70,6 @@ export interface InventoryOperations {
     context: InventoryActorContext,
   ): Promise<Machine>;
   verifyMachine(
-    machineId: string,
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<Machine>;
-  relocateMachine(
     machineId: string,
     rawInput: unknown,
     context: InventoryActorContext,
@@ -113,13 +87,26 @@ export interface InventoryOperations {
     database: DatabaseExecutor,
     machineId: string,
   ): Promise<Machine | undefined>;
+  listInitialCheckCandidates(database: DatabaseExecutor): Promise<Machine[]>;
+  countOtherMachinesAwaitingTest(database: DatabaseExecutor): Promise<number>;
   updatePreliminaryLifecycle(
     database: DatabaseExecutor,
     input: {
       machineId: string;
       expectedVersion: number;
       inventoryState: "on_hand" | "scrapped";
-      productionState: "preliminary_passed" | "blocked";
+      productionState: "preliminary_passed" | "awaiting_test" | "blocked";
+      actorUserId: string;
+      requestId: string;
+    },
+  ): Promise<Machine | undefined>;
+  transitionTestProductionState(
+    database: DatabaseExecutor,
+    input: {
+      machineId: string;
+      expectedVersion: number;
+      from: "awaiting_test" | "testing";
+      to: "testing" | "awaiting_repair" | "awaiting_clean";
       actorUserId: string;
       requestId: string;
     },
@@ -158,11 +145,26 @@ export class InventoryService implements InventoryOperations {
     return this.repository.findMachineForProduction(database, machineId);
   }
 
+  listInitialCheckCandidates(database: DatabaseExecutor): Promise<Machine[]> {
+    return this.repository.listInitialCheckCandidates(database);
+  }
+
+  countOtherMachinesAwaitingTest(database: DatabaseExecutor): Promise<number> {
+    return this.repository.countOtherMachinesAwaitingTest(database);
+  }
+
   updatePreliminaryLifecycle(
     database: DatabaseExecutor,
     input: Parameters<InventoryOperations["updatePreliminaryLifecycle"]>[1],
   ): Promise<Machine | undefined> {
     return this.repository.updatePreliminaryLifecycle(database, input);
+  }
+
+  transitionTestProductionState(
+    database: DatabaseExecutor,
+    input: Parameters<InventoryOperations["transitionTestProductionState"]>[1],
+  ): Promise<Machine | undefined> {
+    return this.repository.transitionTestProductionState(database, input);
   }
 
   async createLoad(
@@ -200,70 +202,6 @@ export class InventoryService implements InventoryOperations {
     return this.resolveMutation(
       await this.repository.updateLoad(id, input, current, context),
       "Load",
-    );
-  }
-
-  async createLocation(
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<InventoryLocation> {
-    try {
-      return await this.idempotent(() =>
-        this.repository.createLocation(
-          this.parse(CreateInventoryLocationRequestSchema, rawInput),
-          context,
-        ),
-      );
-    } catch (error) {
-      if (isUniqueViolation(error)) {
-        throw new ConflictException("Location code already exists");
-      }
-      throw error;
-    }
-  }
-
-  listLocations(): Promise<InventoryLocation[]> {
-    return this.repository.listLocations();
-  }
-
-  async getLocation(rawId: string): Promise<InventoryLocation> {
-    const location = await this.repository.findLocation(this.id(rawId));
-    if (!location) throw new NotFoundException("Location not found");
-    return location;
-  }
-
-  async updateLocation(
-    rawId: string,
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<InventoryLocation> {
-    const id = this.id(rawId);
-    const input = this.parse(UpdateInventoryLocationRequestSchema, rawInput);
-    const current = await this.repository.findLocation(id);
-    if (!current) throw new NotFoundException("Location not found");
-    try {
-      return this.resolveMutation(
-        await this.repository.updateLocation(id, input, current, context),
-        "Location",
-      );
-    } catch (error) {
-      if (isUniqueViolation(error)) {
-        throw new ConflictException("Location code already exists");
-      }
-      throw error;
-    }
-  }
-
-  async deactivateLocation(
-    rawId: string,
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<InventoryLocation> {
-    const id = this.id(rawId);
-    const { expectedVersion } = this.parse(VersionedRequestSchema, rawInput);
-    return this.resolveMutation(
-      await this.repository.deactivateLocation(id, expectedVersion, context),
-      "Location",
     );
   }
 
@@ -419,21 +357,6 @@ export class InventoryService implements InventoryOperations {
     return this.resolveMutation(result, "Machine");
   }
 
-  async relocateMachine(
-    rawId: string,
-    rawInput: unknown,
-    context: InventoryActorContext,
-  ): Promise<Machine> {
-    const input = this.parse(RelocateMachineRequestSchema, rawInput);
-    const result = await this.repository.relocateMachine(
-      this.id(rawId),
-      input.toLocationId,
-      input.expectedVersion,
-      context,
-    );
-    return this.resolveMachineMutation(result);
-  }
-
   analyzeImportCandidates(
     database: DatabaseExecutor,
     candidates: readonly ImportMachineCandidate[],
@@ -517,12 +440,6 @@ export class InventoryService implements InventoryOperations {
   ): Machine {
     if (result.status === "missing_load") {
       throw new NotFoundException("Load not found");
-    }
-    if (result.status === "missing_location") {
-      throw new NotFoundException("Location not found");
-    }
-    if (result.status === "inactive_location") {
-      throw new ConflictException("Destination Location is inactive");
     }
     return this.resolveMutation(result, "Machine");
   }

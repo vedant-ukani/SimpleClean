@@ -1,6 +1,6 @@
 import { Module, type DynamicModule } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import { memoryStorage } from "multer";
 
 import { InventoryModule } from "../inventory/inventory.module.js";

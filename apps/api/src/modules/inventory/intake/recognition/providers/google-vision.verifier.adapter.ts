@@ -1,4 +1,4 @@
-import type { IntakeOcrResult } from "@simply-clean/contracts";
+import type { IntakeOcrResult } from "@laundrorama/contracts";
 
 import type {
   IntakeAnalysisImage,

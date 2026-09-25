@@ -1,7 +1,7 @@
 import type {
   IntakeOcrResult,
   IntakeSemanticResult,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 import type {
   IntakeAnalysisImage,

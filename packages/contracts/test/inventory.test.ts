@@ -4,6 +4,7 @@ import {
   CreateQrLabelRequestSchema,
   CreateMachineRequestSchema,
   MachineSchema,
+  MachineDetailSchema,
   MachineSearchQuerySchema,
   QrLabelActivitySchema,
   QrLabelSchema,
@@ -28,6 +29,19 @@ describe("inventory contracts", () => {
       page: 1,
       pageSize: 25,
     });
+  });
+
+  it("does not expose Location in Machine or Intake-facing contracts", () => {
+    const created = CreateMachineRequestSchema.parse({
+      machineType: "washer",
+      sourceLoadId: "3498c172-93d8-4eca-b0f6-0e70fe03516c",
+      currentLocationId: "4498c172-93d8-4eca-b0f6-0e70fe03516c",
+    });
+    expect(created).not.toHaveProperty("currentLocationId");
+    expect(MachineSchema.keyof().options).not.toContain("currentLocationId");
+    expect(MachineDetailSchema.keyof().options).not.toContain(
+      "locationHistory",
+    );
   });
 
   it("rejects unknown controlled values and identity edits without changes", () => {

@@ -2,7 +2,7 @@ import { Controller, Get, Inject, Res } from "@nestjs/common";
 import type {
   LivenessResponse,
   ReadinessResponse,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type { Response } from "express";
 
 import { HealthService } from "./health.service.js";

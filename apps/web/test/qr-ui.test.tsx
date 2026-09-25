@@ -25,9 +25,6 @@ const machine = {
   fuel: "electric" as const,
   sourceLoadId: "f13fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
   sourceLoadDisplayName: "Expected Load",
-  currentLocationId: null,
-  currentLocationCode: "A-01",
-  currentLocationName: "Warehouse A",
   identityVerificationState: "verified" as const,
   conflictingMachineId: null,
   inventoryState: "on_hand" as const,
@@ -91,7 +88,7 @@ describe("QR label UI", () => {
     expect(managed).toContain("ABCDEFGHJKMNPQRS");
     expect(managed).toContain("Active label");
     expect(managed).toContain("Label history");
-    expect(managed).toContain("Download / Print");
+    expect(managed).toContain("View / Print");
     expect(managed).toContain("Revoke");
     expect(managed).toContain("Reissue");
 
@@ -103,7 +100,7 @@ describe("QR label UI", () => {
       />,
     );
     expect(readOnly).toContain("Active label");
-    expect(readOnly).not.toContain("Download / Print");
+    expect(readOnly).not.toContain("View / Print");
     expect(readOnly).not.toContain(">Revoke<");
     expect(readOnly).not.toContain(">Reissue<");
   });
@@ -112,6 +109,7 @@ describe("QR label UI", () => {
     const entry = renderToStaticMarkup(<ScanView />);
     expect(entry).toContain("Scan equipment label");
     expect(entry).toContain("Enter fallback code");
+    expect(entry).toContain("Scan QR code");
     expect(entry).toContain('autoComplete="off"');
 
     const loading = renderToStaticMarkup(<ScanResult state="loading" />);
@@ -130,13 +128,12 @@ describe("QR label UI", () => {
           machine,
           identityEvidence: [],
           verificationHistory: [],
-          locationHistory: [],
         }}
       />,
     );
     expect(success).toContain("Dexter T-900");
     expect(success).toContain("SN-100");
-    expect(success).toContain("A-01");
+    expect(success).not.toContain("Location");
     expect(success).toContain(`/machines/${machine.id}`);
   });
 });

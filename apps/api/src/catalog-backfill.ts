@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
-import { parseServerEnvironment } from "@simply-clean/config";
+import { parseServerEnvironment } from "@laundrorama/config";
 import {
   CATALOG_SPECIFICATION_ENRICHMENT_FIELDS,
   missingCatalogSpecificationFields,
   normalizeCatalogIdentity,
   type CatalogModelDetail,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";

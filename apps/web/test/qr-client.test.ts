@@ -1,4 +1,4 @@
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -7,6 +7,7 @@ import {
   listMachineQrLabels,
   resolveQrLabel,
   downloadIntakeQrLabelSheet,
+  tokenFromPrintedQrValue,
 } from "../src/lib/qr-client";
 import type { QrRequestError } from "../src/lib/qr-client";
 
@@ -34,9 +35,6 @@ const machine = {
   fuel: null,
   sourceLoadId: "f13fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
   sourceLoadDisplayName: "Expected Load",
-  currentLocationId: null,
-  currentLocationCode: null,
-  currentLocationName: null,
   identityVerificationState: "provisional" as const,
   conflictingMachineId: null,
   inventoryState: "expected" as const,
@@ -52,6 +50,26 @@ afterEach(() => {
 });
 
 describe("QR label client", () => {
+  it("accepts only a same-origin printed Scan URL with a valid token", () => {
+    const token =
+      "v1.4498c172-93d8-4eca-b0f6-0e70fe03516c.ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq";
+    const origin = "https://platform.example.test";
+    expect(tokenFromPrintedQrValue(`${origin}/scan#${token}`, origin)).toBe(
+      token,
+    );
+    for (const value of [
+      `/scan#${token}`,
+      `https://other.example.test/scan#${token}`,
+      `${origin}/machines#${token}`,
+      `${origin}/scan?next=1#${token}`,
+      `${origin}/scan#not-a-token`,
+      `${origin}/scan`,
+      ` ${origin}/scan#${token}`,
+      "plain text",
+    ]) {
+      expect(tokenFromPrintedQrValue(value, origin)).toBeUndefined();
+    }
+  });
   it("validates label history and forwards the server session", async () => {
     const fetcher = vi
       .fn<typeof fetch>()
@@ -118,7 +136,6 @@ describe("QR label client", () => {
           machine,
           identityEvidence: [],
           verificationHistory: [],
-          locationHistory: [],
         }),
         { status: 200 },
       ),
@@ -138,21 +155,18 @@ describe("QR label client", () => {
     expect(fetcher.mock.calls[0]![0]).not.toContain(token);
   });
 
-  it("accepts only an SVG print response and preserves its safe filename", async () => {
+  it("accepts only an SVG print response for the in-app viewer", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response("<svg></svg>", {
         status: 200,
         headers: {
           "content-type": "image/svg+xml; charset=utf-8",
-          "content-disposition":
-            'attachment; filename="simple-clean-equipment-0123456789ABCDEF.svg"',
         },
       }),
     );
     vi.stubGlobal("fetch", fetcher);
 
     await expect(getPrintableQrLabel(label.id)).resolves.toMatchObject({
-      filename: "simple-clean-equipment-0123456789ABCDEF.svg",
       blob: expect.any(Blob),
     });
   });

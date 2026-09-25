@@ -16,9 +16,6 @@ export const PERMISSIONS = [
   "inventory.machines.read",
   "inventory.machines.manage",
   "inventory.machines.verify",
-  "inventory.machines.relocate",
-  "inventory.locations.read",
-  "inventory.locations.manage",
   "inventory.qr_labels.manage",
   "files.read",
   "files.write",
@@ -34,6 +31,8 @@ export const PERMISSIONS = [
   "production.read",
   "production.manage",
   "production.disposition.approve",
+  "production.work.execute",
+  "production.work.assign",
 ] as const;
 
 export const ApplicationRoleSchema = z.enum(APPLICATION_ROLES);
@@ -51,14 +50,11 @@ export const ROLE_PERMISSION_POLICY = {
     "inventory.machines.read",
     "inventory.machines.manage",
     "inventory.machines.verify",
-    "inventory.machines.relocate",
-    "inventory.locations.read",
     "inventory.qr_labels.manage",
     "files.read",
     "files.write",
     "intake.read",
     "intake.manage",
-    "catalog.read",
     "production.read",
     "production.manage",
   ],
@@ -66,12 +62,11 @@ export const ROLE_PERMISSION_POLICY = {
     "platform.access",
     "identity.self.read",
     "inventory.machines.read",
-    "inventory.locations.read",
     "files.read",
     "files.write",
-    "catalog.read",
     "production.read",
     "production.manage",
+    "production.work.execute",
   ],
 } as const satisfies Record<ApplicationRole, readonly Permission[]>;
 

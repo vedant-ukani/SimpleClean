@@ -1,7 +1,7 @@
 import {
   missingCatalogSpecificationFields,
   type CatalogSpecs,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import {

@@ -70,68 +70,6 @@ export class InventoryController {
     };
   }
 
-  @Get("locations")
-  @RequirePermission("inventory.locations.read")
-  async listLocations() {
-    return { locations: await this.inventory.listLocations() };
-  }
-
-  @Post("locations")
-  @RequirePermission("inventory.locations.manage")
-  async createLocation(
-    @Req() request: Request,
-    @Headers("idempotency-key") idempotencyKey: string | undefined,
-    @Body() body: unknown,
-  ) {
-    return {
-      location: await this.inventory.createLocation(
-        body,
-        this.context(
-          request,
-          InventoryService.parseIdempotencyKey(idempotencyKey),
-        ),
-      ),
-    };
-  }
-
-  @Get("locations/:locationId")
-  @RequirePermission("inventory.locations.read")
-  async getLocation(@Param("locationId") locationId: string) {
-    return { location: await this.inventory.getLocation(locationId) };
-  }
-
-  @Patch("locations/:locationId")
-  @RequirePermission("inventory.locations.manage")
-  async updateLocation(
-    @Req() request: Request,
-    @Param("locationId") locationId: string,
-    @Body() body: unknown,
-  ) {
-    return {
-      location: await this.inventory.updateLocation(
-        locationId,
-        body,
-        this.context(request),
-      ),
-    };
-  }
-
-  @Post("locations/:locationId/deactivate")
-  @RequirePermission("inventory.locations.manage")
-  async deactivateLocation(
-    @Req() request: Request,
-    @Param("locationId") locationId: string,
-    @Body() body: unknown,
-  ) {
-    return {
-      location: await this.inventory.deactivateLocation(
-        locationId,
-        body,
-        this.context(request),
-      ),
-    };
-  }
-
   @Get("machines")
   @RequirePermission("inventory.machines.read")
   searchMachines(@Query() query: unknown) {
@@ -202,22 +140,6 @@ export class InventoryController {
   ) {
     return {
       machine: await this.inventory.verifyMachine(
-        machineId,
-        body,
-        this.context(request),
-      ),
-    };
-  }
-
-  @Post("machines/:machineId/relocate")
-  @RequirePermission("inventory.machines.relocate")
-  async relocateMachine(
-    @Req() request: Request,
-    @Param("machineId") machineId: string,
-    @Body() body: unknown,
-  ) {
-    return {
-      machine: await this.inventory.relocateMachine(
         machineId,
         body,
         this.context(request),

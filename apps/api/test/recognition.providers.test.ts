@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { createTestEnvironment } from "@laundrorama/test-support";
 
 import {
   DeterministicFakeOcrVerifier,
@@ -15,7 +15,7 @@ import {
   createOcrVerifier,
   createSemanticRecognizer,
 } from "../src/modules/inventory/intake/recognition.service.js";
-import { parseServerEnvironment } from "@simply-clean/config";
+import { parseServerEnvironment } from "@laundrorama/config";
 import { boundedJsonPost } from "../src/platform/provider-http.js";
 
 const photoId = "00000000-0000-4000-8000-000000000001";

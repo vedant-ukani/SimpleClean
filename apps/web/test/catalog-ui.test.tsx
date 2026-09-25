@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { MachineDetail } from "@simply-clean/contracts";
+import type { MachineDetail } from "@laundrorama/contracts";
 import {
   cleanup,
   fireEvent,
@@ -39,9 +39,6 @@ const detail: MachineDetail = {
     capacityLb: 40,
     sourceLoadId: "f13fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
     sourceLoadDisplayName: "Load",
-    currentLocationId: null,
-    currentLocationCode: null,
-    currentLocationName: null,
     identityVerificationState: "provisional",
     conflictingMachineId: null,
     inventoryState: "expected",
@@ -52,7 +49,6 @@ const detail: MachineDetail = {
   },
   identityEvidence: [],
   verificationHistory: [],
-  locationHistory: [],
   catalog: {
     resolutionId: "resolution-1",
     status: "exact",
@@ -165,10 +161,8 @@ function view(initialDetail = detail, canManage = false) {
   return (
     <MachineDetailView
       initialDetail={initialDetail}
-      locations={[]}
       canManage={canManage}
       canVerify={false}
-      canRelocate={false}
       initialFiles={[]}
       canUploadFiles={false}
       initialQrLabels={[]}
@@ -192,6 +186,48 @@ afterEach(() => {
 });
 
 describe("Machine Catalog facts", () => {
+  it("keeps operational specifications visible and technical provenance collapsed", async () => {
+    render(
+      view({
+        ...detail,
+        catalog: {
+          ...detail.catalog!,
+          revision: { ...detail.catalog!.revision!, aliases: ["T400"] },
+        },
+      }),
+    );
+    const disclosure = screen
+      .getByText("Technical catalog provenance")
+      .closest("details");
+    expect(disclosure).not.toBeNull();
+    expect(disclosure!.hasAttribute("open")).toBe(false);
+    expect(
+      screen.getByText("Manufacture year: 2018").closest("details"),
+    ).toBeNull();
+    expect(
+      screen.getByRole("row", { name: /Width/ }).closest("details"),
+    ).toBeNull();
+    expect(screen.queryByText(/Pinned revision/)).toBeNull();
+    expect(
+      screen.getByText(/Serial rule serial-rule-1/).closest("details"),
+    ).toBe(disclosure);
+    expect(screen.getByText(/Model production range/).closest("details")).toBe(
+      disclosure,
+    );
+    expect(screen.queryByText("Aliases: T400")).toBeNull();
+    expect(screen.queryByText("Dimensions table, p. 2")).toBeNull();
+    expect(screen.getByText(/Discovery usage:/).closest("details")).toBe(
+      disclosure,
+    );
+    await userEvent
+      .setup()
+      .click(screen.getByText("Technical catalog provenance"));
+    expect(disclosure!.hasAttribute("open")).toBe(true);
+    expect(
+      screen.getByRole("link", { name: "Official specification" }),
+    ).toBeTruthy();
+  });
+
   it("shows automatic publication provenance, sources, usage, and cost", () => {
     render(view());
     expect(
@@ -215,8 +251,8 @@ describe("Machine Catalog facts", () => {
     render(view(pending, true));
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: "Refresh Catalog" }));
-    expect(screen.getByText("Catalog resolution pending.")).toBeTruthy();
+      .click(screen.getByRole("button", { name: "Check again" }));
+    expect(screen.getByText("Matching catalog specifications…")).toBeTruthy();
     expect(screen.queryByText(/Pinned revision/)).toBeNull();
     expect(
       screen.getByRole("spinbutton", { name: "Actual width (in)" }),
@@ -268,16 +304,16 @@ describe("Machine Catalog facts", () => {
     inventory.getBrowserMachine.mockResolvedValue(detail);
     render(view(detail, true));
     await user.click(
-      screen.getByRole("button", { name: "Save identity evidence" }),
+      screen.getByRole("button", { name: "Save machine identity" }),
     );
-    expect(await screen.findByText("Catalog resolution pending.")).toBeTruthy();
+    expect(await screen.findByText("Matching catalog specifications…")).toBeTruthy();
     expect(screen.queryByText(/Pinned revision/)).toBeNull();
     expect(screen.queryByRole("row", { name: /Width/ })).toBeNull();
     expect(
       screen.getByRole("spinbutton", { name: "Actual width (in)" }),
     ).toHaveProperty("value", "31.5");
-    await user.click(screen.getByRole("button", { name: "Refresh Catalog" }));
-    expect(await screen.findByText(/Pinned revision 1/)).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Check again" }));
+    expect(await screen.findByText(/Model production range: 2010–2020/)).toBeTruthy();
     expect(inventory.getBrowserMachine).toHaveBeenCalledWith(detail.machine.id);
   });
 
@@ -364,9 +400,16 @@ describe("Machine Catalog facts", () => {
       );
       expect(
         screen.getByText(
-          `Manufacture year: ${manufactureDate.kind === "unknown" ? "Unknown" : "2001–2011 · Serial rule serial-rule-2, revision 2 · Source source-1: Serial date table, p. 5"}`,
+          `Manufacture year: ${manufactureDate.kind === "unknown" ? "Unknown" : "2001–2011"}`,
         ),
       ).toBeTruthy();
+      if (manufactureDate.kind === "range") {
+        expect(
+          screen
+            .getByText(/Serial rule serial-rule-2, revision 2/)
+            .closest("details"),
+        ).not.toBeNull();
+      }
       expect(
         screen.getByText(/Model production range: 2010–2020/),
       ).toBeTruthy();
@@ -413,14 +456,12 @@ describe("Machine Catalog facts", () => {
     ).toHaveLength(2);
   });
 
-  it("distinguishes pinned source facts, serial year, actual and effective measurements", () => {
+  it("distinguishes pinned source facts, serial year, actual and effective measurements", async () => {
     render(view());
-    expect(screen.getByText(/Pinned revision 1 · revision-1/)).toBeTruthy();
+    expect(screen.queryByText(/Pinned revision/)).toBeNull();
     expect(screen.getByText(/Manufacture year: 2018/)).toBeTruthy();
     expect(
-      screen.getByText(
-        /Serial rule serial-rule-1, revision 3 · Source source-1: Serial date table, p. 4/,
-      ),
+      screen.getByText(/Serial rule serial-rule-1, revision 3/),
     ).toBeTruthy();
     expect(screen.getByText(/Model production range: 2010–2020/)).toBeTruthy();
     const width = within(screen.getByRole("row", { name: /Width/ }));
@@ -430,12 +471,15 @@ describe("Machine Catalog facts", () => {
     expect(screen.getByRole("row", { name: /Capacity/ }).textContent).toContain(
       "Machine record",
     );
+    await userEvent
+      .setup()
+      .click(screen.getByText("Technical catalog provenance"));
     expect(
       screen
         .getByRole("link", { name: "Official specification" })
         .getAttribute("href"),
     ).toBe("https://dexter.com/specification");
-    expect(screen.getByText(/Dimensions table, p. 2/)).toBeTruthy();
+    expect(screen.queryByText(/Dimensions table, p. 2/)).toBeNull();
     expect(
       screen.queryByRole("button", { name: "Save actual measurements" }),
     ).toBeNull();
@@ -510,6 +554,8 @@ describe("Catalog browse UI", () => {
       screen.getByRole("heading", { name: "3 approved models" }),
     ).toBeTruthy();
     expect(screen.getByText("T-400")).toBeTruthy();
+    expect(screen.queryByRole("columnheader", { name: "Revision" })).toBeNull();
+    expect(screen.getByRole("row", { name: /T-400/ }).children).toHaveLength(5);
     expect(
       screen.getByRole("link", { name: "View model" }).getAttribute("href"),
     ).toBe("/catalog/revision-1");
@@ -534,7 +580,7 @@ describe("Catalog browse UI", () => {
     ).toBeTruthy();
   });
 
-  it("renders model specifications and source-backed field evidence", () => {
+  it("renders model specifications and official sources without technical evidence", () => {
     render(<CatalogDetailView model={catalogModel} />);
     expect(screen.getByRole("heading", { name: "T-400" })).toBeTruthy();
     const widthRows = screen
@@ -542,13 +588,16 @@ describe("Catalog browse UI", () => {
       .filter((row) => row.textContent?.startsWith("Width"));
     expect(widthRows[0]?.textContent).toContain("30 in");
     expect(screen.getAllByText("Unknown").length).toBeGreaterThan(0);
-    expect(screen.getByText("T400")).toBeTruthy();
+    expect(screen.getByText("Approved Catalog model")).toBeTruthy();
+    expect(screen.queryByText("T400")).toBeNull();
     expect(
       screen
         .getByRole("link", { name: "Official model guide" })
         .getAttribute("href"),
     ).toBe("https://example.test/model.pdf");
     expect(screen.getByText("Checksum verified")).toBeTruthy();
-    expect(screen.getByText("Dimensions table, p. 2")).toBeTruthy();
+    expect(screen.queryByText("Dimensions table, p. 2")).toBeNull();
+    expect(screen.queryByText("Field evidence")).toBeNull();
+    expect(screen.queryByText("Revision ID")).toBeNull();
   });
 });

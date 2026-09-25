@@ -5,11 +5,11 @@ import type {
   IntakeRecapture,
   IntakeGroupDecision,
   IntakeRecognitionAttemptMetric,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql } from "drizzle-orm";
 import { createHash, randomUUID } from "node:crypto";
 import { DATABASE_CONNECTION } from "../../../platform/database.module.js";

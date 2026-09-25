@@ -2,26 +2,22 @@ import { Inject, Injectable } from "@nestjs/common";
 import type {
   AcquisitionLoad,
   CreateAcquisitionLoadRequest,
-  CreateInventoryLocationRequest,
   CreateMachineRequest,
-  InventoryLocation,
   Machine,
   MachineDetail,
   MachineActualSpecs,
   UpdateMachineActualSpecsRequest,
   MachineIdentityEvidence,
   MachineIdentityVerificationHistory,
-  MachineLocationHistory,
   MachineSearchQuery,
   MachineSearchResponse,
   UpdateAcquisitionLoadRequest,
-  UpdateInventoryLocationRequest,
   UpdateMachineIdentityRequest,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
@@ -58,10 +54,7 @@ export type MutationResult<T> =
   | { status: "version_conflict" };
 
 export type MachineMutationResult =
-  | MutationResult<Machine>
-  | { status: "inactive_location" }
-  | { status: "missing_load" }
-  | { status: "missing_location" };
+  MutationResult<Machine> | { status: "missing_load" };
 
 export type VerificationResult =
   | MutationResult<Machine>
@@ -110,18 +103,6 @@ function loadFromRow(row: RecordRow): AcquisitionLoad {
   };
 }
 
-function locationFromRow(row: RecordRow): InventoryLocation {
-  return {
-    id: String(row.id),
-    code: String(row.code),
-    name: String(row.name),
-    active: Boolean(row.active),
-    version: Number(row.version),
-    createdAt: iso(row.created_at),
-    updatedAt: iso(row.updated_at),
-  };
-}
-
 function machineFromRow(row: RecordRow): Machine {
   return {
     id: String(row.id),
@@ -138,9 +119,6 @@ function machineFromRow(row: RecordRow): Machine {
         : Number(row.capacity_lb),
     sourceLoadId: String(row.source_load_id),
     sourceLoadDisplayName: String(row.source_load_display_name),
-    currentLocationId: nullableString(row.current_location_id),
-    currentLocationCode: nullableString(row.current_location_code),
-    currentLocationName: nullableString(row.current_location_name),
     identityVerificationState:
       row.identity_verification_state as Machine["identityVerificationState"],
     conflictingMachineId: nullableString(row.conflicting_machine_id),
@@ -174,19 +152,6 @@ function evidenceFromRow(row: RecordRow): MachineIdentityEvidence {
   };
 }
 
-function historyFromRow(row: RecordRow): MachineLocationHistory {
-  return {
-    id: String(row.id),
-    machineId: String(row.machine_id),
-    fromLocationId: nullableString(row.from_location_id),
-    toLocationId: String(row.to_location_id),
-    actorUserId: String(row.actor_user_id),
-    requestId: String(row.request_id),
-    machineVersion: Number(row.machine_version),
-    createdAt: iso(row.created_at),
-  };
-}
-
 function verificationHistoryFromRow(
   row: RecordRow,
 ): MachineIdentityVerificationHistory {
@@ -207,12 +172,9 @@ function verificationHistoryFromRow(
 const machineSelect = sql`
   select
     m.*,
-    l.display_name as source_load_display_name,
-    loc.code as current_location_code,
-    loc.name as current_location_name
+    l.display_name as source_load_display_name
   from inventory_machine m
   inner join inventory_load l on l.id = m.source_load_id
-  left join inventory_location loc on loc.id = m.current_location_id
 `;
 
 @Injectable()
@@ -291,6 +253,35 @@ export class InventoryRepository {
     return this.findLoadWith(this.connection.database, id);
   }
 
+  async lockLoadForIntake(
+    database: DatabaseExecutor,
+    id: string,
+  ): Promise<AcquisitionLoad | undefined> {
+    const row = rowsFromResult(
+      await database.execute(
+        sql`select * from inventory_load where id = ${id} for update`,
+      ),
+    )[0];
+    return row ? loadFromRow(row) : undefined;
+  }
+
+  async receiveLoadAfterIntake(
+    database: DatabaseExecutor,
+    id: string,
+    context: InventoryActorContext,
+  ): Promise<void> {
+    const result = await database.execute(sql`
+      update inventory_load
+      set received_at = now(), version = version + 1, updated_at = now()
+      where id = ${id} and received_at is null
+      returning id
+    `);
+    if (!rowsFromResult(result).length) return;
+    await this.record(database, "inventory.load.updated", "load", id, context, [
+      "received_at",
+    ]);
+  }
+
   async updateLoad(
     id: string,
     input: UpdateAcquisitionLoadRequest,
@@ -328,131 +319,6 @@ export class InventoryRepository {
     });
   }
 
-  async createLocation(
-    input: CreateInventoryLocationRequest,
-    context: InventoryActorContext,
-  ): Promise<InventoryLocation> {
-    return this.connection.transaction(async (database) => {
-      const reservation = await this.reserveCreate(
-        database,
-        "inventory.location.create",
-        "location",
-        input,
-        context,
-      );
-      if (reservation.existingTargetId) {
-        const existing = await this.findLocationWith(
-          database,
-          reservation.existingTargetId,
-        );
-        if (!existing)
-          throw new Error("Idempotent Location target is unavailable");
-        return existing;
-      }
-      const id = randomUUID();
-      const result = await database.execute(sql`
-        insert into inventory_location (id, code, name)
-        values (${id}, ${input.code}, ${input.name})
-        returning *
-      `);
-      await this.record(
-        database,
-        "inventory.location.created",
-        "location",
-        id,
-        context,
-        ["code", "name"],
-      );
-      await this.idempotency.complete(database, {
-        recordId: reservation.recordId!,
-        targetType: "location",
-        targetId: id,
-      });
-      return locationFromRow(rowsFromResult(result)[0]!);
-    });
-  }
-
-  async listLocations(): Promise<InventoryLocation[]> {
-    const result = await this.connection.database.execute(sql`
-      select * from inventory_location order by active desc, code
-    `);
-    return rowsFromResult(result).map(locationFromRow);
-  }
-
-  async findLocation(id: string): Promise<InventoryLocation | undefined> {
-    const result = await this.connection.database.execute(
-      sql`select * from inventory_location where id = ${id}`,
-    );
-    const row = rowsFromResult(result)[0];
-    return row ? locationFromRow(row) : undefined;
-  }
-
-  async updateLocation(
-    id: string,
-    input: UpdateInventoryLocationRequest,
-    current: InventoryLocation,
-    context: InventoryActorContext,
-  ): Promise<MutationResult<InventoryLocation>> {
-    return this.connection.transaction(async (database) => {
-      const result = await database.execute(sql`
-      update inventory_location set
-        code = ${input.code ?? current.code},
-        name = ${input.name ?? current.name},
-        version = version + 1,
-        updated_at = now()
-      where id = ${id} and version = ${input.expectedVersion}
-      returning *
-    `);
-      const row = rowsFromResult(result)[0];
-      if (row) {
-        await this.record(
-          database,
-          "inventory.location.updated",
-          "location",
-          id,
-          context,
-          Object.keys(input).filter((key) => key !== "expectedVersion"),
-        );
-        return { status: "updated", value: locationFromRow(row) };
-      }
-      return (await this.findLocationWith(database, id))
-        ? { status: "version_conflict" }
-        : { status: "not_found" };
-    });
-  }
-
-  async deactivateLocation(
-    id: string,
-    expectedVersion: number,
-    context: InventoryActorContext,
-  ): Promise<MutationResult<InventoryLocation>> {
-    return this.connection.transaction(async (database) => {
-      const result = await database.execute(sql`
-      update inventory_location set
-        active = false,
-        version = version + 1,
-        updated_at = now()
-      where id = ${id} and version = ${expectedVersion}
-      returning *
-    `);
-      const row = rowsFromResult(result)[0];
-      if (row) {
-        await this.record(
-          database,
-          "inventory.location.deactivated",
-          "location",
-          id,
-          context,
-          ["active"],
-        );
-        return { status: "updated", value: locationFromRow(row) };
-      }
-      return (await this.findLocationWith(database, id))
-        ? { status: "version_conflict" }
-        : { status: "not_found" };
-    });
-  }
-
   async createMachine(
     input: CreateMachineRequest,
     context: InventoryActorContext,
@@ -479,20 +345,6 @@ export class InventoryRepository {
           recordId: reservation.recordId!,
         });
         return { status: "missing_load" };
-      }
-      if (input.currentLocationId) {
-        const location = await this.findLocationWith(
-          database,
-          input.currentLocationId,
-        );
-        if (!location || !location.active) {
-          await this.idempotency.release(database, {
-            recordId: reservation.recordId!,
-          });
-          return {
-            status: location ? "inactive_location" : "missing_location",
-          };
-        }
       }
       const machine = await this.createMachineInTransaction(
         database,
@@ -576,12 +428,12 @@ export class InventoryRepository {
       insert into inventory_machine (
         id, machine_type, manufacturer, normalized_manufacturer, model,
         serial, normalized_serial, voltage, phase, fuel, source_load_id,
-        capacity_lb, current_location_id, inventory_state
+        capacity_lb, inventory_state
       ) values (
         ${id}, ${input.machineType}, ${manufacturer},
         ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
         ${normalizeIdentityMatchValue(serial)}, null, null, null,
-        ${input.sourceLoadId}, ${input.capacityLb ?? null}, null, ${input.inventoryState}
+        ${input.sourceLoadId}, ${input.capacityLb ?? null}, ${input.inventoryState}
       )
     `);
     await this.insertEvidence(
@@ -621,13 +473,6 @@ export class InventoryRepository {
   ): Promise<Machine | undefined> {
     if (!(await this.findLoadWith(database, input.sourceLoadId)))
       return undefined;
-    if (input.currentLocationId) {
-      const location = await this.findLocationWith(
-        database,
-        input.currentLocationId,
-      );
-      if (!location?.active) return undefined;
-    }
     return this.createMachineInTransaction(
       database,
       input,
@@ -651,13 +496,13 @@ export class InventoryRepository {
       insert into inventory_machine (
         id, machine_type, manufacturer, normalized_manufacturer, model,
         serial, normalized_serial, voltage, phase, fuel, source_load_id,
-        capacity_lb, current_location_id, inventory_state, production_state
+        capacity_lb, inventory_state, production_state
       ) values (
         ${id}, ${input.machineType}, ${manufacturer},
         ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
         ${normalizeIdentityMatchValue(serial)}, ${voltage}, ${input.phase ?? null},
           ${input.fuel ?? null}, ${input.sourceLoadId}, ${input.capacityLb ?? null},
-        ${input.currentLocationId ?? null}, ${input.currentLocationId ? "on_hand" : input.inventoryState}, 'not_assessed'
+        ${input.inventoryState}, 'not_assessed'
       )
     `);
     await this.insertEvidence(
@@ -676,15 +521,6 @@ export class InventoryRepository {
       },
       context,
     );
-    if (input.currentLocationId)
-      await this.insertLocationHistory(
-        database,
-        id,
-        null,
-        input.currentLocationId,
-        1,
-        context,
-      );
     const machine = await this.findMachineWith(database, id);
     if (!machine) throw new Error("Machine was not created");
     await this.record(
@@ -693,13 +529,7 @@ export class InventoryRepository {
       "machine",
       id,
       context,
-      [
-        "machine_type",
-        "identity",
-        "source_load_id",
-        "current_location_id",
-        "inventory_state",
-      ],
+      ["machine_type", "identity", "source_load_id", "inventory_state"],
     );
     return machine;
   }
@@ -715,13 +545,46 @@ export class InventoryRepository {
     return this.findMachineWith(database, id);
   }
 
+  async listInitialCheckCandidates(
+    database: DatabaseExecutor,
+  ): Promise<Machine[]> {
+    const candidates = rowsFromResult(
+      await database.execute(sql`
+      select id from inventory_machine
+      where machine_type in ('washer', 'dryer')
+        and inventory_state = 'on_hand' and production_state = 'not_assessed'
+      order by created_at, id
+    `),
+    );
+    const machines = await Promise.all(
+      candidates.map((candidate) =>
+        this.findMachineWith(database, String(candidate.id)),
+      ),
+    );
+    return machines.filter(
+      (machine): machine is Machine => machine !== undefined,
+    );
+  }
+
+  async countOtherMachinesAwaitingTest(
+    database: DatabaseExecutor,
+  ): Promise<number> {
+    const row = rowsFromResult(
+      await database.execute(sql`
+      select count(*)::integer as count from inventory_machine
+      where machine_type = 'other' and inventory_state = 'on_hand' and production_state = 'preliminary_passed'
+    `),
+    )[0];
+    return Number(row?.count ?? 0);
+  }
+
   async updatePreliminaryLifecycle(
     database: DatabaseExecutor,
     input: {
       machineId: string;
       expectedVersion: number;
       inventoryState: "on_hand" | "scrapped";
-      productionState: "preliminary_passed" | "blocked";
+      productionState: "preliminary_passed" | "awaiting_test" | "blocked";
       actorUserId: string;
       requestId: string;
     },
@@ -748,6 +611,36 @@ export class InventoryRepository {
         changedFields: ["inventory_state", "production_state"],
         outcome: input.inventoryState,
       },
+    });
+    return this.findMachineWith(database, input.machineId);
+  }
+
+  async transitionTestProductionState(
+    database: DatabaseExecutor,
+    input: {
+      machineId: string;
+      expectedVersion: number;
+      from: "awaiting_test" | "testing";
+      to: "testing" | "awaiting_repair" | "awaiting_clean";
+      actorUserId: string;
+      requestId: string;
+    },
+  ): Promise<Machine | undefined> {
+    const result = await database.execute(sql`
+      update inventory_machine set production_state = ${input.to}, version = version + 1, updated_at = now()
+      where id = ${input.machineId} and version = ${input.expectedVersion}
+        and inventory_state = 'on_hand' and production_state = ${input.from}
+      returning id
+    `);
+    if (!rowsFromResult(result).length) return undefined;
+    await this.mutationRecorder.record(database, {
+      actorKind: "user",
+      actorUserId: input.actorUserId,
+      action: "inventory.machine.lifecycle_updated",
+      targetType: "machine",
+      targetId: input.machineId,
+      requestId: input.requestId,
+      summary: { changedFields: ["production_state"], outcome: input.to },
     });
     return this.findMachineWith(database, input.machineId);
   }
@@ -832,31 +725,24 @@ export class InventoryRepository {
   async getMachineDetail(id: string): Promise<MachineDetail | undefined> {
     const machine = await this.findMachine(id);
     if (!machine) return undefined;
-    const [evidenceResult, verificationResult, historyResult] =
-      await Promise.all([
-        this.connection.database.execute(sql`
+    const [evidenceResult, verificationResult] = await Promise.all([
+      this.connection.database.execute(sql`
         select * from machine_identity_evidence
         where machine_id = ${id}
         order by created_at desc, id desc
       `),
-        this.connection.database.execute(sql`
+      this.connection.database.execute(sql`
         select * from machine_identity_verification_history
         where machine_id = ${id}
         order by created_at desc, id desc
       `),
-        this.connection.database.execute(sql`
-        select * from machine_location_history
-        where machine_id = ${id}
-        order by created_at desc, id desc
-      `),
-      ]);
+    ]);
     return {
       machine,
       identityEvidence: rowsFromResult(evidenceResult).map(evidenceFromRow),
       verificationHistory: rowsFromResult(verificationResult).map(
         verificationHistoryFromRow,
       ),
-      locationHistory: rowsFromResult(historyResult).map(historyFromRow),
     };
   }
 
@@ -875,15 +761,12 @@ export class InventoryRepository {
           or lower(coalesce(m.serial, '')) like ${pattern} escape '\\'
           or lower(l.display_name) like ${pattern} escape '\\'
           or lower(coalesce(l.source_reference, '')) like ${pattern} escape '\\'
-          or lower(coalesce(loc.code, '')) like ${pattern} escape '\\'
-          or lower(coalesce(loc.name, '')) like ${pattern} escape '\\'
         )`
       : sql``;
     const countResult = await this.connection.database.execute(sql`
       select count(*)::integer as total
       from inventory_machine m
       inner join inventory_load l on l.id = m.source_load_id
-      left join inventory_location loc on loc.id = m.current_location_id
       ${filter}
     `);
     const offset = (input.page - 1) * input.pageSize;
@@ -1073,51 +956,6 @@ export class InventoryRepository {
     });
   }
 
-  async relocateMachine(
-    id: string,
-    toLocationId: string,
-    expectedVersion: number,
-    context: InventoryActorContext,
-  ): Promise<MachineMutationResult> {
-    return this.connection.transaction(async (database) => {
-      const current = await this.lockMachine(database, id);
-      if (!current) return { status: "not_found" };
-      if (current.version !== expectedVersion)
-        return { status: "version_conflict" };
-      const location = await this.findLocationWith(database, toLocationId);
-      if (!location) return { status: "missing_location" };
-      if (!location.active) return { status: "inactive_location" };
-      const nextVersion = current.version + 1;
-      await database.execute(sql`
-        update inventory_machine set
-          current_location_id = ${toLocationId},
-          inventory_state = 'on_hand',
-          version = ${nextVersion},
-          updated_at = now()
-        where id = ${id}
-      `);
-      await this.insertLocationHistory(
-        database,
-        id,
-        current.currentLocationId,
-        toLocationId,
-        nextVersion,
-        context,
-      );
-      const machine = await this.findMachineWith(database, id);
-      if (!machine) throw new Error("Machine disappeared during relocation");
-      await this.record(
-        database,
-        "inventory.machine.relocated",
-        "machine",
-        id,
-        context,
-        ["current_location_id", "inventory_state"],
-      );
-      return { status: "updated", value: machine };
-    });
-  }
-
   private async findLoadWith(
     database: DatabaseExecutor,
     id: string,
@@ -1127,17 +965,6 @@ export class InventoryRepository {
     );
     const row = rowsFromResult(result)[0];
     return row ? loadFromRow(row) : undefined;
-  }
-
-  private async findLocationWith(
-    database: DatabaseExecutor,
-    id: string,
-  ): Promise<InventoryLocation | undefined> {
-    const result = await database.execute(
-      sql`select * from inventory_location where id = ${id}`,
-    );
-    const row = rowsFromResult(result)[0];
-    return row ? locationFromRow(row) : undefined;
   }
 
   private async findMachineWith(
@@ -1218,7 +1045,7 @@ export class InventoryRepository {
   private async reserveCreate(
     database: DatabaseExecutor,
     scope: string,
-    targetType: "load" | "location" | "machine",
+    targetType: "load" | "machine",
     input: unknown,
     context: InventoryActorContext,
   ): Promise<{ recordId?: string; existingTargetId?: string }> {
@@ -1248,15 +1075,11 @@ export class InventoryRepository {
     action:
       | "inventory.load.created"
       | "inventory.load.updated"
-      | "inventory.location.created"
-      | "inventory.location.updated"
-      | "inventory.location.deactivated"
       | "inventory.machine.created"
       | "inventory.machine.identity_updated"
       | "inventory.machine.verified"
-      | "inventory.machine.identity_conflict"
-      | "inventory.machine.relocated",
-    targetType: "load" | "location" | "machine",
+      | "inventory.machine.identity_conflict",
+    targetType: "load" | "machine",
     targetId: string,
     context: InventoryActorContext,
     changedFields: string[],
@@ -1322,25 +1145,6 @@ export class InventoryRepository {
         ${randomUUID()}, ${current.id}, ${current.identityVerificationState},
         ${toState}, ${conflictingMachineId}, ${machineVersion},
         ${context.actorUserId}, ${context.requestId}
-      )
-    `);
-  }
-
-  private async insertLocationHistory(
-    database: DatabaseExecutor,
-    machineId: string,
-    fromLocationId: string | null,
-    toLocationId: string,
-    machineVersion: number,
-    context: InventoryActorContext,
-  ): Promise<void> {
-    await database.execute(sql`
-      insert into machine_location_history (
-        id, machine_id, from_location_id, to_location_id,
-        actor_user_id, request_id, machine_version
-      ) values (
-        ${randomUUID()}, ${machineId}, ${fromLocationId}, ${toLocationId},
-        ${context.actorUserId}, ${context.requestId}, ${machineVersion}
       )
     `);
   }

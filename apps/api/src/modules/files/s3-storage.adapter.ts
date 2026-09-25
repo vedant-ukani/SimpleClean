@@ -7,7 +7,7 @@ import {
   type GetObjectCommandOutput,
   type HeadObjectCommandOutput,
 } from "@aws-sdk/client-s3";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 
 import type {
   StorageAdapter,

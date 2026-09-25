@@ -3,8 +3,8 @@ import type {
   OperationsAction,
   OperationsTargetType,
   SafeMutationSummary,
-} from "@simply-clean/contracts";
-import type { DatabaseExecutor } from "@simply-clean/database";
+} from "@laundrorama/contracts";
+import type { DatabaseExecutor } from "@laundrorama/database";
 import { createHash } from "node:crypto";
 
 export const MUTATION_RECORDER = Symbol("MUTATION_RECORDER");
@@ -58,7 +58,13 @@ export interface IdempotencyCoordinator {
         | "intake_batch"
         | "intake_recognition_run"
         | "preliminary_inspection"
-        | "preliminary_disposition";
+        | "preliminary_disposition"
+        | "production_worker_specialty"
+        | "production_test_work_order"
+        | "production_test_step_result"
+        | "production_test_session"
+        | "production_test_session_event"
+        | "production_test_bearing_concern";
       targetId: string;
     },
   ): Promise<void>;

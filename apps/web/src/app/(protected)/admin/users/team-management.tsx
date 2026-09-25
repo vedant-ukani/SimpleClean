@@ -1,7 +1,11 @@
 "use client";
 
-import type { ApplicationRole, IdentityUser } from "@simply-clean/contracts";
-import { useState, type FormEvent } from "react";
+import type {
+  ApplicationRole,
+  IdentityUser,
+  ProductionSpecialty,
+} from "@laundrorama/contracts";
+import { useEffect, useState, type FormEvent } from "react";
 
 import {
   changeIdentityActive,
@@ -11,6 +15,7 @@ import {
 } from "../../../../lib/identity-client";
 import { useOnlineStatus } from "../../online-status";
 import { useServerState } from "../../use-server-state";
+import { setProductionSpecialties } from "../../../../lib/production-client";
 
 const roleLabels: Record<ApplicationRole, string> = {
   owner_admin: "Owner Admin",
@@ -20,11 +25,19 @@ const roleLabels: Record<ApplicationRole, string> = {
 
 export function TeamManagement({
   initialUsers,
-}: Readonly<{ initialUsers: IdentityUser[] }>) {
+  initialSpecialties = [],
+}: Readonly<{
+  initialUsers: IdentityUser[];
+  initialSpecialties?: { userId: string; specialties: ProductionSpecialty[] }[];
+}>) {
   const [users, setUsers] = useServerState(initialUsers);
+  const [specialties, setSpecialties] = useServerState(initialSpecialties);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const online = useOnlineStatus();
+
+  useEffect(() => setHydrated(true), []);
 
   function beginMutation(): boolean {
     if (!online) {
@@ -113,6 +126,26 @@ export function TeamManagement({
     }
   }
 
+  async function changeAssignment(
+    user: IdentityUser,
+    specialty: ProductionSpecialty | "cleaner",
+  ) {
+    if (!beginMutation()) return;
+    const next = specialty === "cleaner" ? [] : [specialty];
+    try {
+      const updated = await setProductionSpecialties(user.id, next);
+      setSpecialties((entries) => [
+        ...entries.filter((entry) => entry.userId !== user.id),
+        updated,
+      ]);
+      setMessage("Production assignment updated.");
+    } catch {
+      setMessage("Assignment could not be changed. Refresh and retry.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="management-grid">
       <section className="panel" aria-labelledby="create-user-heading">
@@ -176,6 +209,38 @@ export function TeamManagement({
                 ))}
               </select>
             </label>
+            {user.active && user.role === "technician_cleaner" ? (
+              <label className="team-specialties">
+                Production assignment for {user.name}
+                <select
+                  value={(() => {
+                    const assigned =
+                      specialties.find((entry) => entry.userId === user.id)
+                        ?.specialties ?? [];
+                    return assigned.length > 1
+                      ? "both"
+                      : (assigned[0] ?? "cleaner");
+                  })()}
+                  disabled={!hydrated || busy || !online}
+                  onChange={(event) =>
+                    void changeAssignment(
+                      user,
+                      event.target.value as ProductionSpecialty | "cleaner",
+                    )
+                  }
+                >
+                  <option value="cleaner">Cleaner / no testing</option>
+                  <option value="washer">Washer Technician</option>
+                  <option value="dryer">Dryer Technician</option>
+                  {(specialties.find((entry) => entry.userId === user.id)
+                    ?.specialties.length ?? 0) > 1 ? (
+                    <option value="both" disabled>
+                      Both assignments — choose one
+                    </option>
+                  ) : null}
+                </select>
+              </label>
+            ) : null}
             <div className="row-actions">
               <button
                 type="button"

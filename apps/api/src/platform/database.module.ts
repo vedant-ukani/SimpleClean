@@ -6,11 +6,11 @@ import {
   type DynamicModule,
   type OnModuleDestroy,
 } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 import {
   createDatabase,
   type DatabaseConnection,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 
 export const DATABASE_CONNECTION = Symbol("DATABASE_CONNECTION");
 

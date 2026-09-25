@@ -2,7 +2,7 @@ import type {
   IntakeSemanticResult,
   IntakeOcrResult,
   IntakeGroupDecision,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 export interface IntakeAnalysisImage {
   photoId: string;

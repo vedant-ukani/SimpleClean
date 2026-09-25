@@ -1,5 +1,5 @@
 import { Global, Module, type DynamicModule } from "@nestjs/common";
-import type { ServerConfig } from "@simply-clean/config";
+import type { ServerConfig } from "@laundrorama/config";
 
 import { SERVER_CONFIG, StructuredLogger } from "../../platform/logging.js";
 import { InternalEventHandlerRegistry } from "./internal-event-dispatcher.js";

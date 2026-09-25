@@ -3,6 +3,7 @@ import {
   ArrowUpRight,
   Boxes,
   CircleAlert,
+  ClipboardCheck,
   PackageOpen,
   UsersRound,
 } from "lucide-react";
@@ -10,6 +11,7 @@ import Link from "next/link";
 
 import { getCurrentIdentity } from "../../lib/identity-client";
 import { dashboardForRole, ROLE_LABELS } from "../../lib/navigation";
+import { getTestQueue } from "../../lib/production-client";
 import { readProtectedRouteData } from "../../lib/server-route-state";
 
 export default async function Home() {
@@ -22,7 +24,16 @@ export default async function Home() {
     ),
   );
   const dashboard = dashboardForRole(identity.user.role);
-  const showPilotPlaceholder = identity.user.role !== "owner_admin";
+  const workQueue = identity.permissions.includes("production.work.execute")
+    ? await readProtectedRouteData(
+        getTestQueue(
+          fetch,
+          process.env,
+          requestHeaders.get("cookie") ?? undefined,
+        ),
+      )
+    : null;
+  const showPilotPlaceholder = identity.user.role === "warehouse";
   return (
     <main className="page-main">
       <section className="hero-card dashboard-hero">
@@ -54,12 +65,22 @@ export default async function Home() {
                   <PackageOpen size={20} />
                 ) : item.icon === "machines" ? (
                   <Boxes size={20} />
+                ) : item.icon === "work" ? (
+                  <ClipboardCheck size={20} />
                 ) : (
                   <UsersRound size={20} />
                 )}
               </span>
               <strong>{item.label}</strong>
-              <span>{item.description}</span>
+              <span>
+                {item.icon === "work" && workQueue
+                  ? identity.user.role === "owner_admin"
+                    ? `${workQueue.orders.length} Test Work Orders for oversight.`
+                    : workQueue.specialties.length === 1
+                      ? `${workQueue.myActiveMachines.length} active Machines · ${workQueue.availableTests.length} available Tests · ${workQueue.initialChecks.length} initial checks.`
+                      : "No testing assignment."
+                  : item.description}
+              </span>
               <span className="dashboard-card-action">
                 Open workspace
                 <ArrowUpRight aria-hidden="true" size={15} />

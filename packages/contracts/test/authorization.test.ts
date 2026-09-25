@@ -19,9 +19,6 @@ describe("authorization policy", () => {
       "inventory.machines.read",
       "inventory.machines.manage",
       "inventory.machines.verify",
-      "inventory.machines.relocate",
-      "inventory.locations.read",
-      "inventory.locations.manage",
       "inventory.qr_labels.manage",
       "files.read",
       "files.write",
@@ -37,6 +34,8 @@ describe("authorization policy", () => {
       "production.read",
       "production.manage",
       "production.disposition.approve",
+      "production.work.execute",
+      "production.work.assign",
     ]);
     expect(permissionsForRole("warehouse")).toEqual([
       "platform.access",
@@ -45,14 +44,11 @@ describe("authorization policy", () => {
       "inventory.machines.read",
       "inventory.machines.manage",
       "inventory.machines.verify",
-      "inventory.machines.relocate",
-      "inventory.locations.read",
       "inventory.qr_labels.manage",
       "files.read",
       "files.write",
       "intake.read",
       "intake.manage",
-      "catalog.read",
       "production.read",
       "production.manage",
     ]);
@@ -60,12 +56,11 @@ describe("authorization policy", () => {
       "platform.access",
       "identity.self.read",
       "inventory.machines.read",
-      "inventory.locations.read",
       "files.read",
       "files.write",
-      "catalog.read",
       "production.read",
       "production.manage",
+      "production.work.execute",
     ]);
 
     expect(roleHasPermission("owner_admin", "identity.users.manage")).toBe(
@@ -106,6 +101,18 @@ describe("authorization policy", () => {
     ).toBe(true);
   });
 
+  it("grants standalone Catalog browsing only to Owner Admin", () => {
+    expect(roleHasPermission("owner_admin", "catalog.read")).toBe(true);
+    expect(roleHasPermission("warehouse", "catalog.read")).toBe(false);
+    expect(roleHasPermission("technician_cleaner", "catalog.read")).toBe(false);
+    expect(roleHasPermission("warehouse", "inventory.machines.read")).toBe(
+      true,
+    );
+    expect(
+      roleHasPermission("technician_cleaner", "inventory.machines.read"),
+    ).toBe(true);
+  });
+
   it("rejects unknown roles and permissions at runtime", () => {
     expect(ApplicationRoleSchema.safeParse("admin").success).toBe(false);
     expect(PermissionSchema.safeParse("identity.users.delete").success).toBe(
@@ -115,5 +122,12 @@ describe("authorization policy", () => {
     expect(() =>
       roleHasPermission("owner_admin", "future.permission"),
     ).toThrow();
+    for (const removedPermission of [
+      "inventory.machines.relocate",
+      "inventory.locations.read",
+      "inventory.locations.manage",
+    ]) {
+      expect(PermissionSchema.safeParse(removedPermission).success).toBe(false);
+    }
   });
 });

@@ -1,4 +1,4 @@
-import type { DatabaseConnection } from "@simply-clean/database";
+import type { DatabaseConnection } from "@laundrorama/database";
 import { describe, expect, it } from "vitest";
 
 import { HealthService } from "../src/platform/health.service.js";

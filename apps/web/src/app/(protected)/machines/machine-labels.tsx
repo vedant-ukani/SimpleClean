@@ -1,4 +1,4 @@
-import type { Machine } from "@simply-clean/contracts";
+import type { Machine } from "@laundrorama/contracts";
 
 export function recorded(value: string | null): string {
   return value ?? "Not recorded";
@@ -18,7 +18,7 @@ export function MachineIdentityStatus({
     );
   }
   if (machine.identityVerificationState === "verified") {
-    return <span className="status status--success">Identity verified</span>;
+    return <span className="status status--success">Identity confirmed</span>;
   }
-  return <span className="status">Provisional identity — not verified</span>;
+  return <span className="status">Identity needs confirmation</span>;
 }

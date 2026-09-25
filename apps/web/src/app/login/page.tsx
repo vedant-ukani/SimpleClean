@@ -5,11 +5,11 @@ import { LoginForm } from "./login-form";
 export default function LoginPage() {
   return (
     <main className="auth-page">
-      <section className="auth-intro" aria-label="Simple Clean operations">
+      <section className="auth-intro" aria-label="Laundrorama operations">
         <div className="auth-intro-mark" aria-hidden="true">
           <ShieldCheck size={22} strokeWidth={2.2} />
         </div>
-        <p className="eyebrow">Simple Clean Operations</p>
+        <p className="eyebrow">Laundrorama Operations</p>
         <h1>Keep every load moving.</h1>
         <p className="lede">
           A calm, focused workspace for receiving equipment and keeping its
@@ -23,7 +23,7 @@ export default function LoginPage() {
       <section className="auth-card" aria-labelledby="login-heading">
         <div className="auth-card-heading">
           <div className="brand-mark" aria-hidden="true">
-            SC
+            L
           </div>
           <div>
             <p className="eyebrow">Staff access</p>

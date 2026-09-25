@@ -2,7 +2,7 @@ import {
   type IntakeGroupDecision,
   type IntakeOcrResult,
   type IntakeSemanticResult,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";

@@ -234,23 +234,6 @@ export class IntakeController {
       this.context(req, key),
     );
   }
-  @Post("intake/:batchId/destination")
-  @RequirePermission("intake.manage")
-  destination(
-    @Req() req: Request,
-    @Param("batchId") id: string,
-    @Headers("idempotency-key") key: string | undefined,
-    @Body() body: unknown,
-  ) {
-    return this.intake
-      .setDestination(
-        id,
-        body,
-        currentIdentityFromRequest(req),
-        this.context(req, key),
-      )
-      .then((detail) => ({ ...detail }));
-  }
   @Post("intake/:batchId/commit")
   @RequirePermission("intake.manage")
   commit(

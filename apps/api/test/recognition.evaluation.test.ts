@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import type {
   IntakeOcrResult,
   IntakeSemanticResult,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 import {
   calculateIntakeEvaluationMetrics,
@@ -220,7 +220,7 @@ describe("intake recognition evaluation metrics", () => {
 
   it("runs OCR before semantic assignment and forwards its evidence", async () => {
     const manifestDirectory = await mkdtemp(
-      join(tmpdir(), "simply-clean-recognition-evaluation-"),
+      join(tmpdir(), "laundrorama-recognition-evaluation-"),
     );
     const manifestPath = join(manifestDirectory, "manifest.json");
     const imagePath = fileURLToPath(

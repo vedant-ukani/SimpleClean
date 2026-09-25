@@ -12,7 +12,7 @@ import {
   roleHasPermission,
   type IdentityUser,
   type Permission,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type { Request } from "express";
 
 import { BetterAuthAdapter } from "./better-auth.adapter.js";

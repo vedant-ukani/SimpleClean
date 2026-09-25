@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
@@ -108,7 +108,8 @@ describe("preliminary inspection and disposition", () => {
     const application = await app();
     const owner = await user(application, "owner_admin");
     const current = await machine(application, owner.cookies);
-    const database = application.get<DatabaseConnection>(DATABASE_CONNECTION).database;
+    const database =
+      application.get<DatabaseConnection>(DATABASE_CONNECTION).database;
     await database.execute(sql`
       create function reject_production_outbox() returns trigger as $$
       begin
@@ -126,15 +127,44 @@ describe("preliminary inspection and disposition", () => {
     const key = randomUUID();
     const body = inspection(1, "repairable");
     await record(application, current.id, owner.cookies, body, key).expect(500);
-    expect(rows(await database.execute(sql`select id from production_preliminary_inspection where machine_id = ${current.id}`))).toHaveLength(0);
-    expect(rows(await database.execute(sql`select id from production_preliminary_disposition where machine_id = ${current.id}`))).toHaveLength(0);
-    const unchanged = await request(application.getHttpServer()).get(`/inventory/machines/${current.id}`)
-      .set("Cookie", owner.cookies).expect(200);
-    expect(unchanged.body.machine).toMatchObject({ version: 1, inventoryState: "on_hand", productionState: "not_assessed" });
-    await database.execute(sql`drop trigger reject_production_outbox_trigger on platform_outbox_job`);
-    const retried = await record(application, current.id, owner.cookies, body, key).expect(201);
+    expect(
+      rows(
+        await database.execute(
+          sql`select id from production_preliminary_inspection where machine_id = ${current.id}`,
+        ),
+      ),
+    ).toHaveLength(0);
+    expect(
+      rows(
+        await database.execute(
+          sql`select id from production_preliminary_disposition where machine_id = ${current.id}`,
+        ),
+      ),
+    ).toHaveLength(0);
+    const unchanged = await request(application.getHttpServer())
+      .get(`/inventory/machines/${current.id}`)
+      .set("Cookie", owner.cookies)
+      .expect(200);
+    expect(unchanged.body.machine).toMatchObject({
+      version: 1,
+      inventoryState: "on_hand",
+      productionState: "not_assessed",
+    });
+    await database.execute(
+      sql`drop trigger reject_production_outbox_trigger on platform_outbox_job`,
+    );
+    const retried = await record(
+      application,
+      current.id,
+      owner.cookies,
+      body,
+      key,
+    ).expect(201);
     expect(retried.body.inspections).toHaveLength(1);
-    expect(retried.body.machine).toMatchObject({ version: 2, productionState: "preliminary_passed" });
+    expect(retried.body.machine).toMatchObject({
+      version: 2,
+      productionState: "awaiting_test",
+    });
   });
 
   it("routes staff Parts-only to Owner review, preserves private evidence, and finalizes atomically", async () => {
@@ -242,6 +272,22 @@ describe("preliminary inspection and disposition", () => {
       productionState: "blocked",
       version: current.version + 2,
     });
+    await request(application.getHttpServer())
+      .post(`/inventory/machines/${current.id}/relocate`)
+      .set("Cookie", warehouse.cookies)
+      .send({
+        toLocationId: randomUUID(),
+        expectedVersion: current.version + 2,
+      })
+      .expect(404);
+    const afterRemovedRoute = await request(application.getHttpServer())
+      .get(`/inventory/machines/${current.id}`)
+      .set("Cookie", owner.cookies)
+      .expect(200);
+    expect(afterRemovedRoute.body.machine).toMatchObject({
+      inventoryState: "scrapped",
+      version: current.version + 2,
+    });
     expect(approved.body.decisions).toHaveLength(2);
     expect(approved.body.currentDisposition).toMatchObject({
       disposition: "parts_only",
@@ -249,14 +295,22 @@ describe("preliminary inspection and disposition", () => {
       decidedByUserId: owner.identity.id,
     });
     const approvalReplay = await request(application.getHttpServer())
-      .post(`/inventory/machines/${current.id}/production/inspections/${first.body.inspections[0].id}/dispositions`)
-      .set("Cookie", owner.cookies).set("Idempotency-Key", approvalKey)
-      .send(approvalBody).expect(201);
+      .post(
+        `/inventory/machines/${current.id}/production/inspections/${first.body.inspections[0].id}/dispositions`,
+      )
+      .set("Cookie", owner.cookies)
+      .set("Idempotency-Key", approvalKey)
+      .send(approvalBody)
+      .expect(201);
     expect(approvalReplay.body.decisions).toHaveLength(2);
     await request(application.getHttpServer())
-      .post(`/inventory/machines/${current.id}/production/inspections/${first.body.inspections[0].id}/dispositions`)
-      .set("Cookie", owner.cookies).set("Idempotency-Key", approvalKey)
-      .send({ ...approvalBody, reason: "Changed approval" }).expect(409);
+      .post(
+        `/inventory/machines/${current.id}/production/inspections/${first.body.inspections[0].id}/dispositions`,
+      )
+      .set("Cookie", owner.cookies)
+      .set("Idempotency-Key", approvalKey)
+      .send({ ...approvalBody, reason: "Changed approval" })
+      .expect(409);
     await record(
       application,
       current.id,
@@ -285,7 +339,11 @@ describe("preliminary inspection and disposition", () => {
         sql`delete from production_preliminary_disposition where machine_id = ${current.id}`,
       ),
     ).rejects.toThrow();
-    await expect(database.execute(sql`delete from production_preliminary_evidence where inspection_id = ${first.body.inspections[0].id}`)).rejects.toThrow();
+    await expect(
+      database.execute(
+        sql`delete from production_preliminary_evidence where inspection_id = ${first.body.inspections[0].id}`,
+      ),
+    ).rejects.toThrow();
     const audit = rows(
       await database.execute(
         sql`select action from operations_audit_entry where target_id = ${current.id} and action = 'inventory.machine.lifecycle_updated'`,
@@ -334,7 +392,7 @@ describe("preliminary inspection and disposition", () => {
     ).expect(201);
     expect(repair.body.machine).toMatchObject({
       inventoryState: "on_hand",
-      productionState: "preliminary_passed",
+      productionState: "awaiting_test",
     });
     const hold = await record(
       application,

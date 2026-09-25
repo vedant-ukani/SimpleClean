@@ -28,11 +28,11 @@ The shared, verified characteristics of a manufacturer model, such as dimensions
 
 ## Intake
 
-The process of receiving a Machine, identifying it, documenting its arrival condition, assigning its identity and any known location, and associating it with an Acquisition Load.
+The process of receiving a Machine, identifying it, documenting its arrival condition, assigning its identity, and associating it with an Acquisition Load.
 
 ## Intake Batch
 
-A bounded, Load-level receiving session that collects private Intake Evidence and Machine Intake Items, may share one destination, records human review, and remains open until one final Batch Commit creates every ready unmapped Machine and closes the session. Historical sessions may contain individually committed mappings.
+A bounded, Load-level receiving session that collects private Intake Evidence and Machine Intake Items, records human review, and remains open until one final Batch Commit creates every ready unmapped Machine and closes the session. Historical sessions may contain individually committed mappings.
 
 ## Machine Intake Item
 
@@ -90,7 +90,7 @@ A recognition or receiving problem that prevents exception-free Batch Commit, su
 
 ## Individual Intake Commit
 
-The historical and compatibility transaction that revalidates one confirmed Candidate Machine and creates exactly one provisional Machine, its identity evidence, optional initial location history, and provenance mapping while leaving the Intake Batch open. A matching manufacturer and serial never causes an automatic merge or blocks this photo-Intake transition. The active UI does not expose this action.
+The historical and compatibility transaction that revalidates one confirmed Candidate Machine and creates exactly one provisional Machine, its identity evidence, and provenance mapping while leaving the Intake Batch open. A matching manufacturer and serial never causes an automatic merge or blocks this photo-Intake transition. The active UI does not expose this action.
 
 ## Finish Receiving
 
@@ -98,7 +98,7 @@ The historical and compatibility transition that closes an Intake Batch after ev
 
 ## Batch Commit
 
-The active final receiving transition. It validates that every selected item is accounted for, recognition-ready and confirmed, and has a human-selected Machine type; then it creates all unmapped provisional Machines, identity evidence, optional location history, and provenance mappings and closes the Intake Batch in one audited, idempotent database transaction. Compatible historical mappings are preserved and skipped.
+The active final receiving transition. It validates that every selected item is accounted for, recognition-ready and confirmed, and has a human-selected Machine type; then it creates all unmapped provisional Machines, identity evidence, and provenance mappings and closes the Intake Batch in one audited, idempotent database transaction. Compatible historical mappings are preserved and skipped.
 
 ## Photo Provenance
 
@@ -108,9 +108,9 @@ The immutable relationship from a committed Machine back to the Intake Batch, Ca
 
 The short assessment performed after Intake to identify fatal or uneconomic conditions and determine whether a Machine may be offered for sale before full refurbishment.
 
-## Inventory Location
+## Preliminary Disposition
 
-The named physical position where a Machine or Part can be found.
+The attributable decision recorded from a Preliminary Inspection. Repairable moves Production to Preliminary Passed; Hold and Owner Review block Production while the Machine remains On Hand. Parts-only and Scrap block Production and move Inventory to Scrapped only with Owner Admin approval. A Preliminary Disposition is not a full test, repair, clean, QA Release, listing approval, or shipment release.
 
 ## Cost Entry
 
@@ -171,6 +171,10 @@ The controlled set of required steps and evidence for a category or model of equ
 ## Checklist Run
 
 The completed or in-progress application of a Checklist Template to a specific Machine and Production Work Order.
+
+## Test Session
+
+One Technician's server-timed group of 1–20 same-specialty Test Work Orders. Each Machine remains an independent Work Order and Checklist Run while its session item is Working, Running Cycle, Waiting, Completed, or Removed. Waiting time is not allocated to that Machine; finishing the session detaches unfinished work without erasing its claim or checklist progress.
 
 ## Defect
 

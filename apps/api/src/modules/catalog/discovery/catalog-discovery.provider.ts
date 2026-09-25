@@ -2,7 +2,7 @@ import type {
   CatalogDiscoveryResult,
   CatalogDiscoveryUsage,
   CatalogSpecificationEnrichmentField,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 type CatalogEquipmentClass = CatalogDiscoveryResult["equipmentClass"];
 export type CatalogDiscoveryRequestedField =

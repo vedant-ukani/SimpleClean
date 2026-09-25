@@ -17,6 +17,8 @@ describe("file contracts", () => {
       "other",
       "intake_evidence",
       "preliminary_inspection",
+      "production_test_evidence",
+      "production_test_video",
     ]);
     expect(FILE_STATES).toEqual([
       "pending_upload",
@@ -59,5 +61,16 @@ describe("file contracts", () => {
         updatedAt: new Date().toISOString(),
       }).success,
     ).toBe(true);
+    for (const mediaType of ["video/mp4", "video/quicktime", "video/webm"]) {
+      expect(
+        CreateFileUploadGrantRequestSchema.safeParse({
+          target,
+          purpose: "production_test_video",
+          originalFilename: "operation.mov",
+          declaredMediaType: mediaType,
+          declaredByteCount: 100,
+        }).success,
+      ).toBe(true);
+    }
   });
 });

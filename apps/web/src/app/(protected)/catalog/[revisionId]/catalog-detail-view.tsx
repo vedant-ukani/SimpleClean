@@ -1,4 +1,4 @@
-import type { CatalogModelDetail } from "@simply-clean/contracts";
+import type { CatalogModelDetail } from "@laundrorama/contracts";
 
 function equipmentLabel(value: string): string {
   return value
@@ -15,31 +15,9 @@ function listOrUnknown(values: readonly string[]): string {
   return values.length > 0 ? values.join(", ") : "Unknown";
 }
 
-const fieldLabels: Record<
-  CatalogModelDetail["evidence"][number]["field"],
-  string
-> = {
-  widthIn: "Width",
-  depthIn: "Depth",
-  heightIn: "Height",
-  weightLb: "Weight",
-  capacityLb: "Capacity",
-  voltage: "Voltage",
-  phase: "Phase",
-  fuel: "Fuel",
-  configuration: "Configuration",
-  model: "Model",
-  equipmentClass: "Equipment class",
-  productionStartYear: "Production start year",
-  productionEndYear: "Production end year",
-};
-
 export function CatalogDetailView({
   model,
 }: Readonly<{ model: CatalogModelDetail }>) {
-  const sourceById = new Map(
-    model.sources.map((source) => [source.id, source]),
-  );
   const specs = [
     ["Width", valueOrUnknown(model.specs.widthIn), "in"],
     ["Depth", valueOrUnknown(model.specs.depthIn), "in"],
@@ -51,7 +29,7 @@ export function CatalogDetailView({
   return (
     <div className="inventory-stack">
       <div className="page-heading">
-        <p className="eyebrow">Approved Catalog revision {model.revision}</p>
+        <p className="eyebrow">Approved Catalog model</p>
         <h1>{model.model}</h1>
         <p className="lede">
           {model.manufacturer} · {model.family} ·{" "}
@@ -87,10 +65,6 @@ export function CatalogDetailView({
               {model.productionStartYear ?? "Unknown"}–
               {model.productionEndYear ?? "Unknown"}
             </dd>
-          </div>
-          <div>
-            <dt>Revision ID</dt>
-            <dd>{model.revisionId}</dd>
           </div>
         </dl>
       </section>
@@ -134,11 +108,6 @@ export function CatalogDetailView({
         </div>
       </section>
 
-      <section className="panel" aria-labelledby="catalog-aliases-heading">
-        <h2 id="catalog-aliases-heading">Aliases</h2>
-        <p>{listOrUnknown(model.aliases)}</p>
-      </section>
-
       <section className="panel" aria-labelledby="catalog-sources-heading">
         <h2 id="catalog-sources-heading">Official sources</h2>
         {model.sources.length === 0 ? (
@@ -169,44 +138,6 @@ export function CatalogDetailView({
         )}
       </section>
 
-      <section className="panel" aria-labelledby="catalog-evidence-heading">
-        <h2 id="catalog-evidence-heading">Field evidence</h2>
-        {model.evidence.length === 0 ? (
-          <p className="empty-state">No field evidence is recorded.</p>
-        ) : (
-          <div className="import-table-wrap">
-            <table className="import-table">
-              <caption className="sr-only">Official field evidence</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Field</th>
-                  <th scope="col">Source</th>
-                  <th scope="col">Locator</th>
-                  <th scope="col">Official value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {model.evidence.map((evidence, index) => {
-                  const source = sourceById.get(evidence.sourceId);
-                  return (
-                    <tr key={`${evidence.field}-${evidence.sourceId}-${index}`}>
-                      <th scope="row">{fieldLabels[evidence.field]}</th>
-                      <td>{source?.title ?? evidence.sourceId}</td>
-                      <td>{evidence.locator}</td>
-                      <td>
-                        {evidence.officialValue ?? "Unknown"}
-                        {evidence.officialUnit
-                          ? ` ${evidence.officialUnit}`
-                          : ""}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
     </div>
   );
 }

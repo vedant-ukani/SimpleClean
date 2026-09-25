@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
@@ -54,6 +54,29 @@ async function signIn(app: INestApplication) {
   };
 }
 
+async function loadReceipt(db: DatabaseConnection["database"], loadId: string) {
+  const result = await db.execute(
+    sql`select received_at, version from inventory_load where id = ${loadId}`,
+  );
+  const records = "rows" in result ? result.rows : result;
+  return records[0] as { received_at: Date | null; version: number };
+}
+
+async function loadReceiptMutations(
+  db: DatabaseConnection["database"],
+  loadId: string,
+) {
+  const result = await db.execute(sql`
+    select
+      (select count(*)::int from operations_audit_entry
+       where target_id = ${loadId} and action = 'inventory.load.updated') as audit_count,
+      (select count(*)::int from platform_outbox_job
+       where target_id = ${loadId} and event_type = 'inventory.load.updated') as outbox_count
+  `);
+  const records = "rows" in result ? result.rows : result;
+  return records[0] as { audit_count: number; outbox_count: number };
+}
+
 describe("Intake API", () => {
   it("creates an open batch and preserves its route identity", async () => {
     const app = await createApplication();
@@ -81,6 +104,201 @@ describe("Intake API", () => {
         expect(body.batch.loadId).toBe(loadId);
         expect(body.batch.state).toBe("open");
       });
+  });
+
+  it("receives a Load once when its final active Intake batch commits", async () => {
+    const app = await createApplication();
+    const { cookies, userId } = await signIn(app);
+    const db = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
+    const load = await request(app.getHttpServer())
+      .post("/inventory/loads")
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ displayName: "Final Intake receipt load" })
+      .expect(201);
+    const loadId = load.body.load.id as string;
+    const created = await request(app.getHttpServer())
+      .post(`/inventory/loads/${loadId}/intake`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ loadId })
+      .expect(201);
+    const batchId = created.body.batch.id as string;
+    const fileId = randomUUID();
+    const candidateId = randomUUID();
+    await db.execute(
+      sql`insert into file_attachment (id, load_id, purpose, storage_key, original_filename, declared_media_type, detected_media_type, declared_byte_count, byte_count, sha256, uploader_user_id, state) values (${fileId}, ${loadId}, 'intake_evidence', ${`receipt/${fileId}.jpg`}, 'receipt.jpg', 'image/jpeg', 'image/jpeg', 3, 3, ${"a".repeat(64)}, ${userId}, 'ready')`,
+    );
+    await db.execute(
+      sql`insert into inventory_intake_candidate (id, batch_id, state, machine_type, manufacturer, model, serial) values (${candidateId}, ${batchId}, 'confirmed', 'washer', 'Receipt Maker', 'R-1', 'RECEIPT-001')`,
+    );
+    await db.execute(
+      sql`insert into inventory_intake_photo (id, batch_id, file_id, photo_order, disposition, candidate_id) values (${randomUUID()}, ${batchId}, ${fileId}, 0, 'assigned', ${candidateId})`,
+    );
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
+    await request(app.getHttpServer())
+      .post(`/inventory/intake/${batchId}/commit`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ expectedVersion: 2 })
+      .expect(409);
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
+    expect(await loadReceiptMutations(db, loadId)).toEqual({
+      audit_count: 0,
+      outbox_count: 0,
+    });
+    const commitKey = randomUUID();
+    await db.execute(
+      sql.raw(`
+      create function reject_load_receipt_outbox() returns trigger language plpgsql as $$
+      begin
+        if new.event_type = 'inventory.load.updated' then
+          raise exception 'forced load receipt recorder failure';
+        end if;
+        return new;
+      end
+      $$
+    `),
+    );
+    await db.execute(
+      sql.raw(`
+      create trigger reject_load_receipt_outbox
+      before insert on platform_outbox_job
+      for each row execute function reject_load_receipt_outbox()
+    `),
+    );
+    await request(app.getHttpServer())
+      .post(`/inventory/intake/${batchId}/commit`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", commitKey)
+      .send({ expectedVersion: 1 })
+      .expect(500);
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
+    expect(await loadReceiptMutations(db, loadId)).toEqual({
+      audit_count: 0,
+      outbox_count: 0,
+    });
+    const afterFailure = await db.execute(
+      sql`select state from inventory_intake_batch where id = ${batchId}`,
+    );
+    expect(
+      ("rows" in afterFailure ? afterFailure.rows : afterFailure)[0]?.state,
+    ).toBe("open");
+    const machinesAfterFailure = await db.execute(
+      sql`select id from inventory_machine where source_load_id = ${loadId}`,
+    );
+    expect(
+      "rows" in machinesAfterFailure
+        ? machinesAfterFailure.rows
+        : machinesAfterFailure,
+    ).toHaveLength(0);
+    await db.execute(
+      sql.raw(`drop trigger reject_load_receipt_outbox on platform_outbox_job`),
+    );
+    await db.execute(sql.raw(`drop function reject_load_receipt_outbox()`));
+    const committed = await request(app.getHttpServer())
+      .post(`/inventory/intake/${batchId}/commit`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", commitKey)
+      .send({ expectedVersion: 1 })
+      .expect(201);
+    expect(committed.body.mappings).toHaveLength(1);
+    const received = await loadReceipt(db, loadId);
+    expect(received.received_at).not.toBeNull();
+    expect(received.version).toBe(2);
+    expect(await loadReceiptMutations(db, loadId)).toEqual({
+      audit_count: 1,
+      outbox_count: 1,
+    });
+    await request(app.getHttpServer())
+      .post(`/inventory/intake/${batchId}/commit`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", commitKey)
+      .send({ expectedVersion: 1 })
+      .expect(201)
+      .expect(({ body }) =>
+        expect(body.mappings).toEqual(committed.body.mappings),
+      );
+    expect(await loadReceipt(db, loadId)).toEqual(received);
+    expect(await loadReceiptMutations(db, loadId)).toEqual({
+      audit_count: 1,
+      outbox_count: 1,
+    });
+    await request(app.getHttpServer())
+      .post(`/inventory/loads/${loadId}/intake`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ loadId })
+      .expect(409)
+      .expect(({ body }) => expect(body.code).toBe("load_received"));
+    const loads = await request(app.getHttpServer())
+      .get("/inventory/loads")
+      .set("Cookie", cookies)
+      .expect(200);
+    expect(
+      loads.body.loads.find((item: { id: string }) => item.id === loadId)
+        .receivedAt,
+    ).not.toBeNull();
+  });
+
+  it("receives a Load when a historical mapped batch finishes", async () => {
+    const app = await createApplication();
+    const { cookies } = await signIn(app);
+    const db = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
+    const load = await request(app.getHttpServer())
+      .post("/inventory/loads")
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ displayName: "Historical receipt load" })
+      .expect(201);
+    const loadId = load.body.load.id as string;
+    const created = await request(app.getHttpServer())
+      .post(`/inventory/loads/${loadId}/intake`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ loadId })
+      .expect(201);
+    const batchId = created.body.batch.id as string;
+    const machine = await request(app.getHttpServer())
+      .post("/inventory/machines")
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ sourceLoadId: loadId, machineType: "washer" })
+      .expect(201);
+    const machineId = machine.body.machine.id as string;
+    const candidateId = randomUUID();
+    await db.execute(
+      sql`insert into inventory_intake_candidate (id, batch_id, state, machine_type) values (${candidateId}, ${batchId}, 'committed', 'washer')`,
+    );
+    await db.execute(
+      sql`insert into inventory_intake_machine_mapping (candidate_id, batch_id, machine_id) values (${candidateId}, ${batchId}, ${machineId})`,
+    );
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
+    const finish = await request(app.getHttpServer())
+      .post(`/inventory/intake/${batchId}/commit`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ expectedVersion: 1, finishOnly: true })
+      .expect(201);
+    expect(finish.body.mappings).toEqual([{ candidateId, machineId }]);
+    expect(await loadReceipt(db, loadId)).toMatchObject({ version: 2 });
+    expect((await loadReceipt(db, loadId)).received_at).not.toBeNull();
+    expect(await loadReceiptMutations(db, loadId)).toEqual({
+      audit_count: 1,
+      outbox_count: 1,
+    });
   });
 
   it("does not create Inventory Machines when approval is incomplete", async () => {
@@ -120,6 +338,10 @@ describe("Intake API", () => {
       ? machineCount
       : ((machineCount as { rows?: unknown[] }).rows ?? []);
     expect((machineRows[0] as { count?: number } | undefined)?.count).toBe(0);
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
   });
 
   it("does not create Machines or mappings when recapture is still required", async () => {
@@ -127,7 +349,6 @@ describe("Intake API", () => {
     const { cookies, userId } = await signIn(app);
     const db = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
     const loadId = randomUUID();
-    const locationId = randomUUID();
     const batchId = randomUUID();
     const fileId = randomUUID();
     const photoId = randomUUID();
@@ -138,10 +359,7 @@ describe("Intake API", () => {
       sql`insert into inventory_load (id, display_name) values (${loadId}, 'Recapture Intake load')`,
     );
     await db.execute(
-      sql`insert into inventory_location (id, code, name) values (${locationId}, ${`RECAP-${randomUUID().slice(0, 8)}`}, 'Recapture destination')`,
-    );
-    await db.execute(
-      sql`insert into inventory_intake_batch (id, load_id, destination_location_id, created_by_user_id) values (${batchId}, ${loadId}, ${locationId}, ${userId})`,
+      sql`insert into inventory_intake_batch (id, load_id, created_by_user_id) values (${batchId}, ${loadId}, ${userId})`,
     );
     await db.execute(
       sql`insert into file_attachment (id, load_id, purpose, storage_key, original_filename, declared_media_type, detected_media_type, declared_byte_count, byte_count, sha256, uploader_user_id, state) values (${fileId}, ${loadId}, 'intake_evidence', ${`recapture/${fileId}.jpg`}, 'recapture.jpg', 'image/jpeg', 'image/jpeg', 3, 3, ${"c".repeat(64)}, ${userId}, 'ready')`,
@@ -177,6 +395,10 @@ describe("Intake API", () => {
     const mappingRows = "rows" in mappings ? mappings.rows : mappings;
     expect(machineRows).toHaveLength(0);
     expect(mappingRows).toHaveLength(0);
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
   });
 
   it("removes open evidence and rejects committed child mutations", async () => {
@@ -234,7 +456,7 @@ describe("Intake API", () => {
     ).rejects.toThrow();
   });
 
-  it("completes Files upload, review, destination, atomic commit, and provenance", async () => {
+  it("completes Files upload, review, location-free atomic commit, and provenance", async () => {
     const app = await createApplication();
     const { cookies } = await signIn(app);
     const db = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
@@ -249,13 +471,6 @@ describe("Intake API", () => {
       .send({ displayName: "Complete Intake load" })
       .expect(201);
     const loadId = load.body.load.id as string;
-    const location = await request(app.getHttpServer())
-      .post("/inventory/locations")
-      .set("Cookie", cookies)
-      .set("Idempotency-Key", randomUUID())
-      .send({ code: "INTAKE-DEST", name: "Intake destination" })
-      .expect(201);
-    const locationId = location.body.location.id as string;
     const grant = await request(app.getHttpServer())
       .post("/files/upload-grants")
       .set("Cookie", cookies)
@@ -414,26 +629,26 @@ describe("Intake API", () => {
       .set("Idempotency-Key", randomUUID())
       .send({ expectedVersion: assigned.body.batch.version })
       .expect(201);
-    const destination = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post("/inventory/intake/" + batchId + "/destination")
       .set("Cookie", cookies)
       .set("Idempotency-Key", randomUUID())
       .send({
-        locationId,
+        locationId: randomUUID(),
         expectedVersion: confirmed.body.batch.version,
       })
-      .expect(201);
+      .expect(404);
     const commitKey = randomUUID();
     const concurrentCommit = request(app.getHttpServer())
       .post("/inventory/intake/" + batchId + "/commit")
       .set("Cookie", cookies)
       .set("Idempotency-Key", commitKey)
-      .send({ expectedVersion: destination.body.batch.version });
+      .send({ expectedVersion: confirmed.body.batch.version });
     const secondConcurrentCommit = request(app.getHttpServer())
       .post("/inventory/intake/" + batchId + "/commit")
       .set("Cookie", cookies)
       .set("Idempotency-Key", randomUUID())
-      .send({ expectedVersion: destination.body.batch.version });
+      .send({ expectedVersion: confirmed.body.batch.version });
     const concurrentResponses = await Promise.all([
       concurrentCommit,
       secondConcurrentCommit,
@@ -446,11 +661,13 @@ describe("Intake API", () => {
       .post("/inventory/intake/" + batchId + "/commit")
       .set("Cookie", cookies)
       .set("Idempotency-Key", commitKey)
-      .send({ expectedVersion: destination.body.batch.version })
+      .send({ expectedVersion: confirmed.body.batch.version })
       .expect(201);
     expect(committed.body.mappings).toHaveLength(1);
     expect(committed.body.machines).toHaveLength(1);
     expect(replayed.body.mappings).toEqual(committed.body.mappings);
+    expect(await loadReceipt(db, loadId)).toMatchObject({ version: 2 });
+    expect((await loadReceipt(db, loadId)).received_at).not.toBeNull();
     const machineCount = await db.execute(
       sql.raw(
         "select count(*)::int as count from inventory_machine where source_load_id = '" +
@@ -468,7 +685,7 @@ describe("Intake API", () => {
       .expect(200)
       .expect(({ body }) => {
         expect(body.machine.sourceLoadId).toBe(loadId);
-        expect(body.machine.currentLocationId).toBe(locationId);
+        expect(body.machine).not.toHaveProperty("currentLocationId");
         expect(body.machine.productionState).toBe("not_assessed");
         expect(body.machine.inventoryState).toBe("on_hand");
         expect(body.machine.identityVerificationState).toBe("provisional");
@@ -480,11 +697,7 @@ describe("Intake API", () => {
           sourceKind: "photo_intake",
           machineId: committed.body.machines[0],
         });
-        expect(body.locationHistory).toHaveLength(1);
-        expect(body.locationHistory[0]).toMatchObject({
-          toLocationId: locationId,
-          machineId: committed.body.machines[0],
-        });
+        expect(body).not.toHaveProperty("locationHistory");
       });
     const evidence = await db.execute(
       sql.raw(
@@ -507,7 +720,7 @@ describe("Intake API", () => {
       ? history
       : ((history as { rows?: unknown[] }).rows ?? []);
     expect((evidenceRows[0] as { count?: number } | undefined)?.count).toBe(1);
-    expect((historyRows[0] as { count?: number } | undefined)?.count).toBe(1);
+    expect((historyRows[0] as { count?: number } | undefined)?.count).toBe(0);
     expect(committed.body.batch.state).toBe("committed");
   });
 
@@ -522,13 +735,6 @@ describe("Intake API", () => {
       .send({ displayName: "Duplicate Intake load" })
       .expect(201);
     const loadId = load.body.load.id as string;
-    const location = await request(app.getHttpServer())
-      .post("/inventory/locations")
-      .set("Cookie", cookies)
-      .set("Idempotency-Key", randomUUID())
-      .send({ code: "DUP-DEST", name: "Duplicate destination" })
-      .expect(201);
-    const locationId = location.body.location.id as string;
     const file = async (name: string) => {
       const fileId = randomUUID();
       await db.execute(
@@ -669,17 +875,11 @@ describe("Intake API", () => {
       .send({ expectedVersion: version })
       .expect(201);
     version = warningConfirmed.body.batch.version;
-    const destination = await request(app.getHttpServer())
-      .post("/inventory/intake/" + batchId + "/destination")
-      .set("Cookie", cookies)
-      .set("Idempotency-Key", randomUUID())
-      .send({ locationId, expectedVersion: version })
-      .expect(201);
     const committed = await request(app.getHttpServer())
       .post("/inventory/intake/" + batchId + "/commit")
       .set("Cookie", cookies)
       .set("Idempotency-Key", randomUUID())
-      .send({ expectedVersion: destination.body.batch.version })
+      .send({ expectedVersion: version })
       .expect(201);
     expect(committed.body.mappings).toHaveLength(4);
     const committedMachineIds = committed.body.mappings.map(
@@ -707,22 +907,18 @@ describe("Intake API", () => {
     const { cookies, userId } = await signIn(app);
     const db = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
     const loadId = randomUUID();
-    const locationId = randomUUID();
     await db.execute(
       sql`insert into inventory_load (id, display_name) values (${loadId}, 'Concurrent Intake load')`,
     );
-    await db.execute(
-      sql`insert into inventory_location (id, code, name) values (${locationId}, ${`RACE-${randomUUID().slice(0, 8)}`}, 'Concurrent destination')`,
-    );
 
-    const batchIds = [randomUUID(), randomUUID()];
+    const batchIds = [randomUUID(), randomUUID(), randomUUID()];
     for (const [index, batchId] of batchIds.entries()) {
       const candidateId = randomUUID();
       const fileId = randomUUID();
       const photoId = randomUUID();
       const manufacturer = index === 0 ? "SpeedQueen" : " Speed Queen ";
       await db.execute(
-        sql`insert into inventory_intake_batch (id, load_id, destination_location_id, created_by_user_id) values (${batchId}, ${loadId}, ${locationId}, ${userId})`,
+        sql`insert into inventory_intake_batch (id, load_id, created_by_user_id) values (${batchId}, ${loadId}, ${userId})`,
       );
       await db.execute(
         sql`insert into file_attachment (id, load_id, purpose, storage_key, original_filename, declared_media_type, detected_media_type, declared_byte_count, byte_count, sha256, uploader_user_id, state) values (${fileId}, ${loadId}, 'intake_evidence', ${`race/${fileId}.jpg`}, ${`race-${index}.jpg`}, 'image/jpeg', 'image/jpeg', 3, 3, ${String(index + 1).repeat(64)}, ${userId}, 'ready')`,
@@ -735,21 +931,35 @@ describe("Intake API", () => {
       );
     }
 
+    await request(app.getHttpServer())
+      .post(`/inventory/intake/${batchIds[0]}/commit`)
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ expectedVersion: 1 })
+      .expect(201);
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
     const responses = await Promise.all(
-      batchIds.map((batchId) =>
-        request(app.getHttpServer())
-          .post(`/inventory/intake/${batchId}/commit`)
-          .set("Cookie", cookies)
-          .set("Idempotency-Key", randomUUID())
-          .send({ expectedVersion: 1 }),
-      ),
+      batchIds
+        .slice(1)
+        .map((batchId) =>
+          request(app.getHttpServer())
+            .post(`/inventory/intake/${batchId}/commit`)
+            .set("Cookie", cookies)
+            .set("Idempotency-Key", randomUUID())
+            .send({ expectedVersion: 1 }),
+        ),
     );
     expect(responses.map(({ status }) => status).sort()).toEqual([201, 201]);
     const machines = await db.execute(
       sql`select id from inventory_machine where normalized_manufacturer = 'speed queen' and normalized_serial = 'race-serial-001'`,
     );
     const machineRows = "rows" in machines ? machines.rows : machines;
-    expect(machineRows).toHaveLength(2);
+    expect(machineRows).toHaveLength(3);
+    expect(await loadReceipt(db, loadId)).toMatchObject({ version: 2 });
+    expect((await loadReceipt(db, loadId)).received_at).not.toBeNull();
     const batches = await db.execute(
       sql`select state from inventory_intake_batch where id in (${sql.join(
         batchIds.map((batchId) => sql`${batchId}`),
@@ -758,6 +968,7 @@ describe("Intake API", () => {
     );
     const batchRows = "rows" in batches ? batches.rows : batches;
     expect(batchRows.map((row) => row.state)).toEqual([
+      "committed",
       "committed",
       "committed",
     ]);
@@ -1020,12 +1231,18 @@ describe("Intake API", () => {
       .send({ expectedVersion: confirmed.body.batch.version })
       .expect(201);
     expect(individual.body.machineId).toBeTruthy();
-    const locationlessMachine = await request(app.getHttpServer())
+    expect(await loadReceipt(db, loadId)).toMatchObject({
+      received_at: null,
+      version: 1,
+    });
+    const committedMachine = await request(app.getHttpServer())
       .get(`/inventory/machines/${individual.body.machineId}`)
       .set("Cookie", cookies)
       .expect(200);
-    expect(locationlessMachine.body.machine.currentLocationId).toBeNull();
-    expect(locationlessMachine.body.machine.inventoryState).toBe("on_hand");
+    expect(committedMachine.body.machine).not.toHaveProperty(
+      "currentLocationId",
+    );
+    expect(committedMachine.body.machine.inventoryState).toBe("on_hand");
     const finish = await request(app.getHttpServer())
       .post(`/inventory/intake/${batchId}/commit`)
       .set("Cookie", cookies)
@@ -1039,5 +1256,7 @@ describe("Intake API", () => {
     expect(finish.body.mappings).toEqual([
       { candidateId, machineId: individual.body.machineId },
     ]);
+    expect(await loadReceipt(db, loadId)).toMatchObject({ version: 2 });
+    expect((await loadReceipt(db, loadId)).received_at).not.toBeNull();
   });
 });

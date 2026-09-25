@@ -32,8 +32,6 @@ export const INTAKE_FINDING_CODES = [
   "candidate_not_confirmed",
   "photo_not_found",
   "photo_not_accounted_for",
-  "destination_required",
-  "destination_inactive",
   "exact_identity_match",
   "warning_acknowledgement_required",
   "version_conflict",
@@ -45,7 +43,6 @@ export const INTAKE_FINDING_CODES = [
   "idempotency_key_required",
   "idempotency_key_reused",
   "idempotency_in_progress",
-  "destination_locked",
   "candidate_committed",
   "candidate_revision_conflict",
   "target_not_found",
@@ -118,7 +115,6 @@ export const IntakeBatchSchema = z.object({
   id: IdSchema,
   loadId: IdSchema,
   state: IntakeBatchStateSchema,
-  destinationLocationId: IdSchema.nullable(),
   version: VersionSchema,
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,
@@ -205,11 +201,6 @@ export const ConfirmIntakeCandidateRequestSchema = z.object({
   acknowledgedWarningKinds: z.array(IntakeWarningKindSchema).default([]),
 });
 
-export const SetIntakeDestinationRequestSchema = z.object({
-  locationId: IdSchema,
-  expectedVersion: VersionSchema,
-});
-
 export const CommitIntakeBatchRequestSchema = z.object({
   expectedVersion: VersionSchema,
   finishOnly: z.boolean().default(false),
@@ -278,9 +269,6 @@ export type RemoveIntakePhotoRequest = z.infer<
 >;
 export type ConfirmIntakeCandidateRequest = z.infer<
   typeof ConfirmIntakeCandidateRequestSchema
->;
-export type SetIntakeDestinationRequest = z.infer<
-  typeof SetIntakeDestinationRequestSchema
 >;
 export type CommitIntakeBatchRequest = z.infer<
   typeof CommitIntakeBatchRequestSchema

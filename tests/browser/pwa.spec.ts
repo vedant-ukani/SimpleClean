@@ -44,7 +44,11 @@ test("manifest and service worker expose only a public static cache", async ({
     page.getByText("Browser Test Expected Load", { exact: true }),
   ).toBeVisible();
   await page.goto("/machines?query=BROWSER-SERIAL-001");
-  await page.getByRole("link", { name: "View Machine" }).click();
+  await page
+    .getByRole("link", {
+      name: /Open Machine details for .*serial BROWSER-SERIAL-001/,
+    })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Attachments" }),
   ).toBeVisible();

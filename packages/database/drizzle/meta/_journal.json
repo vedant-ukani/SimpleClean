@@ -113,6 +113,27 @@
       "when": 1791244800000,
       "tag": "0015_preliminary_inspection",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791331200000,
+      "tag": "0016_production_test_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791417600000,
+      "tag": "0017_machine_test_video",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791504000000,
+      "tag": "0018_production_active_sessions",
+      "breakpoints": true
     }
   ]
 }

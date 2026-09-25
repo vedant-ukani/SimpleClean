@@ -1,4 +1,5 @@
-export const PWA_CACHE_PREFIX = "simply-clean-public-";
+export const PWA_CACHE_PREFIX = "laundrorama-public-";
+export const PWA_LEGACY_CACHE_PREFIX = "simply-clean-public-";
 export const PWA_CACHE_VERSION = "v2";
 export const PWA_CACHE_NAME = `${PWA_CACHE_PREFIX}${PWA_CACHE_VERSION}`;
 export const PWA_CLEAR_CACHE_MESSAGE = "CLEAR_PUBLIC_PWA_CACHES";
@@ -15,6 +16,13 @@ export const PWA_PRECACHE_PATHS = [
 ] as const;
 
 const PUBLIC_VERSIONED_PREFIXES = ["/_next/static/"] as const;
+
+export function isOwnedPublicPwaCache(name: string): boolean {
+  return (
+    name.startsWith(PWA_CACHE_PREFIX) ||
+    name.startsWith(PWA_LEGACY_CACHE_PREFIX)
+  );
+}
 
 type CacheCandidate = {
   method: string;
@@ -51,6 +59,7 @@ export function createServiceWorkerSource(): string {
   return `"use strict";
 
 const CACHE_PREFIX = ${JSON.stringify(PWA_CACHE_PREFIX)};
+const LEGACY_CACHE_PREFIX = ${JSON.stringify(PWA_LEGACY_CACHE_PREFIX)};
 const CACHE_NAME = ${JSON.stringify(PWA_CACHE_NAME)};
 const CLEAR_CACHE_MESSAGE = ${JSON.stringify(PWA_CLEAR_CACHE_MESSAGE)};
 const OFFLINE_PATH = ${JSON.stringify(PWA_OFFLINE_PATH)};
@@ -83,14 +92,14 @@ async function precachePublicShell() {
 async function removeOldPublicCaches() {
   const names = await caches.keys();
   await Promise.all(names
-    .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
+    .filter((name) => (name.startsWith(CACHE_PREFIX) || name.startsWith(LEGACY_CACHE_PREFIX)) && name !== CACHE_NAME)
     .map((name) => caches.delete(name)));
 }
 
 async function clearPublicCaches() {
   const names = await caches.keys();
   await Promise.all(names
-    .filter((name) => name.startsWith(CACHE_PREFIX))
+    .filter((name) => name.startsWith(CACHE_PREFIX) || name.startsWith(LEGACY_CACHE_PREFIX))
     .map((name) => caches.delete(name)));
 }
 
@@ -112,7 +121,7 @@ async function navigateWithOfflineFallback(request) {
   } catch {
     const cache = await caches.open(CACHE_NAME);
     return (await cache.match(OFFLINE_PATH)) || new Response(
-      "Simple Clean Operations is offline. Reconnect and try again.",
+      "Laundrorama Operations is offline. Reconnect and try again.",
       { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } },
     );
   }

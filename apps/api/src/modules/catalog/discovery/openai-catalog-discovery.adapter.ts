@@ -1,7 +1,7 @@
 import {
   CatalogDiscoveryResultSchema,
   type CatalogDiscoveryUsage,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import { createHash } from "node:crypto";
 
 import {

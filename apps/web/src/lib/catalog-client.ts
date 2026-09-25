@@ -3,7 +3,7 @@ import {
   CatalogListResponseSchema,
   type CatalogListResponse,
   type CatalogModelDetail,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 
 import { getServerJson } from "./api-client";
 

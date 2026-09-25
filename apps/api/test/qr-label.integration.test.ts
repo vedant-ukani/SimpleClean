@@ -1,8 +1,8 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { parseServerEnvironment } from "@simply-clean/config";
-import type { DatabaseConnection } from "@simply-clean/database";
-import { createTestEnvironment } from "@simply-clean/test-support";
+import { parseServerEnvironment } from "@laundrorama/config";
+import type { DatabaseConnection } from "@laundrorama/database";
+import { createTestEnvironment } from "@laundrorama/test-support";
 import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
@@ -206,7 +206,10 @@ describe("Inventory QR labels", () => {
       .expect("X-Content-Type-Options", "nosniff")
       .expect("Content-Type", /image\/svg\+xml/);
     const printedSvg = Buffer.from(printed.body as Uint8Array).toString("utf8");
-    expect(printedSvg).toContain("Simple Clean Equipment");
+    expect(printed.headers["content-disposition"]).toBe(
+      `attachment; filename="laundrorama-equipment-${created.body.label.fallbackCode}.svg"`,
+    );
+    expect(printedSvg).toContain("Laundrorama Equipment");
     expect(printedSvg).toContain(created.body.label.fallbackCode);
     expect(printedSvg).not.toContain("PRIVATE-SERIAL-42");
     expect(printedSvg).not.toContain(createdMachine.id);
@@ -228,6 +231,8 @@ describe("Inventory QR labels", () => {
         .expect(({ body: responseBody }) => {
           expect(responseBody.machine.id).toBe(createdMachine.id);
           expect(responseBody.machine.serial).toBe("PRIVATE-SERIAL-42");
+          expect(responseBody.machine).not.toHaveProperty("currentLocationId");
+          expect(responseBody).not.toHaveProperty("locationHistory");
         });
     }
     await request(app.getHttpServer())

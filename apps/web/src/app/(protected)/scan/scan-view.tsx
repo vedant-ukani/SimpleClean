@@ -1,6 +1,9 @@
 "use client";
 
-import type { MachineDetail } from "@simply-clean/contracts";
+import type {
+  MachineDetail,
+  ProductionWorkDestination,
+} from "@laundrorama/contracts";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -11,6 +14,7 @@ import {
 } from "../../../lib/qr-client";
 import { requestStatus } from "../../../lib/request-status";
 import { useOnlineStatus } from "../online-status";
+import { QrCameraScanner } from "./qr-camera-scanner";
 
 type ScanState =
   | { status: "idle" }
@@ -19,6 +23,7 @@ type ScanState =
   | { status: "forbidden" }
   | { status: "offline" }
   | { status: "error" }
+  | { status: "work_error" }
   | { status: "success"; detail: MachineDetail };
 
 type ScanResultProps =
@@ -28,6 +33,7 @@ type ScanResultProps =
   | { state: "forbidden" }
   | { state: "offline" }
   | { state: "error" }
+  | { state: "work_error" }
   | { state: "success"; detail: MachineDetail };
 
 export function ScanResult(props: Readonly<ScanResultProps>) {
@@ -70,6 +76,13 @@ export function ScanResult(props: Readonly<ScanResultProps>) {
       </p>
     );
   }
+  if (props.state === "work_error") {
+    return (
+      <p className="form-error" role="alert">
+        Machine found, but active Test work could not be checked. Try again.
+      </p>
+    );
+  }
 
   const { machine } = props.detail;
   return (
@@ -83,10 +96,6 @@ export function ScanResult(props: Readonly<ScanResultProps>) {
         <div>
           <dt>Serial</dt>
           <dd>{machine.serial ?? "Not recorded"}</dd>
-        </div>
-        <div>
-          <dt>Location</dt>
-          <dd>{machine.currentLocationCode ?? "Not assigned"}</dd>
         </div>
         <div>
           <dt>Inventory state</dt>
@@ -115,21 +124,64 @@ export function scanFailureState(
 
 export function ScanView({
   navigateToLogin = (path) => window.location.assign(path),
-}: Readonly<{ navigateToLogin?: (path: string) => void }> = {}) {
+  navigateToWork = (path) => window.location.assign(path),
+  canRouteToWork = false,
+}: Readonly<{
+  navigateToLogin?: (path: string) => void;
+  navigateToWork?: (path: string) => void;
+  canRouteToWork?: boolean;
+}> = {}) {
   const [state, setState] = useState<ScanState>({ status: "idle" });
   const [fallbackCode, setFallbackCode] = useState("");
   const submittedFragment = useRef(false);
+  const resolving = useRef(false);
   const online = useOnlineStatus();
 
   async function resolve(input: { token: string } | { fallbackCode: string }) {
+    if (resolving.current) return;
     if (!online) {
       setState({ status: "offline" });
       return;
     }
+    resolving.current = true;
     setState({ status: "loading" });
     try {
       const { resolveQrLabel } = await import("../../../lib/qr-client");
-      setState({ status: "success", detail: await resolveQrLabel(input) });
+      const detail = await resolveQrLabel(input);
+      if (canRouteToWork) {
+        let destination: ProductionWorkDestination;
+        try {
+          const { getProductionWorkDestination } =
+            await import("../../../lib/production-client");
+          destination = await getProductionWorkDestination(detail.machine.id);
+        } catch (error) {
+          if (requestStatus(error) === 401) {
+            navigateToLogin(
+              "token" in input
+                ? (loginPathForScanToken(input.token) ?? "/login")
+                : "/login",
+            );
+          } else {
+            setState({ status: "work_error" });
+          }
+          return;
+        }
+        if (destination.kind === "session") {
+          navigateToWork(
+            `/work/session/${destination.sessionId}?machine=${detail.machine.id}`,
+          );
+          return;
+        }
+        if (destination.kind === "test") {
+          navigateToWork(`/work/${destination.orderId}`);
+          return;
+        }
+        if (destination.kind === "initial_check") {
+          navigateToWork(`/work/initial-check/${destination.machineId}`);
+          return;
+        }
+      }
+      setState({ status: "success", detail });
     } catch (error) {
       if (requestStatus(error) === 401) {
         const loginPath =
@@ -138,6 +190,8 @@ export function ScanView({
         return;
       }
       setState({ status: scanFailureState(error) });
+    } finally {
+      resolving.current = false;
     }
   }
 
@@ -181,6 +235,11 @@ export function ScanView({
         </p>
       </div>
       <section className="panel scan-panel">
+        <QrCameraScanner
+          online={online}
+          busy={state.status === "loading"}
+          onToken={(token) => void resolve({ token })}
+        />
         <form className="scan-form" onSubmit={submitFallback}>
           <label htmlFor="fallback-code">Enter fallback code</label>
           <input

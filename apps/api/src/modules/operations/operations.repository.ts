@@ -11,11 +11,11 @@ import {
   type JobListQuery,
   type JobListResponse,
   type OutboxJob,
-} from "@simply-clean/contracts";
+} from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
-} from "@simply-clean/database";
+} from "@laundrorama/database";
 import { sql, type SQL } from "drizzle-orm";
 import { createHash, randomUUID } from "node:crypto";
 

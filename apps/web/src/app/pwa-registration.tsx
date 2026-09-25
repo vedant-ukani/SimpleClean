@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 
 import {
-  PWA_CACHE_PREFIX,
   PWA_CLEAR_CACHE_MESSAGE,
+  isOwnedPublicPwaCache,
 } from "../lib/pwa-cache-policy";
 
 type ServiceWorkerRegistrationTarget = Pick<ServiceWorkerContainer, "register">;
@@ -36,7 +36,7 @@ export async function clearPublicPwaCaches(
   const names = await cacheStorage.keys();
   await Promise.all(
     names
-      .filter((name) => name.startsWith(PWA_CACHE_PREFIX))
+      .filter(isOwnedPublicPwaCache)
       .map((name) => cacheStorage.delete(name)),
   );
 }

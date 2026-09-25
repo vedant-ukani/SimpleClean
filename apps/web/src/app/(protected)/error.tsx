@@ -9,7 +9,7 @@ export default function ProtectedError({
   return (
     <main className="page-main">
       <section className="panel state-panel" aria-labelledby="error-heading">
-        <p className="eyebrow">Simple Clean Operations</p>
+        <p className="eyebrow">Laundrorama Operations</p>
         <h1 id="error-heading">
           {online ? "This workspace is unavailable" : "You are offline"}
         </h1>
