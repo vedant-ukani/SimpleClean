@@ -190,7 +190,7 @@ export class CatalogRepository {
         for (const source of manufacturer.sources) {
           const storedSource = rows(
             await database.execute(
-              sql`insert into catalog_source (id, dataset_id, manufacturer_id, url, title, retrieved_at, document_revision, checksum, checksum_unavailable_reason, source_class) values (${source.id}, ${manifest.datasetId}, ${manufacturer.id}, ${source.url}, ${source.title}, ${new Date(source.retrievedAt)}, ${source.documentRevision}, ${source.checksum}, ${source.checksumUnavailableReason ?? null}, ${source.sourceClass ?? "official_manufacturer"}) on conflict (id) do update set id=excluded.id where catalog_source.manufacturer_id=excluded.manufacturer_id and catalog_source.url=excluded.url and catalog_source.title=excluded.title and catalog_source.retrieved_at=excluded.retrieved_at and catalog_source.document_revision is not distinct from excluded.document_revision and catalog_source.checksum is not distinct from excluded.checksum and catalog_source.checksum_unavailable_reason is not distinct from excluded.checksum_unavailable_reason and catalog_source.source_class=excluded.source_class returning id`,
+              sql`insert into catalog_source (id, dataset_id, manufacturer_id, url, title, retrieved_at, document_revision, checksum, checksum_unavailable_reason, source_class) values (${source.id}, ${manifest.datasetId}, ${manufacturer.id}, ${source.url}, ${source.title}, ${new Date(source.retrievedAt).toISOString()}, ${source.documentRevision}, ${source.checksum}, ${source.checksumUnavailableReason ?? null}, ${source.sourceClass ?? "official_manufacturer"}) on conflict (id) do update set id=excluded.id where catalog_source.manufacturer_id=excluded.manufacturer_id and catalog_source.url=excluded.url and catalog_source.title=excluded.title and catalog_source.retrieved_at=excluded.retrieved_at and catalog_source.document_revision is not distinct from excluded.document_revision and catalog_source.checksum is not distinct from excluded.checksum and catalog_source.checksum_unavailable_reason is not distinct from excluded.checksum_unavailable_reason and catalog_source.source_class=excluded.source_class returning id`,
             ),
           );
           if (!storedSource.length)
@@ -225,7 +225,7 @@ export class CatalogRepository {
           }
           const revision = model.revision;
           await database.execute(
-            sql`insert into catalog_spec_revision (id, variant_id, dataset_id, revision, status, approved_at, production_start_year, production_end_year, specs) values (${revision.id}, ${model.id}, ${manifest.datasetId}, ${revision.revision}, 'approved', ${new Date(revision.approvedAt)}, ${revision.productionStartYear}, ${revision.productionEndYear}, ${JSON.stringify(revision.specs)}::jsonb)`,
+            sql`insert into catalog_spec_revision (id, variant_id, dataset_id, revision, status, approved_at, production_start_year, production_end_year, specs) values (${revision.id}, ${model.id}, ${manifest.datasetId}, ${revision.revision}, 'approved', ${new Date(revision.approvedAt).toISOString()}, ${revision.productionStartYear}, ${revision.productionEndYear}, ${JSON.stringify(revision.specs)}::jsonb)`,
           );
           for (const [index, evidence] of revision.evidence.entries()) {
             await database.execute(
@@ -839,7 +839,7 @@ export class CatalogRepository {
       const claimed = rows(
         await database.execute(sql`
           update catalog_discovery_run
-          set status='running', claim_token=${claimToken}, lease_expires_at=${lease},
+          set status='running', claim_token=${claimToken}, lease_expires_at=${lease.toISOString()},
               attempt_count=attempt_count+1, error_code=null, updated_at=now()
           where id=${String(current.id)} returning *
         `),

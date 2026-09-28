@@ -275,11 +275,12 @@ export class OperationsRepository
     limit: number,
   ): Promise<ClaimedJob[]> {
     return this.connection.transaction(async (database) => {
+      const nowIso = now.toISOString();
       const candidates = await database.execute(sql`
         select id, state, attempt_count from platform_outbox_job
         where (
-          (state in ('queued', 'retry_wait') and available_at <= ${now})
-          or (state = 'processing' and lease_expires_at <= ${now})
+          (state in ('queued', 'retry_wait') and available_at <= ${nowIso})
+          or (state = 'processing' and lease_expires_at <= ${nowIso})
         )
         order by available_at, created_at, id
         for update skip locked
@@ -294,10 +295,10 @@ export class OperationsRepository
           await database.execute(sql`
             update platform_outbox_job set
               state = 'dead_letter', lease_id = null, lease_expires_at = null,
-              error_code = 'handler_failed', available_at = ${now},
-              version = version + 1, updated_at = ${now}
+              error_code = 'handler_failed', available_at = ${nowIso},
+              version = version + 1, updated_at = ${nowIso}
             where id = ${String(candidate.id)} and state = 'processing'
-              and lease_expires_at <= ${now}
+              and lease_expires_at <= ${nowIso}
           `);
           continue;
         }
@@ -306,9 +307,9 @@ export class OperationsRepository
         const result = await database.execute(sql`
           update platform_outbox_job set
             state = 'processing', lease_id = ${leaseId},
-            lease_expires_at = ${leaseExpiresAt}, error_code = null,
+            lease_expires_at = ${leaseExpiresAt.toISOString()}, error_code = null,
             attempt_count = attempt_count + 1,
-            version = version + 1, updated_at = ${now}
+            version = version + 1, updated_at = ${nowIso}
           where id = ${String(candidate.id)}
           returning *
         `);
@@ -333,14 +334,15 @@ export class OperationsRepository
   }
 
   async markDelivered(job: ClaimedJob, now: Date): Promise<boolean> {
+    const nowIso = now.toISOString();
     const result = await this.connection.database.execute(sql`
       update platform_outbox_job set
         state = 'delivered',
         lease_id = null, lease_expires_at = null, error_code = null,
-        delivered_at = ${now}, version = version + 1, updated_at = ${now}
+        delivered_at = ${nowIso}, version = version + 1, updated_at = ${nowIso}
       where id = ${job.id} and state = 'processing'
         and lease_id = ${job.leaseId} and version = ${job.version}
-        and lease_expires_at > ${now}
+        and lease_expires_at > ${nowIso}
       returning id
     `);
     return rows(result).length === 1;
@@ -356,16 +358,17 @@ export class OperationsRepository
     },
   ): Promise<boolean> {
     const deadLetter = job.attemptCount >= input.maximumAttempts;
+    const nowIso = input.now.toISOString();
     const result = await this.connection.database.execute(sql`
       update platform_outbox_job set
         state = ${deadLetter ? "dead_letter" : "retry_wait"},
-        available_at = ${deadLetter ? input.now : input.nextAvailableAt},
+        available_at = ${deadLetter ? nowIso : input.nextAvailableAt.toISOString()},
         lease_id = null, lease_expires_at = null,
         error_code = ${input.errorCode}, version = version + 1,
-        updated_at = ${input.now}
+        updated_at = ${nowIso}
       where id = ${job.id} and state = 'processing'
         and lease_id = ${job.leaseId} and version = ${job.version}
-        and lease_expires_at > ${input.now}
+        and lease_expires_at > ${nowIso}
       returning id
     `);
     return rows(result).length === 1;

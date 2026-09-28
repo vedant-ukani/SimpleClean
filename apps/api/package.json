@@ -13,7 +13,7 @@
     "catalog:coverage": "tsx src/catalog-coverage.ts",
     "catalog:backfill": "tsx src/catalog-backfill.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run test/health.service.test.ts test/files.storage.test.ts test/import-download-header.test.ts test/inventory-normalization.test.ts test/import-parser.test.ts test/qr-label.test.ts test/intake-files.test.ts test/intake-heic-limits.test.ts test/recognition.providers.test.ts test/recognition.evaluation.test.ts test/intake-recognition-policy.test.ts test/catalog.test.ts test/catalog.discovery.test.ts test/catalog.coverage.test.ts test/catalog-backfill.test.ts",
+    "test": "vitest run test/health.service.test.ts test/files.storage.test.ts test/import-download-header.test.ts test/inventory-normalization.test.ts test/import-parser.test.ts test/qr-label.test.ts test/intake-files.test.ts test/intake-heic-limits.test.ts test/recognition.providers.test.ts test/recognition.evaluation.test.ts test/intake-recognition-policy.test.ts test/catalog.test.ts test/catalog.discovery.test.ts test/catalog.coverage.test.ts test/catalog-backfill.test.ts test/postgres-date-parameters.test.ts",
     "test:integration": "vitest run --no-file-parallelism --maxWorkers=1 --testTimeout=10000 --hookTimeout=10000 test/health.integration.test.ts test/identity.integration.test.ts test/inventory.integration.test.ts test/intake.integration.test.ts test/intake-recognition.integration.test.ts test/files.integration.test.ts test/operations.integration.test.ts test/imports.integration.test.ts test/qr-label.integration.test.ts test/catalog.integration.test.ts test/production.integration.test.ts test/test-work.integration.test.ts"
   },
   "dependencies": {

@@ -204,7 +204,7 @@ export class FilesRepository {
           issued_session_id, expires_at
         ) values (
           ${randomUUID()}, ${input.fileId}, 'upload', ${input.tokenHash},
-          ${input.context.actorUserId}, ${input.context.sessionId}, ${input.expiresAt}
+          ${input.context.actorUserId}, ${input.context.sessionId}, ${input.expiresAt.toISOString()}
         )
       `);
       await this.activity(
@@ -344,7 +344,7 @@ export class FilesRepository {
         )
         update file_attachment f set
           upload_lease_id = consumed.id,
-          upload_lease_expires_at = ${input.uploadLeaseExpiresAt},
+          upload_lease_expires_at = ${input.uploadLeaseExpiresAt?.toISOString() ?? null},
           version = f.version + 1,
           updated_at = now()
         from consumed
@@ -474,7 +474,7 @@ export class FilesRepository {
           issued_session_id, expires_at
         ) values (
           ${randomUUID()}, ${input.fileId}, 'download', ${input.tokenHash},
-          ${input.context.actorUserId}, ${input.context.sessionId}, ${input.expiresAt}
+          ${input.context.actorUserId}, ${input.context.sessionId}, ${input.expiresAt.toISOString()}
         )
       `);
       await this.activity(
@@ -499,7 +499,7 @@ export class FilesRepository {
           issued_session_id, expires_at
         ) values (
           ${randomUUID()}, ${input.fileId}, 'preview', ${input.tokenHash},
-          ${input.context.actorUserId}, ${input.context.sessionId}, ${input.expiresAt}
+          ${input.context.actorUserId}, ${input.context.sessionId}, ${input.expiresAt.toISOString()}
         )
       `);
       await this.activity(
