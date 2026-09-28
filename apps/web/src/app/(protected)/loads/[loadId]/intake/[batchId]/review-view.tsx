@@ -32,6 +32,8 @@ import {
 import { downloadIntakeQrLabelSheet } from "../../../../../../lib/qr-client";
 
 const INTAKE_IMAGE_ACCEPT = "image/*,.heic,.heif";
+const NAMEPLATE_UPLOAD_FAILURE_MESSAGE =
+  "Some nameplates could not be uploaded or prepared. Select those photos again.";
 
 async function uploadPhoto(
   file: File,
@@ -665,6 +667,7 @@ function MachineIntakeQueue({
   onDetail,
   onRecognition,
   onMessage,
+  onUploadSuccess,
   onStagedWorkChange,
 }: Readonly<{
   detail: IntakeBatchDetail;
@@ -675,6 +678,7 @@ function MachineIntakeQueue({
   onDetail: (detail: IntakeBatchDetail) => void;
   onRecognition: (status: IntakeRecognitionStatus) => void;
   onMessage: (message: string) => void;
+  onUploadSuccess: () => void;
   onStagedWorkChange: (hasStagedWork: boolean) => void;
 }>) {
   const [busy, setBusy] = useState(false);
@@ -734,10 +738,8 @@ function MachineIntakeQueue({
     setBusy(true);
     void uploadAndPrepare(items)
       .then((failedCount) => {
-        if (failedCount > 0)
-          onMessage(
-            "Some nameplates could not be uploaded or prepared. Select those photos again.",
-          );
+        if (failedCount > 0) onMessage(NAMEPLATE_UPLOAD_FAILURE_MESSAGE);
+        else onUploadSuccess();
       })
       .finally(() => setBusy(false));
   }
@@ -1753,6 +1755,11 @@ export function IntakeReviewView({
         onDetail={(next) => acceptDetail(next)}
         onRecognition={acceptRecognition}
         onMessage={setMessage}
+        onUploadSuccess={() =>
+          setMessage((current) =>
+            current === NAMEPLATE_UPLOAD_FAILURE_MESSAGE ? undefined : current,
+          )
+        }
         onStagedWorkChange={setHasStagedNameplates}
       />
       {legacyReview ? (

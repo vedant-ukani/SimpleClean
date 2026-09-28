@@ -500,6 +500,193 @@ describe("Intake review UI", () => {
     await waitFor(() => expect(finalAction).toHaveProperty("disabled", false));
   });
 
+  it("keeps a partial upload warning until a later nameplate cycle fully succeeds", async () => {
+    const user = userEvent.setup();
+    const detail: IntakeBatchDetail = {
+      batch: {
+        id,
+        loadId: id,
+        state: "open",
+        version: 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      photos: [],
+      candidates: [],
+      machineMappings: [],
+      items: [],
+    };
+    intakeMocks.getBrowserIntakeBatch.mockResolvedValue(detail);
+    intakeMocks.prepareIntakeItem.mockResolvedValue({
+      ...detail,
+      batch: { ...detail.batch, version: 2 },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url === "/api/files/upload-grants") {
+          const name = JSON.parse(String(init?.body))
+            .originalFilename as string;
+          if (name.startsWith("failed"))
+            return new Response("upload failed", { status: 500 });
+          return new Response(
+            JSON.stringify({
+              file: { id: `${name}-id` },
+              grant: { token: "grant" },
+            }),
+          );
+        }
+        if (url.includes("/upload-content"))
+          return new Response("", { status: 201 });
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    render(<IntakeReviewView loadId={id} canManage initialDetail={detail} />);
+    const picker = screen.getByLabelText("Choose nameplates");
+    const warning =
+      "Some nameplates could not be uploaded or prepared. Select those photos again.";
+
+    await user.upload(
+      picker,
+      new File(["failed"], "failed-first.jpg", { type: "image/jpeg" }),
+    );
+    expect(await screen.findByText(warning)).toBeTruthy();
+    await waitFor(() => expect(picker).toHaveProperty("disabled", false));
+
+    await user.upload(picker, [
+      new File(["failed"], "failed-second.jpg", { type: "image/jpeg" }),
+      new File(["good"], "partial-success.jpg", { type: "image/jpeg" }),
+    ]);
+    await waitFor(() =>
+      expect(intakeMocks.prepareIntakeItem).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() => expect(picker).toHaveProperty("disabled", false));
+    expect(screen.getByText(warning)).toBeTruthy();
+
+    await user.upload(
+      picker,
+      new File(["good"], "fully-successful.jpg", { type: "image/jpeg" }),
+    );
+    await waitFor(() =>
+      expect(intakeMocks.prepareIntakeItem).toHaveBeenCalledTimes(2),
+    );
+    await waitFor(() => expect(picker).toHaveProperty("disabled", false));
+    await waitFor(() => expect(screen.queryByText(warning)).toBeNull());
+  });
+
+  it("does not clear a newer Intake error when a nameplate upload finishes", async () => {
+    const user = userEvent.setup();
+    const candidateId = "00000000-0000-4000-8000-000000000071";
+    const detail: IntakeBatchDetail = {
+      batch: {
+        id,
+        loadId: id,
+        state: "open",
+        version: 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      photos: [],
+      candidates: [
+        {
+          id: candidateId,
+          batchId: id,
+          state: "confirmed",
+          machineType: null,
+          manufacturer: "Dexter",
+          model: "T-400",
+          serial: "SERIAL-1",
+          voltage: null,
+          phase: null,
+          fuel: null,
+          capacityLb: null,
+          confirmationSource: "recognition",
+          revision: 1,
+          machineTypeSelectedByUserId: null,
+          machineTypeSelectedAt: null,
+          warnings: [],
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        },
+      ],
+      machineMappings: [],
+      items: [
+        {
+          candidateId,
+          photoId: "00000000-0000-4000-8000-000000000072",
+          fileId: "00000000-0000-4000-8000-000000000073",
+          machineType: null,
+          candidateState: "confirmed",
+          candidateRevision: 1,
+          latestRunId: "00000000-0000-4000-8000-000000000074",
+          latestRunState: "ready",
+          machineId: null,
+        },
+      ],
+    };
+    intakeMocks.getBrowserIntakeBatch.mockResolvedValue(detail);
+    intakeMocks.prepareIntakeItem.mockResolvedValue({
+      ...detail,
+      batch: { ...detail.batch, version: 2 },
+    });
+    intakeMocks.changeIntakeCandidateType.mockRejectedValue(
+      new Error("simulated type update failure"),
+    );
+    let finishUpload: ((response: Response) => void) | undefined;
+    const uploadContent = new Promise<Response>((resolve) => {
+      finishUpload = resolve;
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url === "/api/files/upload-grants") {
+          const name = JSON.parse(String(init?.body))
+            .originalFilename as string;
+          if (name === "failed.jpg")
+            return new Response("upload failed", { status: 500 });
+          return new Response(
+            JSON.stringify({
+              file: { id: "success-file" },
+              grant: { token: "grant" },
+            }),
+          );
+        }
+        if (url.includes("/upload-content")) return uploadContent;
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    render(<IntakeReviewView loadId={id} canManage initialDetail={detail} />);
+    const picker = screen.getByLabelText("Choose nameplates");
+
+    await user.upload(
+      picker,
+      new File(["failed"], "failed.jpg", { type: "image/jpeg" }),
+    );
+    expect(
+      await screen.findByText(
+        /Some nameplates could not be uploaded or prepared/,
+      ),
+    ).toBeTruthy();
+    await waitFor(() => expect(picker).toHaveProperty("disabled", false));
+
+    await user.upload(
+      picker,
+      new File(["good"], "success.jpg", { type: "image/jpeg" }),
+    );
+    await user.selectOptions(screen.getByLabelText("Machine type"), "washer");
+    const newerError = "The type could not be changed. Refresh and try again.";
+    expect(await screen.findByText(newerError)).toBeTruthy();
+    finishUpload?.(new Response("", { status: 201 }));
+
+    await waitFor(() =>
+      expect(intakeMocks.prepareIntakeItem).toHaveBeenCalledOnce(),
+    );
+    await waitFor(() => expect(picker).toHaveProperty("disabled", false));
+    expect(screen.getByText(newerError)).toBeTruthy();
+  });
+
   it("replaces failed evidence before excluding it and only exposes removal on failed items", async () => {
     const user = userEvent.setup();
     const failedCandidateId = "00000000-0000-4000-8000-000000000031";
