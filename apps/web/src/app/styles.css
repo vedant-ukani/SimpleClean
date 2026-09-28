@@ -440,6 +440,30 @@ a.dashboard-card:focus-visible {
   margin: 0;
 }
 
+.intake-history-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 1rem;
+}
+
+.intake-history-filters label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.intake-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.intake-history-actions a[aria-disabled="true"],
+.inventory-row > a[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .intake-photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
@@ -934,6 +958,7 @@ a.dashboard-card:focus-visible {
   .imports-layout,
   .user-row,
   .inventory-row,
+  .intake-history-row,
   .search-form {
     grid-template-columns: 1fr;
   }
@@ -1526,6 +1551,10 @@ a.dashboard-card:focus-visible {
 }
 
 .management-grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+.management-grid--warehouse-loads > .panel {
   grid-column: 1 / -1;
 }
 

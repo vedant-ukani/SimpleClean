@@ -161,7 +161,11 @@ test("warehouse follows the real load, machine, file, and scan boundaries", asyn
     page.getByText("Browser Test Expected Load", { exact: true }),
   ).toBeVisible();
   await expectViewportSizedSidebar(page);
-  await page.getByRole("link", { name: "View Load" }).click();
+  await page
+    .locator(".expected-load-groups article.inventory-row")
+    .filter({ hasText: "Browser Test Expected Load" })
+    .getByRole("link", { name: "View Load" })
+    .click();
   await expect(page.getByText("E2E-LOAD-001", { exact: true })).toBeVisible();
 
   await page.getByRole("link", { name: "Machines", exact: true }).click();

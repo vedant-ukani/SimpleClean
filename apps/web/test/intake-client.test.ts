@@ -7,6 +7,7 @@ import {
   commitIntakeCandidate,
   getIntakeRecognition,
   getIntakeBatch,
+  listIntakeBatchesForLoad,
   intakePreviewUrl,
   requestIntakeRecognition,
   submitIntakeRecaptureEvidence,
@@ -31,6 +32,49 @@ const detail = {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Intake browser client", () => {
+  it("reads validated Load-scoped summaries with the server session and no-store policy", async () => {
+    const summary = { ...detail.batch, candidateCount: 2, machineCount: 1 };
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ batches: [summary] }), { status: 200 }),
+      );
+    const environment = {
+      API_BASE_URL: "http://api.example.test",
+      NODE_ENV: "test",
+    };
+    await expect(
+      listIntakeBatchesForLoad(
+        detail.batch.loadId,
+        fetcher,
+        environment,
+        "session=abc",
+      ),
+    ).resolves.toEqual([summary]);
+    expect(fetcher).toHaveBeenCalledWith(
+      `http://api.example.test/inventory/loads/${detail.batch.loadId}/intake`,
+      expect.objectContaining({
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: { accept: "application/json", cookie: "session=abc" },
+      }),
+    );
+    fetcher.mockResolvedValue(
+      new Response(
+        JSON.stringify({ batches: [{ ...summary, machineCount: -1 }] }),
+        { status: 200 },
+      ),
+    );
+    await expect(
+      listIntakeBatchesForLoad(
+        detail.batch.loadId,
+        fetcher,
+        environment,
+        "session=abc",
+      ),
+    ).rejects.toThrow();
+  });
+
   it("uses the server API base and forwards the session cookie during SSR", async () => {
     const fetcher = vi
       .fn<typeof fetch>()

@@ -1,11 +1,16 @@
 "use client";
 
-import type { AcquisitionLoad, FileAttachment } from "@laundrorama/contracts";
+import type {
+  AcquisitionLoad,
+  FileAttachment,
+  IntakeBatchSummary,
+} from "@laundrorama/contracts";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { updateLoad } from "../../../../lib/inventory-client";
 import { createIntakeBatch } from "../../../../lib/intake-client";
+import { downloadIntakeQrLabelSheet } from "../../../../lib/qr-client";
 import { AttachmentsPanel } from "../../attachments-panel";
 import { useOnlineStatus } from "../../online-status";
 import { useServerState } from "../../use-server-state";
@@ -18,21 +23,29 @@ import {
 
 export function LoadDetailView({
   initialLoad,
+  initialBatches,
   canManage,
   canManageIntake,
+  canReadIntake,
+  canPrintIntake,
   initialFiles,
   canUploadFiles,
 }: Readonly<{
   initialLoad: AcquisitionLoad;
+  initialBatches: IntakeBatchSummary[];
   canManage: boolean;
   canManageIntake: boolean;
+  canReadIntake: boolean;
+  canPrintIntake: boolean;
   initialFiles: FileAttachment[];
   canUploadFiles: boolean;
 }>) {
   const [load, setLoad] = useServerState(initialLoad);
+  const [batches] = useServerState(initialBatches);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [startingIntake, setStartingIntake] = useState(false);
+  const [printingBatchId, setPrintingBatchId] = useState<string>();
   const online = useOnlineStatus();
 
   async function update(event: FormEvent<HTMLFormElement>) {
@@ -67,6 +80,11 @@ export function LoadDetailView({
 
   return (
     <div className="inventory-stack">
+      {message ? (
+        <p className="form-message" role="status" aria-live="polite">
+          {message}
+        </p>
+      ) : null}
       <section className="panel detail-grid load-overview-panel">
         <dl>
           <div>
@@ -93,7 +111,7 @@ export function LoadDetailView({
           Find Machines from this Load
         </Link>
       </section>
-      {canManageIntake ? (
+      {canManageIntake && !load.receivedAt ? (
         <section className="panel load-next-action">
           <div>
             <p className="eyebrow">Next operational action</p>
@@ -122,6 +140,83 @@ export function LoadDetailView({
           </button>
         </section>
       ) : null}
+      {canReadIntake ? (
+        <section
+          className="panel inventory-list"
+          aria-labelledby="load-intake-history-heading"
+        >
+          <h2 id="load-intake-history-heading">Intake history</h2>
+          {batches.length === 0 ? (
+            <p className="empty-state">
+              No Intake Batches have been started for this Load.
+            </p>
+          ) : (
+            batches.map((batch) => (
+              <article
+                className="inventory-row intake-history-row"
+                key={batch.id}
+              >
+                <div>
+                  <strong>
+                    {batch.state === "open" ? "Open" : "Completed"} Intake
+                  </strong>
+                  <small>
+                    {batch.state === "open" ? "Last updated" : "Completed"}:{" "}
+                    {new Date(batch.updatedAt).toLocaleString()}
+                  </small>
+                  <small>
+                    {batch.candidateCount} items · {batch.machineCount} Machines
+                  </small>
+                </div>
+                <div className="intake-history-actions">
+                  <Link
+                    href={`/loads/${load.id}/intake/${batch.id}`}
+                    aria-disabled={!online}
+                    tabIndex={online ? undefined : -1}
+                    onClick={(event) => {
+                      if (!online) event.preventDefault();
+                    }}
+                  >
+                    {batch.state === "open" ? "Resume Intake" : "View Intake"}
+                  </Link>
+                  {batch.state === "committed" &&
+                  batch.machineCount > 0 &&
+                  canPrintIntake ? (
+                    <button
+                      type="button"
+                      disabled={!online || Boolean(printingBatchId)}
+                      onClick={async () => {
+                        if (!online) return;
+                        setPrintingBatchId(batch.id);
+                        try {
+                          const presentation = await downloadIntakeQrLabelSheet(
+                            batch.id,
+                          );
+                          setMessage(
+                            presentation === "opened"
+                              ? "QR label sheet opened in a new tab."
+                              : "QR label sheet downloaded.",
+                          );
+                        } catch {
+                          setMessage(
+                            "QR label sheet could not be printed. Reconnect and retry.",
+                          );
+                        } finally {
+                          setPrintingBatchId(undefined);
+                        }
+                      }}
+                    >
+                      {printingBatchId === batch.id
+                        ? "Preparing QR labels…"
+                        : `Print all QR labels (${batch.machineCount})`}
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            ))
+          )}
+        </section>
+      ) : null}
       <div className="load-evidence-panel">
         <AttachmentsPanel
           target={{ type: "load", id: load.id }}
@@ -133,11 +228,6 @@ export function LoadDetailView({
         <section className="panel load-maintenance-panel">
           <p className="eyebrow">Maintenance</p>
           <h2>Edit Load</h2>
-          {message ? (
-            <p className="form-message" role="status">
-              {message}
-            </p>
-          ) : null}
           <form
             key={`load-${load.version}`}
             className="inline-form"

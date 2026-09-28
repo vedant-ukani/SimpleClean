@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import type {
   IntakeBatch,
   IntakeBatchDetail,
+  IntakeBatchSummary,
   IntakeCandidate,
   IntakePhoto,
   IntakeWarningKind,
@@ -213,6 +214,27 @@ export class IntakeRepository {
     return this.connection.database
       ? this.detail(this.connection.database, id)
       : undefined;
+  }
+
+  async listForLoad(loadId: string): Promise<IntakeBatchSummary[] | undefined> {
+    if (!(await this.inventory.findLoad(loadId))) return undefined;
+    const result = rows(
+      await this.connection.database.execute(sql`
+      select b.*,
+        (select count(*)::int from inventory_intake_candidate c
+         where c.batch_id = b.id) as candidate_count,
+        (select count(*)::int from inventory_intake_machine_mapping m
+         where m.batch_id = b.id) as machine_count
+      from inventory_intake_batch b
+      where b.load_id = ${loadId}
+      order by b.created_at desc, b.id desc
+    `),
+    );
+    return result.map((row) => ({
+      ...batch(row),
+      candidateCount: Number(row.candidate_count),
+      machineCount: Number(row.machine_count),
+    }));
   }
 
   async committedMachines(batchId: string): Promise<Machine[] | undefined> {

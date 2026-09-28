@@ -16,6 +16,7 @@ import {
   ExcludeIntakePhotoRequestSchema,
   RemoveIntakePhotoRequestSchema,
   IntakeBatchDetailSchema,
+  IntakeBatchListResponseSchema,
   LinkIntakePhotoRequestSchema,
   UpdateIntakeCandidateRequestSchema,
   PrepareIntakeItemRequestSchema,
@@ -29,6 +30,7 @@ import {
   type IdentityUser,
   type IntakeBatch,
   type IntakeBatchDetail,
+  type IntakeBatchListResponse,
   type Machine,
 } from "@laundrorama/contracts";
 import { IntakeRepository } from "./intake.repository.js";
@@ -115,6 +117,16 @@ export class IntakeService {
       }
     }
     return parsed;
+  }
+
+  async listForLoad(
+    rawLoadId: string,
+    identity: IdentityUser,
+  ): Promise<IntakeBatchListResponse> {
+    this.read(identity);
+    const batches = await this.repository.listForLoad(this.id(rawLoadId));
+    if (!batches) throw new NotFoundException("Load not found");
+    return IntakeBatchListResponseSchema.parse({ batches });
   }
 
   async committedMachines(rawId: string): Promise<Machine[]> {

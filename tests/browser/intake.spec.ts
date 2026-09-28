@@ -48,13 +48,13 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
     page.getByRole("heading", { name: "Expected Loads" }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
-  await expect(page.getByText("Expected today")).toBeVisible();
   await expect(page.getByText("Warehouse-hidden source")).toHaveCount(0);
   await expect(page.getByText("Warehouse-hidden reference")).toHaveCount(0);
   const expectedLoad = page
     .locator("article.inventory-row")
     .filter({ hasText: loadName });
   await expect(expectedLoad).toHaveCount(1);
+  await expect(expectedLoad.getByText("Expected today")).toBeVisible();
   const loadHref = `/loads/${loadId}`;
   await expect(
     expectedLoad.getByRole("link", { name: "View Load" }),
@@ -110,12 +110,12 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
 
   for (const card of [cards.nth(0), cards.nth(1), cards.nth(2)]) {
     await expect(
-      card.getByRole("combobox", { name: "Machine type" }),
+      card.getByRole("combobox", { name: "Equipment type" }),
     ).toBeVisible({
       timeout: 15_000,
     });
     await expect(
-      card.getByRole("combobox", { name: "Machine type" }),
+      card.getByRole("combobox", { name: "Equipment type" }),
     ).toHaveValue("");
   }
 
@@ -186,7 +186,7 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
       ),
       cards
         .nth(index)
-        .getByRole("combobox", { name: "Machine type" })
+        .getByRole("combobox", { name: "Equipment type" })
         .selectOption(machineType),
     ]);
   }
@@ -227,12 +227,29 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
     page.getByRole("heading", { name: "Expected Loads" }),
   ).toBeVisible();
   await expect(
-    page.locator("article.inventory-row").filter({ hasText: loadName }),
+    page
+      .locator(".expected-load-groups article.inventory-row")
+      .filter({ hasText: loadName }),
   ).toHaveCount(0);
-  await page.goBack();
   await expect(
-    page.locator("p").filter({ hasText: /Status:\s*committed/ }),
+    page.getByRole("heading", { name: "Intake History" }),
   ).toBeVisible();
+  await page.getByLabel("Load name").fill(loadName);
+  const historyLoad = page
+    .locator("article.inventory-row")
+    .filter({ hasText: loadName });
+  await expect(historyLoad).toHaveCount(1);
+  await expect(historyLoad).toContainText("Received:");
+  await expect(historyLoad).not.toContainText("Warehouse-hidden source");
+  await expect(historyLoad).not.toContainText("Warehouse-hidden reference");
+  await historyLoad.getByRole("link", { name: "View Load" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Intake history" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Start Laundrorama intake" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "View Intake" })).toBeVisible();
 
   const popupPromise = page.context().waitForEvent("page");
   const pdfResponsePromise = page.waitForResponse(
@@ -252,6 +269,29 @@ test("warehouse uploads, classifies, and adds three machines in one Intake actio
   await expect(pdfFrame).toHaveAttribute("src", /^blob:/);
   expect(pdfResponse.ok()).toBe(true);
   expect(pdfResponse.headers()["content-type"]).toContain("application/pdf");
+
+  await page.getByRole("link", { name: "View Intake" }).click();
+  await expect(
+    page.locator("p").filter({ hasText: /Status:\s*committed/ }),
+  ).toBeVisible();
+  const reprintPopupPromise = page.context().waitForEvent("page");
+  const reprintResponsePromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/qr-label-sheet") &&
+      response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: /Print all QR labels \(3\)/ }).click();
+  const [reprintPopup, reprintResponse] = await Promise.all([
+    reprintPopupPromise,
+    reprintResponsePromise,
+  ]);
+  await expect(
+    reprintPopup.locator('iframe[title="Laundrorama QR label sheet PDF"]'),
+  ).toBeVisible();
+  expect(reprintResponse.ok()).toBe(true);
+  expect(reprintResponse.headers()["content-type"]).toContain(
+    "application/pdf",
+  );
 
   await page.getByRole("link", { name: "View Inventory" }).click();
   await expect(page).toHaveURL(/\/machines$/);

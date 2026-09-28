@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
 
-import type { AcquisitionLoad } from "@laundrorama/contracts";
+import type {
+  AcquisitionLoad,
+  IntakeBatchSummary,
+} from "@laundrorama/contracts";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -9,11 +12,20 @@ const inventory = vi.hoisted(() => ({
   createLoad: vi.fn(),
   updateLoad: vi.fn(),
 }));
+const qr = vi.hoisted(() => ({ downloadIntakeQrLabelSheet: vi.fn() }));
+const connectivity = vi.hoisted(() => ({ online: true }));
 vi.mock("../src/lib/inventory-client", () => inventory);
+vi.mock("../src/lib/qr-client", () => qr);
+vi.mock("../src/app/(protected)/online-status", () => ({
+  useOnlineStatus: () => connectivity.online,
+}));
 
 import { LoadDetailView } from "../src/app/(protected)/loads/[loadId]/load-detail-view";
 import { LoadsView } from "../src/app/(protected)/loads/loads-view";
-import { groupExpectedLoads } from "../src/app/(protected)/loads/load-dates";
+import {
+  filterReceivedLoads,
+  groupExpectedLoads,
+} from "../src/app/(protected)/loads/load-dates";
 
 const load: AcquisitionLoad = {
   id: "f13fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
@@ -26,13 +38,53 @@ const load: AcquisitionLoad = {
   createdAt: "2026-06-01T00:00:00.000Z",
   updatedAt: "2026-06-01T00:00:00.000Z",
 };
+const batch: IntakeBatchSummary = {
+  id: "5f1fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
+  loadId: load.id,
+  state: "committed",
+  version: 2,
+  createdAt: "2026-06-10T10:00:00.000Z",
+  updatedAt: "2026-06-10T12:00:00.000Z",
+  candidateCount: 3,
+  machineCount: 2,
+};
 
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  connectivity.online = true;
 });
 
 describe("Load dates", () => {
+  it("sorts received Loads newest-first and filters by name and UTC receipt date", () => {
+    const received = [
+      {
+        ...load,
+        id: "11111111-1111-4111-8111-111111111111",
+        displayName: "Alpha",
+        receivedAt: "2026-06-11T23:59:00.000Z",
+      },
+      {
+        ...load,
+        id: "22222222-2222-4222-8222-222222222222",
+        displayName: "Beta",
+        receivedAt: "2026-06-12T00:01:00.000Z",
+      },
+      load,
+    ];
+    expect(
+      filterReceivedLoads(received, "", "").map(
+        ({ displayName }) => displayName,
+      ),
+    ).toEqual(["Beta", "Alpha"]);
+    expect(
+      filterReceivedLoads(received, "alp", "2026-06-11").map(
+        ({ displayName }) => displayName,
+      ),
+    ).toEqual(["Alpha"]);
+    expect(filterReceivedLoads(received, "beta", "2026-06-11")).toEqual([]);
+  });
+
   it("groups unreceived Loads by UTC arrival date in operational order", () => {
     const loads: AcquisitionLoad[] = [
       {
@@ -111,6 +163,47 @@ describe("Load dates", () => {
     expect(screen.queryByText("Source not recorded")).toBeNull();
   });
 
+  it("shows received history separately and filters it without commercial source fields", async () => {
+    render(
+      <LoadsView
+        initialLoads={[
+          load,
+          {
+            ...load,
+            id: batch.id,
+            displayName: "Received Alpha",
+            sourceReference: "Private reference",
+            receivedAt: "2026-06-10T12:00:00.000Z",
+          },
+        ]}
+        canManage={false}
+        expectedOnly
+      />,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Expected Loads" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Intake History" }),
+    ).toBeTruthy();
+    expect(screen.getByText("Received Alpha")).toBeTruthy();
+    expect(screen.queryByText("Private reference")).toBeNull();
+    expect(screen.queryByText("Distributor")).toBeNull();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("Load name"), "missing");
+    expect(
+      screen.getByText("No received Loads match these filters."),
+    ).toBeTruthy();
+    await user.clear(screen.getByLabelText("Load name"));
+    await user.type(screen.getByLabelText("Received date"), "2026-06-10");
+    expect(screen.getByText("Received Alpha")).toBeTruthy();
+  });
+
+  it("shows clear empty Warehouse history", () => {
+    render(<LoadsView initialLoads={[load]} canManage={false} expectedOnly />);
+    expect(screen.getByText("No Loads have been received yet.")).toBeTruthy();
+  });
+
   it("keeps the Owner list ungrouped with source provenance", () => {
     render(<LoadsView initialLoads={[load]} canManage />);
     expect(screen.getByText("Distributor")).toBeTruthy();
@@ -142,8 +235,11 @@ describe("Load dates", () => {
     render(
       <LoadDetailView
         initialLoad={load}
+        initialBatches={[]}
         canManage
         canManageIntake={false}
+        canReadIntake={false}
+        canPrintIntake={false}
         initialFiles={[]}
         canUploadFiles={false}
       />,
@@ -159,5 +255,96 @@ describe("Load dates", () => {
       load.id,
       expect.objectContaining({ expectedArrivalAt: null, expectedVersion: 1 }),
     );
+  });
+
+  it("shows open and committed Batch actions, reprints the whole sheet, and hides Start after receipt", async () => {
+    qr.downloadIntakeQrLabelSheet.mockResolvedValue("opened");
+    render(
+      <LoadDetailView
+        initialLoad={{ ...load, receivedAt: "2026-06-10T12:00:00.000Z" }}
+        initialBatches={[
+          batch,
+          {
+            ...batch,
+            id: "6f1fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
+            state: "open",
+            machineCount: 0,
+          },
+        ]}
+        canManage={false}
+        canManageIntake
+        canReadIntake
+        canPrintIntake
+        initialFiles={[]}
+        canUploadFiles={false}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Start Laundrorama intake" }),
+    ).toBeNull();
+    expect(screen.getByRole("link", { name: "View Intake" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Resume Intake" })).toBeTruthy();
+    expect(screen.getByText("3 items · 2 Machines")).toBeTruthy();
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Print all QR labels (2)" }));
+    expect(qr.downloadIntakeQrLabelSheet).toHaveBeenCalledWith(batch.id);
+    expect((await screen.findByRole("status")).textContent).toContain(
+      "QR label sheet opened in a new tab.",
+    );
+  });
+
+  it("disables history actions offline and reports print failure", async () => {
+    qr.downloadIntakeQrLabelSheet.mockRejectedValue(new Error("failed"));
+    const view = render(
+      <LoadDetailView
+        initialLoad={load}
+        initialBatches={[batch]}
+        canManage={false}
+        canManageIntake
+        canReadIntake
+        canPrintIntake
+        initialFiles={[]}
+        canUploadFiles={false}
+      />,
+    );
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Print all QR labels (2)" }));
+    expect((await screen.findByRole("status")).textContent).toContain(
+      "QR label sheet could not be printed.",
+    );
+    connectivity.online = false;
+    view.rerender(
+      <LoadDetailView
+        initialLoad={load}
+        initialBatches={[batch]}
+        canManage={false}
+        canManageIntake
+        canReadIntake
+        canPrintIntake
+        initialFiles={[]}
+        canUploadFiles={false}
+      />,
+    );
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Print all QR labels (2)",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    expect(
+      screen
+        .getByRole("link", { name: "View Intake" })
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Start Laundrorama intake",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
   });
 });

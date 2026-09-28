@@ -42,6 +42,11 @@ export class IntakeController {
       )
       .then((batch) => ({ batch }));
   }
+  @Get("loads/:loadId/intake")
+  @RequirePermission("intake.read")
+  listForLoad(@Req() req: Request, @Param("loadId") loadId: string) {
+    return this.intake.listForLoad(loadId, currentIdentityFromRequest(req));
+  }
   @Get("intake/:batchId")
   @RequirePermission("intake.read")
   get(@Req() req: Request, @Param("batchId") batchId: string) {

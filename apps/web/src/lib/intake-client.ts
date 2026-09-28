@@ -1,11 +1,13 @@
 import { parseWebServerEnvironment } from "@laundrorama/config";
 import {
   IntakeBatchDetailSchema,
+  IntakeBatchListResponseSchema,
   IntakeBatchResponseSchema,
   IntakeCommitResponseSchema,
   IntakeRecognitionStatusSchema,
   type IntakeBatch,
   type IntakeBatchDetail,
+  type IntakeBatchSummary,
   type IntakeCommitResponse,
   type IntakeRecognitionStatus,
 } from "@laundrorama/contracts";
@@ -126,6 +128,22 @@ export async function getBrowserIntakeBatch(
   batchId: string,
 ): Promise<IntakeBatchDetail> {
   return getIntakeBatch(batchId);
+}
+
+export async function listIntakeBatchesForLoad(
+  loadId: string,
+  fetcher: typeof fetch = fetch,
+  environment: Record<string, string | undefined> = process.env,
+  cookie?: string,
+): Promise<IntakeBatchSummary[]> {
+  const path = `/inventory/loads/${encodeURIComponent(loadId)}/intake`;
+  return IntakeBatchListResponseSchema.parse(
+    await request(
+      serverUrl(path, environment),
+      fetcher,
+      cookie ? { headers: { cookie } } : {},
+    ),
+  ).batches;
 }
 
 export async function getIntakeRecognition(

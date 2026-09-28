@@ -78,6 +78,95 @@ async function loadReceiptMutations(
 }
 
 describe("Intake API", () => {
+  it("lists one Load's Batches newest-first with Candidate and mapped Machine counts and enforces read access", async () => {
+    const app = await createApplication();
+    const { cookies, userId } = await signIn(app);
+    const db = app.get<DatabaseConnection>(DATABASE_CONNECTION).database;
+    const loadId = randomUUID();
+    const otherLoadId = randomUUID();
+    await db.execute(
+      sql`insert into inventory_load (id, display_name) values (${loadId}, 'History load'), (${otherLoadId}, 'Other load')`,
+    );
+    const empty = await request(app.getHttpServer())
+      .get(`/inventory/loads/${loadId}/intake`)
+      .set("Cookie", cookies)
+      .expect(200);
+    expect(empty.body).toEqual({ batches: [] });
+    await request(app.getHttpServer())
+      .get(`/inventory/loads/${randomUUID()}/intake`)
+      .set("Cookie", cookies)
+      .expect(404);
+
+    const olderId = randomUUID();
+    const newerId = randomUUID();
+    const unrelatedId = randomUUID();
+    await db.execute(
+      sql`insert into inventory_intake_batch (id, load_id, created_by_user_id, created_at) values (${olderId}, ${loadId}, ${userId}, '2026-01-01T00:00:00Z'), (${newerId}, ${loadId}, ${userId}, '2026-01-02T00:00:00Z'), (${unrelatedId}, ${otherLoadId}, ${userId}, '2026-01-03T00:00:00Z')`,
+    );
+    const candidateIds = [randomUUID(), randomUUID()];
+    for (const candidateId of candidateIds) {
+      await db.execute(
+        sql`insert into inventory_intake_candidate (id, batch_id, state) values (${candidateId}, ${newerId}, 'draft')`,
+      );
+    }
+    const machine = await request(app.getHttpServer())
+      .post("/inventory/machines")
+      .set("Cookie", cookies)
+      .set("Idempotency-Key", randomUUID())
+      .send({ sourceLoadId: loadId, machineType: "washer" })
+      .expect(201);
+    await db.execute(
+      sql`insert into inventory_intake_machine_mapping (candidate_id, batch_id, machine_id) values (${candidateIds[0]}, ${newerId}, ${machine.body.machine.id as string})`,
+    );
+    const owner = await request(app.getHttpServer())
+      .get(`/inventory/loads/${loadId}/intake`)
+      .set("Cookie", cookies)
+      .expect(200);
+    expect(owner.body.batches.map((batch: { id: string }) => batch.id)).toEqual(
+      [newerId, olderId],
+    );
+    expect(
+      owner.body.batches.map(
+        (batch: { candidateCount: number; machineCount: number }) => [
+          batch.candidateCount,
+          batch.machineCount,
+        ],
+      ),
+    ).toEqual([
+      [2, 1],
+      [0, 0],
+    ]);
+
+    for (const [role, status] of [
+      ["warehouse", 200],
+      ["technician_cleaner", 403],
+    ] as const) {
+      const email = `${role}-${randomUUID()}@example.test`;
+      await app
+        .get(IdentityService)
+        .provisionUser(
+          { name: role, email, password: "history-password", role },
+          { requestId: randomUUID() },
+        );
+      const signInResponse = await request(app.getHttpServer())
+        .post("/auth/sign-in/email")
+        .set("origin", "http://localhost:3000")
+        .send({ email, password: "history-password" })
+        .expect(200);
+      const response = await request(app.getHttpServer())
+        .get(`/inventory/loads/${loadId}/intake`)
+        .set(
+          "Cookie",
+          signInResponse.headers["set-cookie"] as unknown as string[],
+        )
+        .expect(status);
+      if (status === 200)
+        expect(
+          response.body.batches.map((batch: { id: string }) => batch.id),
+        ).toEqual([newerId, olderId]);
+    }
+  });
+
   it("creates an open batch and preserves its route identity", async () => {
     const app = await createApplication();
     const { cookies } = await signIn(app);

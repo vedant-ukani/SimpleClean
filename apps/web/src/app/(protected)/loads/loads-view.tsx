@@ -9,7 +9,9 @@ import { useOnlineStatus } from "../online-status";
 import { useServerState } from "../use-server-state";
 import {
   displayExpectedArrival,
+  displayReceivedDate,
   expectedArrivalFromDate,
+  filterReceivedLoads,
   groupExpectedLoads,
 } from "./load-dates";
 
@@ -25,11 +27,18 @@ export function LoadsView({
   const [loads, setLoads] = useServerState(initialLoads);
   const [message, setMessage] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [historyName, setHistoryName] = useState("");
+  const [historyDate, setHistoryDate] = useState("");
   const online = useOnlineStatus();
   const visibleLoads = expectedOnly
     ? loads.filter((load) => load.receivedAt === null)
     : loads;
   const expectedGroups = expectedOnly ? groupExpectedLoads(visibleLoads) : [];
+  const receivedLoads = expectedOnly
+    ? filterReceivedLoads(loads, historyName, historyDate)
+    : [];
+  const hasReceivedLoads =
+    expectedOnly && loads.some((load) => load.receivedAt);
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,7 +69,13 @@ export function LoadsView({
   }
 
   return (
-    <div className="management-grid">
+    <div
+      className={
+        expectedOnly
+          ? "management-grid management-grid--warehouse-loads"
+          : "management-grid"
+      }
+    >
       {canManage ? (
         <section className="panel">
           <h2>Create Load</h2>
@@ -142,6 +157,64 @@ export function LoadsView({
           ))
         )}
       </section>
+      {expectedOnly ? (
+        <section
+          className="panel inventory-list"
+          aria-labelledby="intake-history-heading"
+        >
+          <h2 id="intake-history-heading">Intake History</h2>
+          {hasReceivedLoads ? (
+            <div className="intake-history-filters">
+              <label>
+                Load name
+                <input
+                  type="search"
+                  value={historyName}
+                  onChange={(event) => setHistoryName(event.target.value)}
+                  disabled={!online}
+                />
+              </label>
+              <label>
+                Received date
+                <input
+                  type="date"
+                  value={historyDate}
+                  onChange={(event) => setHistoryDate(event.target.value)}
+                  disabled={!online}
+                />
+              </label>
+            </div>
+          ) : null}
+          {!hasReceivedLoads ? (
+            <p className="empty-state">No Loads have been received yet.</p>
+          ) : receivedLoads.length === 0 ? (
+            <p className="empty-state">
+              No received Loads match these filters.
+            </p>
+          ) : (
+            receivedLoads.map((load) => (
+              <article className="inventory-row" key={load.id}>
+                <div>
+                  <strong>{load.displayName}</strong>
+                  <small>
+                    Received: {displayReceivedDate(load.receivedAt!)}
+                  </small>
+                </div>
+                <Link
+                  href={`/loads/${load.id}`}
+                  aria-disabled={!online}
+                  tabIndex={online ? undefined : -1}
+                  onClick={(event) => {
+                    if (!online) event.preventDefault();
+                  }}
+                >
+                  View Load
+                </Link>
+              </article>
+            ))
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

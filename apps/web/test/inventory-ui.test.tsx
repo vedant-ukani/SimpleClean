@@ -121,7 +121,7 @@ describe("inventory UI", () => {
     expect(markup).not.toContain("Create Machine");
   });
 
-  it("shows only unreceived Loads in the warehouse expected view", () => {
+  it("keeps received Loads out of Expected Loads and places them in Intake History", () => {
     const baseLoad = {
       id: "f13fd79e-f4ad-4ce8-9b7c-9ccb6e51c247",
       displayName: "Still expected",
@@ -150,7 +150,8 @@ describe("inventory UI", () => {
     );
     expect(markup).toContain("Expected Loads");
     expect(markup).toContain("Still expected");
-    expect(markup).not.toContain("Already received");
+    expect(markup).toContain("Intake History");
+    expect(markup).toContain("Already received");
   });
 
   it("labels unknown facts and provisional identity explicitly", () => {

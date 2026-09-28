@@ -17,6 +17,30 @@ export function displayReceived(value: string | null): string {
   return value ? new Date(value).toLocaleString() : "Not received yet";
 }
 
+export function displayReceivedDate(value: string): string {
+  return new Date(value).toLocaleDateString(undefined, { timeZone: "UTC" });
+}
+
+export function filterReceivedLoads(
+  loads: AcquisitionLoad[],
+  name: string,
+  receivedDate: string,
+): AcquisitionLoad[] {
+  const search = name.trim().toLocaleLowerCase();
+  return loads
+    .filter(
+      (load) =>
+        load.receivedAt &&
+        load.displayName.toLocaleLowerCase().includes(search) &&
+        (!receivedDate || load.receivedAt.slice(0, 10) === receivedDate),
+    )
+    .sort(
+      (left, right) =>
+        right.receivedAt!.localeCompare(left.receivedAt!) ||
+        left.id.localeCompare(right.id),
+    );
+}
+
 export type ExpectedLoadGroupKey = "overdue" | "today" | "upcoming" | "no_date";
 
 export type ExpectedLoadGroup = {

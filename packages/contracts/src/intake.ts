@@ -131,6 +131,15 @@ export const IntakeBatchSchema = z.object({
   updatedAt: TimestampSchema,
 });
 
+export const IntakeBatchSummarySchema = z.object({
+  ...IntakeBatchSchema.shape,
+  candidateCount: z.number().int().nonnegative().max(10000),
+  machineCount: z.number().int().nonnegative().max(10000),
+});
+export const IntakeBatchListResponseSchema = z.object({
+  batches: z.array(IntakeBatchSummarySchema),
+});
+
 export const IntakeBatchDetailSchema = z.object({
   batch: IntakeBatchSchema,
   photos: z.array(IntakePhotoSchema),
@@ -265,6 +274,10 @@ export type IntakeFindingCode = z.infer<typeof IntakeFindingCodeSchema>;
 export type IntakePhoto = z.infer<typeof IntakePhotoSchema>;
 export type IntakeCandidate = z.infer<typeof IntakeCandidateSchema>;
 export type IntakeBatch = z.infer<typeof IntakeBatchSchema>;
+export type IntakeBatchSummary = z.infer<typeof IntakeBatchSummarySchema>;
+export type IntakeBatchListResponse = z.infer<
+  typeof IntakeBatchListResponseSchema
+>;
 export type IntakeBatchDetail = z.infer<typeof IntakeBatchDetailSchema>;
 export type CreateIntakeBatchRequest = z.infer<
   typeof CreateIntakeBatchRequestSchema

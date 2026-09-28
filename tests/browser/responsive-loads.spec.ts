@@ -26,17 +26,19 @@ test("Warehouse Load actions stay inside their full-width card at laptop, tablet
   for (const width of [1280, 1024, 768, 390]) {
     await page.setViewportSize({ width, height: 800 });
     const geometry = await page.locator(".management-grid").evaluate((grid) => {
-      const panel = grid.querySelector<HTMLElement>(".panel");
+      const panels = Array.from(grid.querySelectorAll<HTMLElement>(".panel"));
+      const panel = panels[0];
       const action = grid.querySelector<HTMLElement>(".inventory-row > a");
-      if (!panel || !action) return null;
+      if (panels.length !== 2 || !panel || !action) return null;
       const gridBox = grid.getBoundingClientRect();
-      const panelBox = panel.getBoundingClientRect();
       const actionBox = action.getBoundingClientRect();
       return {
         gridLeft: gridBox.left,
         gridRight: gridBox.right,
-        panelLeft: panelBox.left,
-        panelRight: panelBox.right,
+        panelBoxes: panels.map((item) => {
+          const box = item.getBoundingClientRect();
+          return { left: box.left, right: box.right };
+        }),
         actionLeft: actionBox.left,
         actionRight: actionBox.right,
         documentWidth: document.documentElement.scrollWidth,
@@ -47,13 +49,19 @@ test("Warehouse Load actions stay inside their full-width card at laptop, tablet
       geometry,
       `Missing Load card or View Load action at ${width}px`,
     ).not.toBeNull();
-    expect(geometry!.panelLeft).toBeGreaterThanOrEqual(geometry!.gridLeft - 1);
-    expect(geometry!.panelRight).toBeLessThanOrEqual(geometry!.gridRight + 1);
-    expect(geometry!.panelRight - geometry!.panelLeft).toBeGreaterThanOrEqual(
-      geometry!.gridRight - geometry!.gridLeft - 1,
+    for (const panel of geometry!.panelBoxes) {
+      expect(panel.left).toBeGreaterThanOrEqual(geometry!.gridLeft - 1);
+      expect(panel.right).toBeLessThanOrEqual(geometry!.gridRight + 1);
+      expect(panel.right - panel.left).toBeGreaterThanOrEqual(
+        geometry!.gridRight - geometry!.gridLeft - 1,
+      );
+    }
+    expect(geometry!.actionLeft).toBeGreaterThanOrEqual(
+      geometry!.panelBoxes[0].left,
     );
-    expect(geometry!.actionLeft).toBeGreaterThanOrEqual(geometry!.panelLeft);
-    expect(geometry!.actionRight).toBeLessThanOrEqual(geometry!.panelRight);
+    expect(geometry!.actionRight).toBeLessThanOrEqual(
+      geometry!.panelBoxes[0].right,
+    );
     expect(geometry!.documentWidth).toBeLessThanOrEqual(
       geometry!.viewportWidth,
     );
