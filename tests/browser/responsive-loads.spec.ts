@@ -88,3 +88,51 @@ test("Owner Load panels stack at tablet widths and share a row on laptops", asyn
     }
   }
 });
+
+test("Mobile header keeps account actions on the right and Menu aligned with the brand", async ({
+  page,
+}) => {
+  await signIn(
+    page,
+    "warehouse.browser@example.test",
+    "warehouse-browser-password",
+  );
+
+  for (const width of [768, 390, 375]) {
+    await page.setViewportSize({ width, height: 800 });
+    const geometry = await page.locator(".app-header").evaluate((header) => {
+      const box = (selector: string) => {
+        const element = header.querySelector<HTMLElement>(selector);
+        if (!element) return null;
+        const { left, right, top, bottom } = element.getBoundingClientRect();
+        return { left, right, top, bottom };
+      };
+      return {
+        brand: box(".brand-link--mobile"),
+        menu: box(".navigation-region--mobile .navigation-menu-button"),
+        identity: box(".account-actions--mobile .account-identity"),
+        logout: box(".account-actions--mobile .logout-control button"),
+        changePassword: box(".account-actions--mobile > a"),
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
+      };
+    });
+
+    const { brand, menu, identity, logout, changePassword } = geometry;
+    expect(brand, `Missing mobile brand at ${width}px`).not.toBeNull();
+    expect(menu, `Missing Menu button at ${width}px`).not.toBeNull();
+    expect(identity, `Missing account identity at ${width}px`).not.toBeNull();
+    expect(logout, `Missing Log out button at ${width}px`).not.toBeNull();
+    expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(Math.abs(menu!.left - brand!.left)).toBeLessThanOrEqual(1);
+    expect(identity!.left).toBeGreaterThanOrEqual(brand!.right - 1);
+    expect(logout!.left).toBeGreaterThanOrEqual(identity!.right - 1);
+    expect(logout!.right).toBeLessThanOrEqual(width);
+    expect(logout!.top).toBeLessThan(brand!.bottom);
+    expect(logout!.bottom).toBeGreaterThan(brand!.top);
+    expect(menu!.top).toBeGreaterThanOrEqual(brand!.bottom);
+    if (changePassword) {
+      expect(changePassword.left).toBeGreaterThanOrEqual(menu!.right - 1);
+    }
+  }
+});

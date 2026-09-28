@@ -1754,8 +1754,8 @@ input[type="file"]::file-selector-button {
   .app-header {
     min-height: 4.5rem;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    gap: 0.5rem 1rem;
     padding: 0.75rem 1rem;
   }
 
@@ -1765,6 +1765,8 @@ input[type="file"]::file-selector-button {
   }
 
   .brand-link--mobile {
+    grid-column: 1;
+    grid-row: 1;
     min-width: 0;
     overflow: hidden;
   }
@@ -1782,6 +1784,9 @@ input[type="file"]::file-selector-button {
   .navigation-region--mobile {
     display: block;
     position: relative;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
   }
 
   .navigation-region--mobile .navigation-menu-button {
@@ -1824,12 +1829,20 @@ input[type="file"]::file-selector-button {
   }
 
   .account-actions--mobile {
+    grid-column: 2;
+    grid-row: 1;
     gap: 0.5rem;
     min-width: 0;
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-end;
+    justify-self: end;
   }
 
   .account-actions--mobile .account-identity {
     display: grid;
+    max-width: 9rem;
+    text-align: right;
   }
 
   .account-actions--mobile .logout-control button {
@@ -1850,6 +1863,41 @@ input[type="file"]::file-selector-button {
 }
 
 @media (max-width: 640px) {
+  .app-header {
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto;
+    column-gap: 0.5rem;
+  }
+
+  .account-actions--mobile {
+    display: contents;
+  }
+
+  .account-actions--mobile .account-identity {
+    grid-column: 2;
+    grid-row: 1;
+    max-width: min(7rem, 25vw);
+    align-self: center;
+  }
+
+  .account-actions--mobile .logout-control {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .account-actions--mobile > a {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    align-self: center;
+    justify-self: end;
+    white-space: nowrap;
+  }
+
+  .navigation-region--mobile {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   .auth-page {
     width: min(calc(100% - 2rem), 34rem);
     grid-template-columns: 1fr;
@@ -2016,10 +2064,6 @@ input[type="file"]::file-selector-button {
 
   .brand-link--mobile strong {
     font-size: 0.82rem;
-  }
-
-  .account-actions--mobile .account-identity {
-    display: none;
   }
 
   .page-main,
