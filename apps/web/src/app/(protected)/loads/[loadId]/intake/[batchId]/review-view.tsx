@@ -35,6 +35,8 @@ const INTAKE_IMAGE_ACCEPT = "image/*,.heic,.heif";
 const NAMEPLATE_UPLOAD_FAILURE_MESSAGE =
   "Some nameplates could not be uploaded or prepared. Select those photos again.";
 
+type IntakeMessage = { text: string; owner: "upload" | "action" };
+
 async function uploadPhoto(
   file: File,
   loadId: string,
@@ -667,7 +669,10 @@ function MachineIntakeQueue({
   onDetail,
   onRecognition,
   onMessage,
+  onUploadMessage,
   onUploadSuccess,
+  getActionMessageVersion,
+  getExpectedVersion,
   onStagedWorkChange,
 }: Readonly<{
   detail: IntakeBatchDetail;
@@ -678,10 +683,15 @@ function MachineIntakeQueue({
   onDetail: (detail: IntakeBatchDetail) => void;
   onRecognition: (status: IntakeRecognitionStatus) => void;
   onMessage: (message: string) => void;
+  onUploadMessage: (message: string, actionVersionAtStart?: number) => void;
   onUploadSuccess: () => void;
+  getActionMessageVersion: () => number;
+  getExpectedVersion: () => number;
   onStagedWorkChange: (hasStagedWork: boolean) => void;
 }>) {
   const [busy, setBusy] = useState(false);
+  const [typeMutationInFlight, setTypeMutationInFlight] = useState(false);
+  const typeMutationInFlightRef = useRef(false);
   const stagedRef = useRef<StagedNameplate[]>([]);
   const [capacityDrafts, setCapacityDrafts] = useState<Record<string, string>>(
     {},
@@ -723,10 +733,11 @@ function MachineIntakeQueue({
       )
       .slice(0, remaining);
     if (!selected.length) {
-      onMessage("Choose one or more image files for the nameplates.");
+      onUploadMessage("Choose one or more image files for the nameplates.");
       input.value = "";
       return;
     }
+    const actionMessageVersionAtStart = getActionMessageVersion();
     const items = selected.map((file, index): StagedNameplate => ({
       id: `${Date.now()}-${index}-${file.name}`,
       file,
@@ -734,11 +745,15 @@ function MachineIntakeQueue({
     updateStaged((current) => [...current, ...items]);
     input.value = "";
     if (selected.length < files.length)
-      onMessage("Only the remaining 100 nameplate slots were staged.");
+      onUploadMessage("Only the remaining 100 nameplate slots were staged.");
     setBusy(true);
     void uploadAndPrepare(items)
       .then((failedCount) => {
-        if (failedCount > 0) onMessage(NAMEPLATE_UPLOAD_FAILURE_MESSAGE);
+        if (failedCount > 0)
+          onUploadMessage(
+            NAMEPLATE_UPLOAD_FAILURE_MESSAGE,
+            actionMessageVersionAtStart,
+          );
         else onUploadSuccess();
       })
       .finally(() => setBusy(false));
@@ -1249,8 +1264,11 @@ function MachineIntakeQueue({
                     Machine type
                     <select
                       value={candidate.machineType ?? ""}
-                      disabled={!canManage || !online}
+                      disabled={!canManage || !online || typeMutationInFlight}
                       onChange={async (event) => {
+                        if (typeMutationInFlightRef.current) return;
+                        typeMutationInFlightRef.current = true;
+                        setTypeMutationInFlight(true);
                         try {
                           onDetail(
                             await changeIntakeCandidateType(
@@ -1258,13 +1276,16 @@ function MachineIntakeQueue({
                               item.candidateId,
                               event.target.value as
                                 "washer" | "dryer" | "other",
-                              detail.batch.version,
+                              getExpectedVersion(),
                             ),
                           );
                         } catch {
                           onMessage(
                             "The type could not be changed. Refresh and try again.",
                           );
+                        } finally {
+                          typeMutationInFlightRef.current = false;
+                          setTypeMutationInFlight(false);
                         }
                       }}
                     >
@@ -1361,12 +1382,13 @@ export function IntakeReviewView({
   loadId: string;
 }>) {
   const [detail, setDetail] = useServerState(initialDetail);
-  const [message, setMessage] = useState<string>();
+  const [message, setMessageState] = useState<IntakeMessage>();
   const [busy, setBusy] = useState(false);
   const [approvalInFlight, setApprovalInFlight] = useState(false);
   const [hasStagedNameplates, setHasStagedNameplates] = useState(false);
   const approvalInFlightRef = useRef(false);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
+  const actionMessageVersion = useRef(0);
   const initialRecognition = recognitionStatusFromDetail(initialDetail);
   const [recognition, setRecognition] =
     useState<IntakeRecognitionStatus | null>(initialRecognition);
@@ -1380,6 +1402,27 @@ export function IntakeReviewView({
     initialDetail,
     "items",
   );
+
+  function setMessage(text: string | undefined) {
+    actionMessageVersion.current += 1;
+    setMessageState(text === undefined ? undefined : { text, owner: "action" });
+  }
+
+  function setUploadMessage(text: string, actionVersionAtStart?: number) {
+    setMessageState((current) =>
+      current?.owner === "action" &&
+      actionVersionAtStart !== undefined &&
+      actionMessageVersion.current > actionVersionAtStart
+        ? current
+        : { text, owner: "upload" },
+    );
+  }
+
+  function clearUploadMessage() {
+    setMessageState((current) =>
+      current?.owner === "upload" ? undefined : current,
+    );
+  }
 
   function acceptDetail(nextDetail: IntakeBatchDetail): boolean {
     if (nextDetail.batch.version < detailVersion.current) return false;
@@ -1711,7 +1754,7 @@ export function IntakeReviewView({
         ) : null}
         {message ? (
           <p role="status" className="form-message">
-            {message}
+            {message.text}
           </p>
         ) : null}
         {uploads.length ? (
@@ -1755,11 +1798,10 @@ export function IntakeReviewView({
         onDetail={(next) => acceptDetail(next)}
         onRecognition={acceptRecognition}
         onMessage={setMessage}
-        onUploadSuccess={() =>
-          setMessage((current) =>
-            current === NAMEPLATE_UPLOAD_FAILURE_MESSAGE ? undefined : current,
-          )
-        }
+        onUploadMessage={setUploadMessage}
+        onUploadSuccess={clearUploadMessage}
+        getActionMessageVersion={() => actionMessageVersion.current}
+        getExpectedVersion={() => detailVersion.current}
         onStagedWorkChange={setHasStagedNameplates}
       />
       {legacyReview ? (

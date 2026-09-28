@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import type {
   IntakeBatchDetail,
   IntakeRecognitionStatus,
@@ -575,6 +582,64 @@ describe("Intake review UI", () => {
     await waitFor(() => expect(screen.queryByText(warning)).toBeNull());
   });
 
+  it("clears an upload-owned validation warning after a valid nameplate succeeds", async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    const detail: IntakeBatchDetail = {
+      batch: {
+        id,
+        loadId: id,
+        state: "open",
+        version: 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      photos: [],
+      candidates: [],
+      machineMappings: [],
+      items: [],
+    };
+    intakeMocks.getBrowserIntakeBatch.mockResolvedValue(detail);
+    intakeMocks.prepareIntakeItem.mockResolvedValue({
+      ...detail,
+      batch: { ...detail.batch, version: 2 },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url === "/api/files/upload-grants")
+          return new Response(
+            JSON.stringify({
+              file: { id: "valid-file" },
+              grant: { token: "grant" },
+            }),
+          );
+        if (url.includes("/upload-content"))
+          return new Response("", { status: 201 });
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    render(<IntakeReviewView loadId={id} canManage initialDetail={detail} />);
+    const picker = screen.getByLabelText("Choose nameplates");
+    const warning = "Choose one or more image files for the nameplates.";
+
+    await user.upload(
+      picker,
+      new File(["text"], "not-an-image.txt", { type: "text/plain" }),
+    );
+    expect(await screen.findByText(warning)).toBeTruthy();
+    await user.upload(
+      picker,
+      new File(["nameplate"], "valid.jpg", { type: "image/jpeg" }),
+    );
+
+    await waitFor(() =>
+      expect(intakeMocks.prepareIntakeItem).toHaveBeenCalledOnce(),
+    );
+    await waitFor(() => expect(picker).toHaveProperty("disabled", false));
+    await waitFor(() => expect(screen.queryByText(warning)).toBeNull());
+  });
+
   it("does not clear a newer Intake error when a nameplate upload finishes", async () => {
     const user = userEvent.setup();
     const candidateId = "00000000-0000-4000-8000-000000000071";
@@ -685,6 +750,213 @@ describe("Intake review UI", () => {
     );
     await waitFor(() => expect(picker).toHaveProperty("disabled", false));
     expect(screen.getByText(newerError)).toBeTruthy();
+  });
+
+  it("does not overwrite a newer action error when an upload partially fails", async () => {
+    const user = userEvent.setup();
+    const candidateId = "00000000-0000-4000-8000-000000000071";
+    const detail: IntakeBatchDetail = {
+      batch: {
+        id,
+        loadId: id,
+        state: "open",
+        version: 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      photos: [],
+      candidates: [
+        {
+          id: candidateId,
+          batchId: id,
+          state: "confirmed",
+          machineType: null,
+          manufacturer: "Dexter",
+          model: "T-400",
+          serial: "SERIAL-1",
+          voltage: null,
+          phase: null,
+          fuel: null,
+          capacityLb: null,
+          confirmationSource: "recognition",
+          revision: 1,
+          machineTypeSelectedByUserId: null,
+          machineTypeSelectedAt: null,
+          warnings: [],
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        },
+      ],
+      machineMappings: [],
+      items: [
+        {
+          candidateId,
+          photoId: "00000000-0000-4000-8000-000000000072",
+          fileId: "00000000-0000-4000-8000-000000000073",
+          machineType: null,
+          candidateState: "confirmed",
+          candidateRevision: 1,
+          latestRunId: "00000000-0000-4000-8000-000000000074",
+          latestRunState: "ready",
+          machineId: null,
+        },
+      ],
+    };
+    intakeMocks.getBrowserIntakeBatch.mockResolvedValue(detail);
+    intakeMocks.prepareIntakeItem.mockResolvedValue({
+      ...detail,
+      batch: { ...detail.batch, version: 2 },
+    });
+    intakeMocks.changeIntakeCandidateType.mockRejectedValue(
+      new Error("simulated type update failure"),
+    );
+    let finishUpload: ((response: Response) => void) | undefined;
+    const uploadContent = new Promise<Response>((resolve) => {
+      finishUpload = resolve;
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url === "/api/files/upload-grants") {
+          const name = JSON.parse(String(init?.body))
+            .originalFilename as string;
+          if (name === "failed.jpg")
+            return new Response("upload failed", { status: 500 });
+          return new Response(
+            JSON.stringify({
+              file: { id: "success-file" },
+              grant: { token: "grant" },
+            }),
+          );
+        }
+        if (url.includes("/upload-content")) return uploadContent;
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    render(<IntakeReviewView loadId={id} canManage initialDetail={detail} />);
+    const picker = screen.getByLabelText("Choose nameplates");
+    await user.upload(picker, [
+      new File(["failed"], "failed.jpg", { type: "image/jpeg" }),
+      new File(["good"], "success.jpg", { type: "image/jpeg" }),
+    ]);
+    await user.selectOptions(screen.getByLabelText("Machine type"), "washer");
+    const newerError = "The type could not be changed. Refresh and try again.";
+    expect(await screen.findByText(newerError)).toBeTruthy();
+    finishUpload?.(new Response("", { status: 201 }));
+
+    await waitFor(() =>
+      expect(intakeMocks.prepareIntakeItem).toHaveBeenCalledOnce(),
+    );
+    await waitFor(() => expect(picker).toHaveProperty("disabled", false));
+    expect(screen.getByText(newerError)).toBeTruthy();
+    expect(
+      screen.queryByText(/Some nameplates could not be uploaded or prepared/),
+    ).toBeNull();
+  });
+
+  it("serializes type changes across the whole batch and uses the latest version", async () => {
+    const candidateIds = [
+      "00000000-0000-4000-8000-000000000081",
+      "00000000-0000-4000-8000-000000000082",
+      "00000000-0000-4000-8000-000000000083",
+    ];
+    const detail: IntakeBatchDetail = {
+      batch: {
+        id,
+        loadId: id,
+        state: "open",
+        version: 7,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      photos: [],
+      candidates: candidateIds.map((candidateId, index) => ({
+        id: candidateId,
+        batchId: id,
+        state: "confirmed" as const,
+        machineType: null,
+        manufacturer: "Dexter",
+        model: `T-${index}`,
+        serial: `SERIAL-${index}`,
+        voltage: null,
+        phase: null,
+        fuel: null,
+        capacityLb: null,
+        confirmationSource: "recognition" as const,
+        revision: 1,
+        machineTypeSelectedByUserId: null,
+        machineTypeSelectedAt: null,
+        warnings: [],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      })),
+      machineMappings: [],
+      items: candidateIds.map((candidateId, index) => ({
+        candidateId,
+        photoId: `00000000-0000-4000-8000-00000000009${index}`,
+        fileId: `00000000-0000-4000-8000-00000000010${index}`,
+        machineType: null,
+        candidateState: "confirmed" as const,
+        candidateRevision: 1,
+        latestRunId: `00000000-0000-4000-8000-00000000011${index}`,
+        latestRunState: "ready" as const,
+        machineId: null,
+      })),
+    };
+    const updatedDetail: IntakeBatchDetail = {
+      ...detail,
+      batch: { ...detail.batch, version: 8 },
+      candidates: detail.candidates.map((candidate, index) =>
+        index === 0 ? { ...candidate, machineType: "washer" } : candidate,
+      ),
+      items: detail.items!.map((item, index) =>
+        index === 0 ? { ...item, machineType: "washer" } : item,
+      ),
+    };
+    let finishFirstChange: ((value: IntakeBatchDetail) => void) | undefined;
+    const firstChange = new Promise<IntakeBatchDetail>((resolve) => {
+      finishFirstChange = resolve;
+    });
+    intakeMocks.changeIntakeCandidateType.mockImplementation(() => firstChange);
+    intakeMocks.getBrowserIntakeBatch.mockResolvedValue(detail);
+    render(<IntakeReviewView loadId={id} canManage initialDetail={detail} />);
+    const selectors = screen.getAllByRole("combobox", { name: "Machine type" });
+
+    act(() => {
+      fireEvent.change(selectors[0]!, { target: { value: "washer" } });
+      fireEvent.change(selectors[1]!, { target: { value: "dryer" } });
+      fireEvent.change(selectors[2]!, { target: { value: "other" } });
+    });
+    expect(intakeMocks.changeIntakeCandidateType).toHaveBeenCalledTimes(1);
+    expect(intakeMocks.changeIntakeCandidateType).toHaveBeenCalledWith(
+      id,
+      candidateIds[0],
+      "washer",
+      7,
+    );
+    for (const selector of selectors)
+      expect(selector).toHaveProperty("disabled", true);
+
+    await act(async () => finishFirstChange?.(updatedDetail));
+    for (const selector of selectors)
+      expect(selector).toHaveProperty("disabled", false);
+    expect(selectors[1]).toHaveProperty("value", "");
+    expect(selectors[2]).toHaveProperty("value", "");
+
+    intakeMocks.changeIntakeCandidateType.mockResolvedValue({
+      ...updatedDetail,
+      batch: { ...updatedDetail.batch, version: 9 },
+    });
+    await userEvent.setup().selectOptions(selectors[1]!, "dryer");
+    expect(intakeMocks.changeIntakeCandidateType).toHaveBeenCalledTimes(2);
+    expect(intakeMocks.changeIntakeCandidateType).toHaveBeenNthCalledWith(
+      2,
+      id,
+      candidateIds[1],
+      "dryer",
+      8,
+    );
   });
 
   it("replaces failed evidence before excluding it and only exposes removal on failed items", async () => {
