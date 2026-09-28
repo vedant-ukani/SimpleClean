@@ -1525,6 +1525,10 @@ a.dashboard-card:focus-visible {
   grid-template-columns: minmax(15rem, 0.65fr) minmax(0, 1.35fr);
 }
 
+.management-grid > :only-child {
+  grid-column: 1 / -1;
+}
+
 .detail-grid dl {
   gap: 1.1rem;
   margin-bottom: 1.25rem;
@@ -1730,6 +1734,12 @@ input[type="file"]::file-selector-button {
 .health-card,
 .warning-row {
   border-radius: var(--radius-sm);
+}
+
+@media (max-width: 1200px) {
+  .management-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 900px) {
