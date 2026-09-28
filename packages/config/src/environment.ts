@@ -166,7 +166,7 @@ const serverEnvironmentSchema = z
       .string()
       .min(1)
       .max(120)
-      .default("intake-nameplate-policy-v4"),
+      .default("intake-nameplate-policy-v5"),
     INTAKE_RECOGNITION_GROUP_FLOOR: optionalBoundedNumber(0, 1),
     INTAKE_RECOGNITION_FIELD_FLOOR: optionalBoundedNumber(0, 1),
     INTAKE_RECOGNITION_OCR_FLOOR: optionalBoundedNumber(0, 1),

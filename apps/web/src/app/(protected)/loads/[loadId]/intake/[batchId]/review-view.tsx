@@ -1,11 +1,13 @@
 "use client";
 
 import type {
+  EquipmentClass,
   IntakeBatchDetail,
   IntakeCandidate,
   IntakePhoto,
   IntakeRecognitionStatus,
 } from "@laundrorama/contracts";
+import { equipmentClassLabel } from "@laundrorama/contracts";
 import { useEffect, useRef, useState } from "react";
 import { useOnlineStatus } from "../../../../online-status";
 import { useServerState } from "../../../../use-server-state";
@@ -83,7 +85,7 @@ type StagedNameplate = {
 };
 
 type CandidateDraft = {
-  machineType: string;
+  equipmentClass: string;
   manufacturer: string;
   model: string;
   serial: string;
@@ -99,7 +101,7 @@ function candidateDraft(candidate: IntakeCandidate): CandidateDraft {
   const capacity =
     candidate.capacityLb == null ? null : String(candidate.capacityLb);
   return {
-    machineType: candidate.machineType ?? "",
+    equipmentClass: candidate.equipmentClass ?? "",
     manufacturer: candidate.manufacturer ?? "",
     model: candidate.model ?? "",
     serial: candidate.serial ?? "",
@@ -116,7 +118,7 @@ function candidateDraft(candidate: IntakeCandidate): CandidateDraft {
 }
 
 const fieldLabels: Record<string, string> = {
-  machineType: "machine type",
+  equipmentClass: "equipment type",
   manufacturer: "manufacturer",
   model: "model",
   serial: "serial number",
@@ -237,7 +239,7 @@ function CandidateEditor({
           onSubmit={async (event) => {
             event.preventDefault();
             const saved = await onSave({
-              machineType: draft.machineType || null,
+              equipmentClass: draft.equipmentClass || null,
               manufacturer: draft.manufacturer || null,
               model: draft.model || null,
               serial: draft.serial || null,
@@ -261,21 +263,24 @@ function CandidateEditor({
           }}
         >
           <label>
-            Machine type
+            Equipment type
             <select
-              name="machineType"
-              value={draft.machineType}
+              name="equipmentClass"
+              value={draft.equipmentClass}
               onChange={(event) => {
                 dirty.current = true;
                 setDraft((current) => ({
                   ...current,
-                  machineType: event.target.value,
+                  equipmentClass: event.target.value,
                 }));
               }}
             >
               <option value="">Choose type</option>
               <option value="washer">Washer</option>
               <option value="dryer">Dryer</option>
+              <option value="stack_dryer">Stack Dryer</option>
+              <option value="stacked_washer_dryer">Stacked Washer/Dryer</option>
+              <option value="washer_dryer_combo">Washer/Dryer Combo</option>
               <option value="other">Other</option>
             </select>
           </label>
@@ -1250,20 +1255,31 @@ function MachineIntakeQueue({
                   {candidate.catalogTypeSuggestion ? (
                     <p>
                       Catalog suggests{" "}
-                      {
-                        { washer: "Washer", dryer: "Dryer", other: "Other" }[
-                          candidate.catalogTypeSuggestion.machineType
-                        ]
-                      }{" "}
+                      {equipmentClassLabel(
+                        candidate.catalogTypeSuggestion.equipmentClass,
+                      )}{" "}
                       for {candidate.catalogTypeSuggestion.manufacturer}{" "}
                       {candidate.catalogTypeSuggestion.model} (verified exact
                       match). {candidate.catalogTypeSuggestion.label}
                     </p>
+                  ) : candidate.recognitionEquipmentClassSuggestion ? (
+                    <p>
+                      Photo suggests{" "}
+                      {equipmentClassLabel(
+                        candidate.recognitionEquipmentClassSuggestion
+                          .equipmentClass,
+                      )}
+                      .
+                      {candidate.recognitionEquipmentClassSuggestion.evidence
+                        ? ` OCR evidence: ${candidate.recognitionEquipmentClassSuggestion.evidence}.`
+                        : ""}{" "}
+                      Confirm the physical equipment type below.
+                    </p>
                   ) : null}
                   <label>
-                    Machine type
+                    Equipment type
                     <select
-                      value={candidate.machineType ?? ""}
+                      value={candidate.equipmentClass ?? ""}
                       disabled={!canManage || !online || typeMutationInFlight}
                       onChange={async (event) => {
                         if (typeMutationInFlightRef.current) return;
@@ -1274,8 +1290,7 @@ function MachineIntakeQueue({
                             await changeIntakeCandidateType(
                               detail.batch.id,
                               item.candidateId,
-                              event.target.value as
-                                "washer" | "dryer" | "other",
+                              event.target.value as EquipmentClass,
                               getExpectedVersion(),
                             ),
                           );
@@ -1292,6 +1307,13 @@ function MachineIntakeQueue({
                       <option value="">Choose type</option>
                       <option value="washer">Washer</option>
                       <option value="dryer">Dryer</option>
+                      <option value="stack_dryer">Stack Dryer</option>
+                      <option value="stacked_washer_dryer">
+                        Stacked Washer/Dryer
+                      </option>
+                      <option value="washer_dryer_combo">
+                        Washer/Dryer Combo
+                      </option>
                       <option value="other">Other</option>
                     </select>
                   </label>
@@ -1447,7 +1469,8 @@ export function IntakeReviewView({
       return (
         item.latestRunState === "ready" &&
         candidate?.state === "confirmed" &&
-        candidate.machineType !== null
+        candidate.equipmentClass != null &&
+        candidate.equipmentClassSelectedByUserId != null
       );
     });
 
@@ -1930,7 +1953,7 @@ export function IntakeReviewView({
         <p>
           {legacyReview
             ? `${detail.candidates.length} total candidate(s) are shown. Approval requires every candidate to be confirmed and adds one provisional Inventory Machine per candidate.`
-            : "Wait for every nameplate to finish, choose each Machine type, then add the complete Intake to Inventory."}
+            : "Wait for every nameplate to finish, confirm each Equipment type, then add the complete Intake to Inventory."}
         </p>
         <button
           type="button"

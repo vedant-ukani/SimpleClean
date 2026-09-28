@@ -16,6 +16,7 @@ export const CATALOG_EQUIPMENT_CLASSES = [
   "dryer",
   "stack_dryer",
   "stacked_washer_dryer",
+  "washer_dryer_combo",
   "other",
 ] as const;
 export const CATALOG_RESOLUTION_STATUSES = [
@@ -675,6 +676,7 @@ export const MachineCatalogEnrichmentSchema = z.object({
 });
 
 export const CatalogTypeSuggestionSchema = z.object({
+  equipmentClass: CatalogEquipmentClassSchema,
   machineType: z.enum(["washer", "dryer", "other"]),
   revisionId: IdSchema,
   manufacturer: z.string().min(1),

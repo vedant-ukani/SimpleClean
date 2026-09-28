@@ -11,6 +11,7 @@ import type {
 import {
   calculateIntakeEvaluationMetrics,
   calculateIntakeOcrEvaluationMetrics,
+  IntakeEvaluationManifestSchema,
   runIntakeRecognitionEvaluation,
 } from "../src/modules/inventory/intake/recognition/evaluation.js";
 
@@ -18,6 +19,20 @@ const photoId = "00000000-0000-4000-8000-000000000001";
 const box = { x: 0, y: 0, width: 0.5, height: 0.5 };
 
 describe("intake recognition evaluation metrics", () => {
+  it("labels physical equipment class rather than legacy machine type", () => {
+    const manifest = {
+      version: 1,
+      cases: [{
+        id: "stack-dryer",
+        images: [{ photoId, path: "fixture.jpg", groupKey: "stack-1", fields: { equipmentClass: "stack_dryer" } }],
+      }],
+    };
+    expect(IntakeEvaluationManifestSchema.safeParse(manifest).success).toBe(true);
+    expect(IntakeEvaluationManifestSchema.safeParse({
+      ...manifest,
+      cases: [{ ...manifest.cases[0], images: [{ ...manifest.cases[0]!.images[0], fields: { machineType: "dryer" } }] }],
+    }).success).toBe(false);
+  });
   it("scores OCR-only target fields without invoking semantic decisions", () => {
     const metrics = calculateIntakeOcrEvaluationMetrics([
       {

@@ -213,11 +213,15 @@ describe("intake recognition provider adapters", () => {
     ]);
     const prompt = contents.find((part) => part.type === "input_text")?.text;
     expect(prompt).toEqual(expect.stringContaining(photoId));
-    expect(prompt).toEqual(expect.stringContaining("machineType"));
+    expect(prompt).toEqual(expect.stringContaining("equipmentClass"));
     expect(prompt).toEqual(
       expect.stringContaining("supplied Google Cloud Vision OCR evidence"),
     );
-    expect(prompt).toEqual(expect.stringContaining("Copy values exactly"));
+    expect(prompt).toEqual(
+      expect.stringContaining(
+        "Copy visible identity and utility values exactly",
+      ),
+    );
     expect(prompt).toEqual(expect.stringContaining("layout"));
     expect(prompt).toEqual(expect.stringContaining("cropped"));
     expect(prompt).toEqual(
@@ -373,7 +377,7 @@ describe("intake recognition provider adapters", () => {
         },
       ],
     });
-    expect(result.schemaVersion).toBe("intake-nameplate-v2");
+    expect(result.schemaVersion).toBe("intake-nameplate-v3");
     expect(result.groups[0]?.fields[0]?.ocrLineIds).toEqual(["ocr-line-1"]);
   });
 
@@ -402,8 +406,15 @@ describe("intake recognition provider adapters", () => {
           (part) => typeof part.text === "string",
         )?.text;
         expect(prompt).toEqual(
-          expect.stringContaining("machineType, manufacturer, model, serial"),
+          expect.stringContaining("equipmentClass, manufacturer, model, serial"),
         );
+        expect(prompt).toEqual(expect.stringContaining("stack_dryer"));
+        expect(prompt).toEqual(expect.stringContaining("washer_dryer_combo"));
+        expect(prompt).toEqual(
+          expect.stringContaining("same-photo OCR explicitly names"),
+        );
+        expect(prompt).toEqual(expect.stringContaining("ocr-line-1"));
+        expect(prompt).not.toEqual(expect.stringContaining("machineType"));
         expect(prompt).toEqual(
           expect.stringContaining("Do not add extra keys or markdown"),
         );
@@ -420,7 +431,19 @@ describe("intake recognition provider adapters", () => {
         );
       }),
     });
-    expect((await gemini.recognize([image])).groups).toHaveLength(1);
+    const result = await gemini.recognize([image], {
+      provider: "google-vision",
+      model: "document-text-detection",
+      lines: [{
+        lineId: "ocr-line-1",
+        photoId,
+        text: "STACK DRYER",
+        confidence: 0.99,
+        box: { x: 0, y: 0, width: 1, height: 1 },
+      }],
+    });
+    expect(result.groups).toHaveLength(1);
+    expect(result.schemaVersion).toBe("intake-nameplate-v3");
 
     const paddle = new PaddleOcrVerifier({
       request: async () => ({

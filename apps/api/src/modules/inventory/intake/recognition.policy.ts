@@ -116,6 +116,13 @@ function normalizeRecognitionValue(
       cleaned = cleaned.replace(numberLabel, "").trim();
     if (cleaned === before) break;
   }
+  if (field === "equipmentClass")
+    cleaned = cleaned
+      .replace(
+        /^(?:equipment|machine)\s*(?:type|class|configuration)\s*[:#-]?\s*/i,
+        "",
+      )
+      .trim();
   if (field === "capacityLb") {
     const pounds = parseExplicitCapacityLb(cleaned);
     return pounds === null
@@ -139,6 +146,22 @@ function normalizeRecognitionValue(
       dryers: "dryer",
       tumble_dryer: "dryer",
       tumbledryer: "dryer",
+      other: "other",
+    },
+    equipmentClass: {
+      washer: "washer",
+      washing_machine: "washer",
+      dryer: "dryer",
+      tumble_dryer: "dryer",
+      stack_dryer: "stack_dryer",
+      stacked_dryer: "stack_dryer",
+      stacked_washer_dryer: "stacked_washer_dryer",
+      stack_washer_dryer: "stacked_washer_dryer",
+      washer_dryer_stack: "stacked_washer_dryer",
+      washer_dryer_combo: "washer_dryer_combo",
+      washer_dryer_combination: "washer_dryer_combo",
+      combination_washer_dryer: "washer_dryer_combo",
+      combo_washer_dryer: "washer_dryer_combo",
       other: "other",
     },
     phase: {
@@ -257,6 +280,14 @@ function hasSamePhotoOcrSupport(
       candidates.push(texts.slice(start, start + span).join(" "));
   }
   candidates.push(texts.join(" "));
+  if (field === "equipmentClass") {
+    return candidates.some(
+      (candidate) =>
+        normalizeRecognitionValue("equipmentClass", candidate).value ===
+          value &&
+        normalizeRecognitionValue("equipmentClass", candidate).recognized,
+    );
+  }
   return candidates.some((candidate) => {
     if (
       field === "capacityLb" &&
@@ -294,7 +325,10 @@ export class DeterministicIntakeConfidencePolicy implements IntakeConfidencePoli
     ocr: IntakeOcrResult;
     config: IntakeConfidencePolicyConfig;
   }): IntakeGroupDecision[] {
-    if (input.semantic.schemaVersion === "intake-nameplate-v2")
+    if (
+      input.semantic.schemaVersion === "intake-nameplate-v2" ||
+      input.semantic.schemaVersion === "intake-nameplate-v3"
+    )
       return this.evaluateNameplates(input);
     const { semantic, ocr, config } = input;
     const ocrFloor = config.ocrFloor;
@@ -562,7 +596,13 @@ export class DeterministicIntakeConfidencePolicy implements IntakeConfidencePoli
           } else if (value !== null && identityNoise(value, field.field)) {
             accepted = false;
             reason = "invalid_identity_value";
-          } else if (!hasSamePhotoOcrSupport(field.field, value, imageLines)) {
+          } else if (
+            !hasSamePhotoOcrSupport(
+              field.field,
+              value,
+              field.field === "equipmentClass" ? evidence : imageLines,
+            )
+          ) {
             accepted = false;
             reason = "unsupported_evidence";
           }

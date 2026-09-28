@@ -1,6 +1,9 @@
 "use client";
 
-import type { MachineSearchResponse } from "@laundrorama/contracts";
+import {
+  equipmentClassLabel,
+  type MachineSearchResponse,
+} from "@laundrorama/contracts";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -73,8 +76,9 @@ export function MachinesView({
                 const name = `${recorded(machine.manufacturer)} ${recorded(machine.model)}`;
                 const serial = recorded(machine.serial);
                 const modelNumber = recorded(machine.model);
-                const type =
-                  machine.machineType === "washer"
+                const type = machine.equipmentClass
+                  ? equipmentClassLabel(machine.equipmentClass)
+                  : machine.machineType === "washer"
                     ? "Washer"
                     : machine.machineType === "dryer"
                       ? "Dryer"

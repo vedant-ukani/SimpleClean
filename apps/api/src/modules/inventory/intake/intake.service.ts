@@ -23,8 +23,9 @@ import {
   ChangeIntakeCandidateCapacityRequestSchema,
   CommitIntakeCandidateRequestSchema,
   IdempotencyKeySchema,
+  normalizeCatalogIdentity,
+  machineTypeForEquipmentClass,
   roleHasPermission,
-  suggestedMachineType,
   type IdentityUser,
   type IntakeBatch,
   type IntakeBatchDetail,
@@ -87,16 +88,26 @@ export class IntakeService {
       try {
         const enrichment = await this.catalog.enrichmentForIdentity(candidate);
         candidate.catalogEnrichment = enrichment;
-        if (enrichment.status === "verified" && enrichment.revision) {
+        if (
+          enrichment.status === "verified" &&
+          enrichment.revision &&
+          candidate.model &&
+          candidate.manufacturer &&
+          normalizeCatalogIdentity(candidate.model) ===
+            normalizeCatalogIdentity(enrichment.revision.model) &&
+          normalizeCatalogIdentity(candidate.manufacturer) ===
+            normalizeCatalogIdentity(enrichment.revision.manufacturer)
+        ) {
           candidate.catalogTypeSuggestion = {
-            machineType: suggestedMachineType(
+            equipmentClass: enrichment.revision.equipmentClass,
+            machineType: machineTypeForEquipmentClass(
               enrichment.revision.equipmentClass,
             ),
             revisionId: enrichment.revision.revisionId,
             manufacturer: enrichment.revision.manufacturer,
             model: enrichment.revision.model,
             label:
-              "Verified exact model match — confirm the observed Machine type",
+              "Verified exact model match — confirm the physical equipment type",
           };
         }
       } catch {
@@ -206,7 +217,7 @@ export class IntakeService {
       return await this.repository.changeCandidateType(
         this.id(rawBatchId),
         this.id(rawCandidateId),
-        input.machineType,
+        "equipmentClass" in input ? input.equipmentClass : input.machineType,
         input.expectedVersion,
         context,
       );
@@ -481,6 +492,7 @@ export class IntakeService {
       INTAKE_PHOTO_NOT_FOUND: "photo_not_found",
       INTAKE_PHOTO_REQUIRED: "photo_required",
       INTAKE_MACHINE_TYPE_REQUIRED: "machine_type_required",
+      INTAKE_EQUIPMENT_CLASS_REQUIRED: "equipment_class_required",
       INTAKE_PHOTO_NOT_ACCOUNTED: "photo_not_accounted_for",
       INTAKE_EXACT_IDENTITY_MATCH: "exact_identity_match",
       INTAKE_WARNING_ACK_REQUIRED: "warning_acknowledgement_required",

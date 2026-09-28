@@ -205,6 +205,7 @@ export class QrLabelService {
         manufacturer: machine.manufacturer,
         capacityLb: machine.capacityLb ?? null,
         machineType: machine.machineType,
+        equipmentClass: machine.equipmentClass ?? null,
         serial: machine.serial,
       });
     }

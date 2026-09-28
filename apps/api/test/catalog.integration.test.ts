@@ -1251,6 +1251,7 @@ describe("Catalog persistence and Machine enrichment", () => {
     expect(suggested.candidates[0]).toMatchObject({
       machineType: null,
       catalogTypeSuggestion: {
+        equipmentClass: "washer",
         machineType: "washer",
         revisionId: "test-revision-2",
       },

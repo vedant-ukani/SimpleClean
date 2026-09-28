@@ -14,6 +14,7 @@ import type {
   UpdateAcquisitionLoadRequest,
   UpdateMachineIdentityRequest,
 } from "@laundrorama/contracts";
+import { machineTypeForEquipmentClass } from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
   DatabaseExecutor,
@@ -107,6 +108,9 @@ function machineFromRow(row: RecordRow): Machine {
   return {
     id: String(row.id),
     machineType: row.machine_type as Machine["machineType"],
+    equipmentClass: nullableString(
+      row.equipment_class,
+    ) as Machine["equipmentClass"],
     manufacturer: nullableString(row.manufacturer),
     model: nullableString(row.model),
     serial: nullableString(row.serial),
@@ -136,6 +140,9 @@ function evidenceFromRow(row: RecordRow): MachineIdentityEvidence {
     machineId: String(row.machine_id),
     sourceKind: row.source_kind as MachineIdentityEvidence["sourceKind"],
     machineType: row.machine_type as MachineIdentityEvidence["machineType"],
+    equipmentClass: nullableString(
+      row.equipment_class,
+    ) as MachineIdentityEvidence["equipmentClass"],
     manufacturer: nullableString(row.manufacturer),
     model: nullableString(row.model),
     serial: nullableString(row.serial),
@@ -426,11 +433,11 @@ export class InventoryRepository {
     const serial = normalizeStoredFact(input.serial);
     await database.execute(sql`
       insert into inventory_machine (
-        id, machine_type, manufacturer, normalized_manufacturer, model,
+        id, machine_type, equipment_class, manufacturer, normalized_manufacturer, model,
         serial, normalized_serial, voltage, phase, fuel, source_load_id,
         capacity_lb, inventory_state
       ) values (
-        ${id}, ${input.machineType}, ${manufacturer},
+        ${id}, ${input.machineType}, null, ${manufacturer},
         ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
         ${normalizeIdentityMatchValue(serial)}, null, null, null,
         ${input.sourceLoadId}, ${input.capacityLb ?? null}, ${input.inventoryState}
@@ -441,6 +448,7 @@ export class InventoryRepository {
       id,
       {
         machineType: input.machineType,
+        equipmentClass: null,
         manufacturer: input.manufacturer,
         model: input.model,
         serial: input.serial,
@@ -494,11 +502,11 @@ export class InventoryRepository {
     const voltage = normalizeStoredFact(input.voltage);
     await database.execute(sql`
       insert into inventory_machine (
-        id, machine_type, manufacturer, normalized_manufacturer, model,
+        id, machine_type, equipment_class, manufacturer, normalized_manufacturer, model,
         serial, normalized_serial, voltage, phase, fuel, source_load_id,
         capacity_lb, inventory_state, production_state
       ) values (
-        ${id}, ${input.machineType}, ${manufacturer},
+        ${id}, ${input.equipmentClass ? machineTypeForEquipmentClass(input.equipmentClass) : input.machineType}, ${input.equipmentClass ?? null}, ${manufacturer},
         ${normalizeManufacturerMatchValue(manufacturer)}, ${model}, ${serial},
         ${normalizeIdentityMatchValue(serial)}, ${voltage}, ${input.phase ?? null},
           ${input.fuel ?? null}, ${input.sourceLoadId}, ${input.capacityLb ?? null},
@@ -509,7 +517,10 @@ export class InventoryRepository {
       database,
       id,
       {
-        machineType: input.machineType,
+        machineType: input.equipmentClass
+          ? machineTypeForEquipmentClass(input.equipmentClass)
+          : input.machineType,
+        equipmentClass: input.equipmentClass ?? null,
         manufacturer: input.manufacturer ?? null,
         model: input.model ?? null,
         serial: input.serial ?? null,
@@ -801,7 +812,15 @@ export class InventoryRepository {
         return { status: "version_conflict" };
       }
       const next = {
-        machineType: input.machineType ?? current.machineType,
+        equipmentClass:
+          input.equipmentClass === undefined
+            ? input.machineType === undefined
+              ? current.equipmentClass
+              : null
+            : input.equipmentClass,
+        machineType: input.equipmentClass
+          ? machineTypeForEquipmentClass(input.equipmentClass)
+          : (input.machineType ?? current.machineType),
         manufacturer:
           input.manufacturer === undefined
             ? current.manufacturer
@@ -848,6 +867,7 @@ export class InventoryRepository {
       await database.execute(sql`
         update inventory_machine set
           machine_type = ${next.machineType},
+          equipment_class = ${next.equipmentClass},
           manufacturer = ${next.manufacturer},
           normalized_manufacturer = ${normalizeManufacturerMatchValue(next.manufacturer)},
           model = ${next.model},
@@ -1106,6 +1126,7 @@ export class InventoryRepository {
     machineId: string,
     input: {
       machineType: Machine["machineType"];
+      equipmentClass: Machine["equipmentClass"];
       manufacturer: string | null;
       model: string | null;
       serial: string | null;
@@ -1119,10 +1140,10 @@ export class InventoryRepository {
   ): Promise<void> {
     await database.execute(sql`
       insert into machine_identity_evidence (
-        id, machine_id, source_kind, machine_type, manufacturer, model,
+        id, machine_id, source_kind, machine_type, equipment_class, manufacturer, model,
         serial, voltage, phase, fuel, capacity_lb, actor_user_id, request_id
       ) values (
-        ${randomUUID()}, ${machineId}, ${input.sourceKind}, ${input.machineType},
+        ${randomUUID()}, ${machineId}, ${input.sourceKind}, ${input.machineType}, ${input.equipmentClass ?? null},
         ${input.manufacturer}, ${input.model}, ${input.serial}, ${input.voltage},
         ${input.phase}, ${input.fuel}, ${input.capacityLb}, ${context.actorUserId}, ${context.requestId}
       )

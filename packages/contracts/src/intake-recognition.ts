@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const IntakeRecognitionFieldSchema = z.enum([
   "machineType",
+  "equipmentClass",
   "manufacturer",
   "model",
   "serial",
@@ -73,6 +74,7 @@ export const IntakeOcrLineSchema = z.object({
 export const IntakeSemanticSchemaVersionSchema = z.union([
   z.literal("intake-v1"),
   z.literal("intake-nameplate-v2"),
+  z.literal("intake-nameplate-v3"),
 ]);
 export const IntakeSemanticResultSchema = z.object({
   provider: z.string().min(1).max(80),

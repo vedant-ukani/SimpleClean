@@ -200,13 +200,19 @@ export async function prepareIntakeItem(
 export async function changeIntakeCandidateType(
   batchId: string,
   candidateId: string,
-  machineType: "washer" | "dryer" | "other",
+  equipmentClass:
+    | "washer"
+    | "dryer"
+    | "stack_dryer"
+    | "stacked_washer_dryer"
+    | "washer_dryer_combo"
+    | "other",
   expectedVersion: number,
 ): Promise<IntakeBatchDetail> {
   return IntakeBatchDetailSchema.parse(
     await browserMutation(
       `/inventory/intake/${batchId}/candidates/${candidateId}/type`,
-      { machineType, expectedVersion },
+      { equipmentClass, expectedVersion },
       "PATCH",
     ),
   );

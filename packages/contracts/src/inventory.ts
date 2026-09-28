@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { MachineCatalogEnrichmentSchema } from "./catalog.js";
+import {
+  CatalogEquipmentClassSchema,
+  suggestedMachineType,
+} from "./catalog.js";
 
 export const MACHINE_TYPES = ["washer", "dryer", "other"] as const;
 export const MACHINE_PHASES = ["single_phase", "three_phase"] as const;
@@ -35,6 +39,21 @@ export const QR_LABEL_ACTIVITY_ACTIONS = [
 ] as const;
 
 export const MachineTypeSchema = z.enum(MACHINE_TYPES);
+export const EquipmentClassSchema = CatalogEquipmentClassSchema;
+export { suggestedMachineType as machineTypeForEquipmentClass };
+export function equipmentClassLabel(
+  value: z.infer<typeof EquipmentClassSchema> | null,
+): string {
+  if (value === null) return "Type not recorded";
+  return {
+    washer: "Washer",
+    dryer: "Dryer",
+    stack_dryer: "Stack Dryer",
+    stacked_washer_dryer: "Stacked Washer/Dryer",
+    washer_dryer_combo: "Washer/Dryer Combo",
+    other: "Other",
+  }[value];
+}
 export const MachinePhaseSchema = z.enum(MACHINE_PHASES);
 export const MachineFuelSchema = z.enum(MACHINE_FUELS);
 export const IdentityVerificationStateSchema = z.enum(
@@ -76,6 +95,7 @@ export const AcquisitionLoadSchema = z.object({
 export const MachineSchema = z.object({
   id: InventoryIdSchema,
   machineType: MachineTypeSchema,
+  equipmentClass: EquipmentClassSchema.nullable().optional(),
   manufacturer: NullableFactSchema,
   model: NullableFactSchema,
   serial: NullableFactSchema,
@@ -99,6 +119,7 @@ export const MachineIdentityEvidenceSchema = z.object({
   machineId: InventoryIdSchema,
   sourceKind: IdentitySourceKindSchema,
   machineType: MachineTypeSchema,
+  equipmentClass: EquipmentClassSchema.nullable().optional(),
   manufacturer: NullableFactSchema,
   model: NullableFactSchema,
   serial: NullableFactSchema,
@@ -201,6 +222,7 @@ export const VersionedRequestSchema = z.object({
 
 export const MachineIdentityInputSchema = z.object({
   machineType: MachineTypeSchema,
+  equipmentClass: EquipmentClassSchema.nullable().optional(),
   manufacturer: OptionalNullableTextSchema,
   model: OptionalNullableTextSchema,
   serial: OptionalNullableTextSchema,
@@ -219,6 +241,7 @@ export const CreateMachineRequestSchema = MachineIdentityInputSchema.extend({
 export const UpdateMachineIdentityRequestSchema = z
   .object({
     machineType: MachineTypeSchema.optional(),
+    equipmentClass: EquipmentClassSchema.nullable().optional(),
     manufacturer: OptionalNullableTextSchema,
     model: OptionalNullableTextSchema,
     serial: OptionalNullableTextSchema,
@@ -283,6 +306,7 @@ export const IdentityConflictResponseSchema = z.object({
 
 export type AcquisitionLoad = z.infer<typeof AcquisitionLoadSchema>;
 export type Machine = z.infer<typeof MachineSchema>;
+export type EquipmentClass = z.infer<typeof EquipmentClassSchema>;
 export type CapacityLb = z.infer<typeof CapacityLbSchema>;
 export type MachineIdentityEvidence = z.infer<
   typeof MachineIdentityEvidenceSchema

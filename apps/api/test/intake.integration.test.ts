@@ -130,7 +130,7 @@ describe("Intake API", () => {
       sql`insert into file_attachment (id, load_id, purpose, storage_key, original_filename, declared_media_type, detected_media_type, declared_byte_count, byte_count, sha256, uploader_user_id, state) values (${fileId}, ${loadId}, 'intake_evidence', ${`receipt/${fileId}.jpg`}, 'receipt.jpg', 'image/jpeg', 'image/jpeg', 3, 3, ${"a".repeat(64)}, ${userId}, 'ready')`,
     );
     await db.execute(
-      sql`insert into inventory_intake_candidate (id, batch_id, state, machine_type, manufacturer, model, serial) values (${candidateId}, ${batchId}, 'confirmed', 'washer', 'Receipt Maker', 'R-1', 'RECEIPT-001')`,
+      sql`insert into inventory_intake_candidate (id, batch_id, state, machine_type, equipment_class, equipment_class_selected_by_user_id, equipment_class_selected_at, manufacturer, model, serial) values (${candidateId}, ${batchId}, 'confirmed', 'washer', 'washer', ${userId}, now(), 'Receipt Maker', 'R-1', 'RECEIPT-001')`,
     );
     await db.execute(
       sql`insert into inventory_intake_photo (id, batch_id, file_id, photo_order, disposition, candidate_id) values (${randomUUID()}, ${batchId}, ${fileId}, 0, 'assigned', ${candidateId})`,
@@ -924,7 +924,7 @@ describe("Intake API", () => {
         sql`insert into file_attachment (id, load_id, purpose, storage_key, original_filename, declared_media_type, detected_media_type, declared_byte_count, byte_count, sha256, uploader_user_id, state) values (${fileId}, ${loadId}, 'intake_evidence', ${`race/${fileId}.jpg`}, ${`race-${index}.jpg`}, 'image/jpeg', 'image/jpeg', 3, 3, ${String(index + 1).repeat(64)}, ${userId}, 'ready')`,
       );
       await db.execute(
-        sql`insert into inventory_intake_candidate (id, batch_id, state, machine_type, manufacturer, model, serial) values (${candidateId}, ${batchId}, 'confirmed', 'washer', ${manufacturer}, 'SC30', 'RACE-SERIAL-001')`,
+        sql`insert into inventory_intake_candidate (id, batch_id, state, machine_type, equipment_class, equipment_class_selected_by_user_id, equipment_class_selected_at, manufacturer, model, serial) values (${candidateId}, ${batchId}, 'confirmed', 'washer', 'washer', ${userId}, now(), ${manufacturer}, 'SC30', 'RACE-SERIAL-001')`,
       );
       await db.execute(
         sql`insert into inventory_intake_photo (id, batch_id, file_id, photo_order, disposition, candidate_id) values (${photoId}, ${batchId}, ${fileId}, 0, 'assigned', ${candidateId})`,
@@ -1028,7 +1028,7 @@ describe("Intake API", () => {
       .set("Idempotency-Key", randomUUID())
       .send({ expectedVersion: created.body.batch.version, finishOnly: false })
       .expect(400)
-      .expect(({ body }) => expect(body.code).toBe("machine_type_required"));
+      .expect(({ body }) => expect(body.code).toBe("equipment_class_required"));
 
     const machines = await db.execute(
       sql`select id from inventory_machine where source_load_id = ${loadId}`,
@@ -1097,7 +1097,8 @@ describe("Intake API", () => {
     await db.execute(sql`
       update inventory_intake_candidate
       set machine_type = 'washer', machine_type_selected_by_user_id = ${userId},
-          machine_type_selected_at = now()
+          machine_type_selected_at = now(), equipment_class = 'washer',
+          equipment_class_selected_by_user_id = ${userId}, equipment_class_selected_at = now()
       where id = ${readyCandidateId}
     `);
     await db.execute(sql`

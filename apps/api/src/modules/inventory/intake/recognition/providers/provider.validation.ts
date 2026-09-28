@@ -129,7 +129,7 @@ export function validateSemanticResult(
     provider: string;
     model: string;
     requestId?: string | null;
-    schemaVersion?: "intake-v1" | "intake-nameplate-v2";
+    schemaVersion?: "intake-v1" | "intake-nameplate-v2" | "intake-nameplate-v3";
   },
 ): IntakeSemanticResult {
   const candidate = record(value);

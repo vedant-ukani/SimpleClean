@@ -11,6 +11,7 @@ import {
   CatalogDiscoveryResultSchema,
   CatalogDiscoveryRunSchema,
   CandidateCatalogEnrichmentSchema,
+  CatalogTypeSuggestionSchema,
 } from "../src/index.js";
 
 describe("catalog contracts", () => {
@@ -19,6 +20,28 @@ describe("catalog contracts", () => {
     expect(normalizeCatalogIdentity("SC-30")).toBe("SC-30");
     expect(suggestedMachineType("stack_dryer")).toBe("dryer");
     expect(suggestedMachineType("stacked_washer_dryer")).toBe("other");
+    expect(suggestedMachineType("washer_dryer_combo")).toBe("other");
+  });
+  it("keeps the operational type beside the physical Catalog suggestion", () => {
+    expect(
+      CatalogTypeSuggestionSchema.parse({
+        equipmentClass: "stack_dryer",
+        machineType: "dryer",
+        revisionId: "rev-1",
+        manufacturer: "Dexter",
+        model: "Stack Dryer",
+        label: "Verified exact model",
+      }),
+    ).toMatchObject({ equipmentClass: "stack_dryer", machineType: "dryer" });
+    expect(
+      CatalogTypeSuggestionSchema.safeParse({
+        equipmentClass: "stack_dryer",
+        revisionId: "rev-1",
+        manufacturer: "Dexter",
+        model: "Stack Dryer",
+        label: "Verified exact model",
+      }).success,
+    ).toBe(false);
   });
   it("requires explicit checksum unavailability and bounded serial rule mappings", () => {
     const source = {

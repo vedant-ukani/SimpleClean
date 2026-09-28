@@ -7,6 +7,7 @@ import type {
   QrLabel,
   PreliminaryInspectionHistoryResponse,
 } from "@laundrorama/contracts";
+import { equipmentClassLabel } from "@laundrorama/contracts";
 import { useState, type FormEvent } from "react";
 
 import {
@@ -79,6 +80,7 @@ export function MachineDetailView({
     const capacity = String(form.get("capacityLb") ?? "").trim();
     try {
       const updatedMachine = await updateMachineIdentity(machine.id, {
+        equipmentClass: nullable("equipmentClass") as Machine["equipmentClass"],
         manufacturer: nullable("manufacturer"),
         model: nullable("model"),
         serial: nullable("serial"),
@@ -175,7 +177,9 @@ export function MachineDetailView({
   return (
     <div className="inventory-stack">
       <div className="page-heading">
-        <p className="eyebrow">Machine · {machine.machineType}</p>
+        <p className="eyebrow">
+          Machine · {equipmentClassLabel(machine.equipmentClass ?? null)}
+        </p>
         <h1>
           {recorded(machine.manufacturer)} {recorded(machine.model)}
         </h1>
@@ -496,6 +500,23 @@ export function MachineDetailView({
             onSubmit={updateIdentity}
           >
             <label>
+              Equipment type
+              <select
+                name="equipmentClass"
+                defaultValue={machine.equipmentClass ?? ""}
+              >
+                <option value="">Not recorded</option>
+                <option value="washer">Washer</option>
+                <option value="dryer">Dryer</option>
+                <option value="stack_dryer">Stack Dryer</option>
+                <option value="stacked_washer_dryer">
+                  Stacked Washer/Dryer
+                </option>
+                <option value="washer_dryer_combo">Washer/Dryer Combo</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
               Manufacturer
               <input
                 name="manufacturer"
@@ -563,16 +584,17 @@ export function MachineDetailView({
         <details className="panel">
           <summary>Record history</summary>
           <div className="inventory-list">
-          {initialDetail.identityEvidence.map((evidence) => (
-            <article className="history-row" key={evidence.id}>
-              <strong>{evidence.sourceKind}</strong>
-              <span>
-                {recorded(evidence.manufacturer)} · {recorded(evidence.serial)}
-              </span>
-              <small>{evidence.createdAt}</small>
-            </article>
-          ))}
-          {initialDetail.verificationHistory.map((entry) => (
+            {initialDetail.identityEvidence.map((evidence) => (
+              <article className="history-row" key={evidence.id}>
+                <strong>{evidence.sourceKind}</strong>
+                <span>
+                  {recorded(evidence.manufacturer)} ·{" "}
+                  {recorded(evidence.serial)}
+                </span>
+                <small>{evidence.createdAt}</small>
+              </article>
+            ))}
+            {initialDetail.verificationHistory.map((entry) => (
               <article className="history-row" key={entry.id}>
                 <strong>
                   {entry.fromState} → {entry.toState}

@@ -22,6 +22,12 @@ A group of equipment purchased and transported together from one seller under on
 
 One uniquely identifiable physical washer, dryer, or related piece of equipment. A Machine has its own internal identifier and may also have a manufacturer serial number.
 
+Its human-confirmed Equipment Class records the physical configuration. The separate operational Machine type remains Washer, Dryer, or Other for Production routing. Legacy Machines may have no recorded Equipment Class until a person reviews them.
+
+## Equipment Class
+
+The physical kind of a Machine: Washer, Dryer, Stack Dryer, Stacked Washer/Dryer, Washer/Dryer Combo, or Other. A Stack Dryer has two dryer pockets; a Stacked Washer/Dryer has a washer and dryer; a Washer/Dryer Combo combines both functions in one unit. A worker confirms this class. A verified exact Catalog model or an OCR-supported image reading may suggest it, but suggestions never finalize it.
+
 ## Model Specification
 
 The shared, verified characteristics of a manufacturer model, such as dimensions, weight, capacity, utilities, and configuration options. A Machine can override a characteristic when its actual configuration differs.
@@ -36,7 +42,7 @@ A bounded, Load-level receiving session that collects private Intake Evidence an
 
 ## Machine Intake Item
 
-One independently progressing unit inside an Intake Batch: one nameplate photo, one Candidate Machine, and targeted recognition state. The worker may prepare the next item while earlier items process, then records the observed Washer, Dryer, or Other type after recognition succeeds. Historical items may have recorded type during preparation or carry recapture state.
+One independently progressing unit inside an Intake Batch: one nameplate photo, one Candidate Machine, and targeted recognition state. The worker may prepare the next item while earlier items process, then confirms its Equipment Class after recognition succeeds. Historical items may have recorded a coarse Machine type during preparation or carry recapture state.
 
 ## Intake Evidence
 
@@ -46,11 +52,11 @@ Failed Intake Evidence may be excluded from active receiving without being delet
 
 ## Candidate Machine
 
-A reviewed proposal inside an open Intake Batch. In the active workflow it is bound to one nameplate photo, holds automatically assigned visible facts, and gains an attributable worker-observed Machine type after recognition. It is not authoritative Inventory until the final Batch Commit succeeds.
+A reviewed proposal inside an open Intake Batch. In the active workflow it is bound to one nameplate photo, holds automatically assigned visible facts, and gains an attributable worker-confirmed Equipment Class after recognition. It is not authoritative Inventory until the final Batch Commit succeeds.
 
 ## Candidate Confirmation
 
-The attributable decision that a Candidate Machine's evidence and visible facts satisfy the recognition policy. Historical INT-01 batches may contain manual confirmation; the active workflow uses the versioned Confidence Policy to accept supported field suggestions, then separately requires a person's Machine-type choice and final Batch Commit authorization.
+The attributable decision that a Candidate Machine's evidence and visible facts satisfy the recognition policy. Historical INT-01 batches may contain manual confirmation; the active workflow uses the versioned Confidence Policy to accept supported field suggestions, then separately requires a person's Equipment Class choice and final Batch Commit authorization.
 
 ## Recognition Run
 
@@ -66,7 +72,7 @@ A proposed visible nameplate fact, such as manufacturer, model, serial, voltage,
 
 ## Nameplate Assignment
 
-The semantic proposal that maps bounded Google OCR evidence to specific visible fields such as manufacturer, model, serial, voltage, phase, fuel, capacity, or equipment type. In the active path the semantic provider receives a bounded metadata-stripped JPEG with its same-photo OCR and may use visual layout, adjacency, and labels only to assign field meaning. It must copy exact characters from and cite the supplied OCR, return unknown facts as null, and cannot create or verify a Machine. Any proposed equipment type is not applied; the worker selects Machine type after recognition.
+The semantic proposal that maps bounded Google OCR evidence to specific visible fields such as manufacturer, model, serial, voltage, phase, fuel, capacity, or Equipment Class. In the active path the semantic provider receives a bounded metadata-stripped JPEG with its same-photo OCR and may use visual layout, adjacency, and labels only to assign field meaning. It must copy exact identity characters from and cite the supplied OCR, return unknown facts as null, and cannot create or verify a Machine. Any proposed Equipment Class remains advisory; the worker confirms or corrects it after recognition.
 
 ## Character Resolution
 
@@ -98,7 +104,7 @@ The historical and compatibility transition that closes an Intake Batch after ev
 
 ## Batch Commit
 
-The active final receiving transition. It validates that every selected item is accounted for, recognition-ready and confirmed, and has a human-selected Machine type; then it creates all unmapped provisional Machines, identity evidence, and provenance mappings and closes the Intake Batch in one audited, idempotent database transaction. Compatible historical mappings are preserved and skipped.
+The active final receiving transition. It validates that every selected item is accounted for, recognition-ready and confirmed, and has a human-confirmed Equipment Class; then it creates all unmapped provisional Machines, identity evidence, and provenance mappings and closes the Intake Batch in one audited, idempotent database transaction. Compatible historical mappings are preserved and skipped.
 
 ## Photo Provenance
 

@@ -6,7 +6,13 @@ import type {
   IntakePhoto,
   IntakeWarningKind,
   Machine,
+  EquipmentClass,
+  IntakeGroupDecision,
   ResolveCatalogModelRequest,
+} from "@laundrorama/contracts";
+import {
+  EquipmentClassSchema,
+  machineTypeForEquipmentClass,
 } from "@laundrorama/contracts";
 import type {
   DatabaseConnection,
@@ -70,6 +76,8 @@ function candidate(
     batchId: String(row.batch_id),
     state: row.state as IntakeCandidate["state"],
     machineType: (row.machine_type ?? null) as IntakeCandidate["machineType"],
+    equipmentClass: (row.equipment_class ??
+      null) as IntakeCandidate["equipmentClass"],
     manufacturer: nullable(row.manufacturer),
     model: nullable(row.model),
     serial: nullable(row.serial),
@@ -86,6 +94,12 @@ function candidate(
     machineTypeSelectedByUserId: nullable(row.machine_type_selected_by_user_id),
     machineTypeSelectedAt: row.machine_type_selected_at
       ? iso(row.machine_type_selected_at)
+      : null,
+    equipmentClassSelectedByUserId: nullable(
+      row.equipment_class_selected_by_user_id,
+    ),
+    equipmentClassSelectedAt: row.equipment_class_selected_at
+      ? iso(row.equipment_class_selected_at)
       : null,
     warnings,
     createdAt: iso(row.created_at),
@@ -390,7 +404,7 @@ export class IntakeRepository {
   async changeCandidateType(
     batchId: string,
     candidateId: string,
-    machineType: "washer" | "dryer" | "other",
+    equipmentClass: EquipmentClass,
     expectedVersion: number,
     context: InventoryActorContext,
   ): Promise<IntakeBatchDetail> {
@@ -398,7 +412,7 @@ export class IntakeRepository {
       const reservation = await this.reserve(
         database,
         "inventory.intake.candidate.type",
-        { batchId, candidateId, machineType, expectedVersion },
+        { batchId, candidateId, equipmentClass, expectedVersion },
         context,
       );
       const row = rows(
@@ -415,8 +429,9 @@ export class IntakeRepository {
       if (Number(row.batch_version) !== expectedVersion)
         throw new Error("INTAKE_VERSION_CONFLICT");
       const nextState = row.state === "confirmed" ? "confirmed" : "draft";
+      const machineType = machineTypeForEquipmentClass(equipmentClass);
       await database.execute(
-        sql`update inventory_intake_candidate set machine_type = ${machineType}, machine_type_selected_by_user_id = ${context.actorUserId}, machine_type_selected_at = now(), version = version + 1, state = ${nextState}, updated_at = now() where id = ${candidateId}`,
+        sql`update inventory_intake_candidate set equipment_class = ${equipmentClass}, equipment_class_selected_by_user_id = ${context.actorUserId}, equipment_class_selected_at = now(), machine_type = ${machineType}, machine_type_selected_by_user_id = ${context.actorUserId}, machine_type_selected_at = now(), version = version + 1, state = ${nextState}, updated_at = now() where id = ${candidateId}`,
       );
       await this.bumpBatch(database, batchId, expectedVersion);
       await this.record(
@@ -424,7 +439,7 @@ export class IntakeRepository {
         "inventory.intake.batch.reviewed",
         batchId,
         context,
-        ["machine_type"],
+        ["equipment_class", "machine_type"],
       );
       await this.idempotency.complete(database, {
         recordId: reservation.recordId!,
@@ -548,10 +563,36 @@ export class IntakeRepository {
       }
       if (Number(current.batch_version) !== expectedVersion)
         throw new Error("INTAKE_VERSION_CONFLICT");
-      const value = (key: string) =>
-        input[key] === undefined ? (current[key] ?? null) : input[key];
+      const columns: Record<string, string> = {
+        manufacturer: "manufacturer",
+        model: "model",
+        serial: "serial",
+        voltage: "voltage",
+        phase: "phase",
+        fuel: "fuel",
+        capacityLb: "capacity_lb",
+      };
+      const value = (key: keyof typeof columns) =>
+        input[key] === undefined
+          ? (current[columns[key]!] ?? null)
+          : input[key];
+      const classSelected =
+        input.equipmentClass !== undefined || input.machineType !== undefined;
+      const equipmentClass = (
+        input.equipmentClass !== undefined
+          ? input.equipmentClass
+          : input.machineType !== undefined
+            ? input.machineType
+            : (current.equipment_class ?? null)
+      ) as EquipmentClass | null;
+      const machineType = equipmentClass
+        ? machineTypeForEquipmentClass(equipmentClass)
+        : (input.machineType ?? current.machine_type ?? null);
+      const selectedBy = classSelected
+        ? context.actorUserId
+        : (current.equipment_class_selected_by_user_id ?? null);
       await database.execute(
-        sql`update inventory_intake_candidate set machine_type = ${value("machineType")}, manufacturer = ${value("manufacturer")}, model = ${value("model")}, serial = ${value("serial")}, voltage = ${value("voltage")}, phase = ${value("phase")}, fuel = ${value("fuel")}, capacity_lb = ${value("capacityLb")}, state = 'draft', version = version + 1, updated_at = now() where id = ${candidateId}`,
+        sql`update inventory_intake_candidate set machine_type = ${machineType}, equipment_class = ${equipmentClass}, equipment_class_selected_by_user_id = ${selectedBy}, equipment_class_selected_at = case when ${classSelected} then now() else equipment_class_selected_at end, machine_type_selected_by_user_id = case when ${classSelected} then ${context.actorUserId} else machine_type_selected_by_user_id end, machine_type_selected_at = case when ${classSelected} then now() else machine_type_selected_at end, manufacturer = ${value("manufacturer")}, model = ${value("model")}, serial = ${value("serial")}, voltage = ${value("voltage")}, phase = ${value("phase")}, fuel = ${value("fuel")}, capacity_lb = ${value("capacityLb")}, state = 'draft', version = version + 1, updated_at = now() where id = ${candidateId}`,
       );
       await database.execute(
         sql`delete from inventory_intake_warning_ack where candidate_id = ${candidateId}`,
@@ -773,7 +814,8 @@ export class IntakeRepository {
       }
       if (Number(row.batch_version) !== expectedVersion)
         throw new Error("INTAKE_VERSION_CONFLICT");
-      if (!row.machine_type) throw new Error("INTAKE_MACHINE_TYPE_REQUIRED");
+      if (!row.equipment_class || !row.equipment_class_selected_by_user_id)
+        throw new Error("INTAKE_EQUIPMENT_CLASS_REQUIRED");
       const assigned = await database.execute(
         sql`select id from inventory_intake_photo where candidate_id = ${candidateId} and disposition = 'assigned'`,
       );
@@ -848,7 +890,8 @@ export class IntakeRepository {
       if (row.batch_state !== "open") throw new Error("INTAKE_BATCH_COMMITTED");
       if (Number(row.batch_version) !== expectedVersion)
         throw new Error("INTAKE_VERSION_CONFLICT");
-      if (!row.machine_type) throw new Error("INTAKE_MACHINE_TYPE_REQUIRED");
+      if (!row.equipment_class || !row.equipment_class_selected_by_user_id)
+        throw new Error("INTAKE_EQUIPMENT_CLASS_REQUIRED");
       const photos = rows(
         await database.execute(
           sql`select p.*, f.state as file_state from inventory_intake_photo p inner join file_attachment f on f.id = p.file_id where p.batch_id = ${batchId} and p.candidate_id = ${candidateId} and p.disposition = 'assigned'`,
@@ -863,6 +906,7 @@ export class IntakeRepository {
         database,
         {
           machineType: row.machine_type as "washer" | "dryer" | "other",
+          equipmentClass: row.equipment_class as EquipmentClass,
           manufacturer: nullable(row.manufacturer),
           model: nullable(row.model),
           serial: nullable(row.serial),
@@ -1039,8 +1083,13 @@ export class IntakeRepository {
         throw new Error("INTAKE_CANDIDATE_NOT_CONFIRMED");
       if (candidates.some((row) => row.state !== "confirmed"))
         throw new Error("INTAKE_CANDIDATE_NOT_CONFIRMED");
-      if (candidates.some((row) => !row.machine_type))
-        throw new Error("INTAKE_MACHINE_TYPE_REQUIRED");
+      if (
+        candidates.some(
+          (row) =>
+            !row.equipment_class || !row.equipment_class_selected_by_user_id,
+        )
+      )
+        throw new Error("INTAKE_EQUIPMENT_CLASS_REQUIRED");
       for (const candidateRow of candidates) {
         const evidence = photos.filter(
           (photoRow) =>
@@ -1063,6 +1112,7 @@ export class IntakeRepository {
           database,
           {
             machineType: row.machine_type as "washer" | "dryer" | "other",
+            equipmentClass: row.equipment_class as EquipmentClass,
             manufacturer: nullable(row.manufacturer),
             model: nullable(row.model),
             serial: nullable(row.serial),
@@ -1167,6 +1217,32 @@ export class IntakeRepository {
     for (const row of candidateRows) {
       candidates.push(candidate(row, []));
     }
+    const latestRecognition = rows(
+      await database.execute(sql`
+      select distinct on (candidate_id) candidate_id, state, groups
+      from inventory_intake_recognition_run
+      where batch_id = ${id} and candidate_id is not null
+      order by candidate_id, created_at desc, id desc
+    `),
+    );
+    for (const run of latestRecognition) {
+      if (run.state !== "ready" || !Array.isArray(run.groups)) continue;
+      const target = candidates.find((entry) => entry.id === run.candidate_id);
+      if (!target) continue;
+      const field = (run.groups as IntakeGroupDecision[])
+        .flatMap((group) => group.fields ?? [])
+        .find(
+          (entry) =>
+            entry.field === "equipmentClass" && entry.accepted && entry.value,
+        );
+      if (!field) continue;
+      const parsed = EquipmentClassSchema.safeParse(field.value);
+      if (!parsed.success) continue;
+      target.recognitionEquipmentClassSuggestion = {
+        equipmentClass: parsed.data,
+        evidence: field.verification?.ocrValue ?? null,
+      };
+    }
     const mappings = rows(
       await database.execute(
         sql`select candidate_id, machine_id from inventory_intake_machine_mapping where batch_id = ${id}`,
@@ -1182,6 +1258,7 @@ export class IntakeRepository {
           coalesce(r.photo_id, p.id) as photo_id,
           coalesce(r.file_id, p.file_id) as file_id,
           c.machine_type,
+          c.equipment_class,
           c.state as candidate_state,
           c.version as candidate_revision,
           r.id as latest_run_id,
@@ -1212,6 +1289,8 @@ export class IntakeRepository {
               fileId: String(row.file_id),
               machineType: (row.machine_type ?? null) as
                 "washer" | "dryer" | "other" | null,
+              equipmentClass: (row.equipment_class ??
+                null) as IntakeCandidate["equipmentClass"],
               candidateState: row.candidate_state as
                 "draft" | "confirmed" | "committed",
               candidateRevision: Number(row.candidate_revision ?? 1),

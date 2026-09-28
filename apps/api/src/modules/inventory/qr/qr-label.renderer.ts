@@ -1,5 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import QRCode from "qrcode";
+import {
+  equipmentClassLabel,
+  type EquipmentClass,
+} from "@laundrorama/contracts";
 
 function escapeXml(input: string): string {
   return input.replace(
@@ -26,6 +30,7 @@ export interface QrSheetMachine {
   manufacturer: string | null;
   capacityLb: number | null;
   machineType: "washer" | "dryer" | "other";
+  equipmentClass?: EquipmentClass | null;
   serial: string | null;
 }
 
@@ -223,8 +228,9 @@ export class QrLabelRenderer {
         // visible just like labels rendered after a black QR code.
         content += "0 0 0 rg\n";
         const manufacturer = label.manufacturer ?? "Unknown manufacturer";
-        const type =
-          label.machineType[0]!.toUpperCase() + label.machineType.slice(1);
+        const type = label.equipmentClass
+          ? equipmentClassLabel(label.equipmentClass)
+          : label.machineType[0]!.toUpperCase() + label.machineType.slice(1);
         content += drawText(
           "LAUNDRORAMA",
           x + 10,

@@ -30,7 +30,7 @@ export interface OpenAISemanticRecognizerOptions extends BoundedProviderOptions 
 
 const OPENAI_ENDPOINT = "https://api.openai.com/v1/responses";
 const SEMANTIC_PROMPT =
-  "Map each single machine nameplate to manufacturer, model, serial, machineType, voltage, phase, fuel, and capacityLb using the attached image for layout, adjacency, and visible label semantics together with the supplied Google Cloud Vision OCR evidence. You may use image layout to assign an OCR-backed row even when a printed field label is cropped or missed by OCR. Copy values exactly from the supplied same-photo OCR text; every non-null value must be OCR-backed, the image cannot repair or invent characters, and you must never correct, complete, reinterpret, or reconstruct characters or use outside knowledge. Each photo is one machine and must produce at most one group; never group photos together. Unsupported fields must be null with empty evidence. Only use washer, dryer, or other for machineType when supported by OCR and image label semantics. Only use single_phase or three_phase for phase when unambiguous in OCR; values such as 1 OR 3 must be null. Only use gas, electric, steam, or other for fuel when an explicit fuel or heat-source declaration appears in OCR or is visibly associated with the OCR value in the image, such as FUEL, GAS TYPE, HEAT SOURCE, or EQUIPPED FOR. Capacity labels, electrical labels, and steam-pressure labels such as MAX STEAM PSI do not establish fuel; leave fuel null unless a fuel or heat-source declaration supports it. For capacityLb, return the visible OCR-backed capacity including its unit (lb, pounds, kg, or kilograms); a bare number or model-derived capacity must be null. Every non-null field must reference one or more supplied OCR line identifiers from the same photo, and same-photo OCR must support every copied character. Use normalized boxes from 0 to 1. Return only the requested JSON object.";
+  "Map each single machine nameplate to manufacturer, model, serial, equipmentClass, voltage, phase, fuel, and capacityLb using the attached image for layout, adjacency, and visible label semantics together with the supplied Google Cloud Vision OCR evidence. You may use image layout to assign an OCR-backed row even when a printed field label is cropped or missed by OCR. Copy visible identity and utility values exactly from the supplied same-photo OCR text; the image cannot repair or invent characters, and you must never correct, complete, reinterpret, or reconstruct characters or use outside knowledge. Each photo is one machine and must produce at most one group; never group photos together. Unsupported fields must be null with empty evidence. For equipmentClass, return only washer, dryer, stack_dryer, stacked_washer_dryer, washer_dryer_combo, or other. Propose a class only when the same-photo OCR explicitly names that physical configuration and the image layout supports its meaning; cite the OCR line showing those words. A model number, manufacturer, capacity, or unseen whole-machine appearance alone cannot establish the class. A stack dryer has two dryers; a stacked washer/dryer has a washer and dryer; a washer/dryer combo is one combined unit. If these are not distinguished by the evidence, return null. Only use single_phase or three_phase for phase when unambiguous in OCR; values such as 1 OR 3 must be null. Only use gas, electric, steam, or other for fuel when an explicit fuel or heat-source declaration appears in OCR or is visibly associated with the OCR value in the image, such as FUEL, GAS TYPE, HEAT SOURCE, or EQUIPPED FOR. Capacity labels, electrical labels, and steam-pressure labels such as MAX STEAM PSI do not establish fuel; leave fuel null unless a fuel or heat-source declaration supports it. For capacityLb, return the visible OCR-backed capacity including its unit (lb, pounds, kg, or kilograms); a bare number or model-derived capacity must be null. Every non-null field must reference one or more supplied OCR line identifiers from the same photo, and same-photo OCR must support every copied character or equipment-class phrase. Use normalized boxes from 0 to 1. Return only the requested JSON object.";
 
 function boundedOcrEvidence(ocr: IntakeOcrResult | undefined): Array<{
   lineId: string;
@@ -118,7 +118,7 @@ export class OpenAISemanticRecognizer implements IntakeSemanticRecognizer {
         {
           provider: "openai",
           model: this.model,
-          schemaVersion: "intake-nameplate-v2",
+          schemaVersion: "intake-nameplate-v3",
           requestId: null,
         },
       );
@@ -170,7 +170,7 @@ export class OpenAISemanticRecognizer implements IntakeSemanticRecognizer {
       return validateSemanticResult(payload, {
         provider: "openai",
         model: this.model,
-        schemaVersion: "intake-nameplate-v2",
+        schemaVersion: "intake-nameplate-v3",
         requestId: requestId && requestId.length <= 200 ? requestId : null,
       });
     } catch (error) {

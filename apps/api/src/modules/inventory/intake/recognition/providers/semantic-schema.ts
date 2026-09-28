@@ -28,7 +28,7 @@ export const SEMANTIC_JSON_SCHEMA = {
                 field: {
                   type: "string",
                   enum: [
-                    "machineType",
+                    "equipmentClass",
                     "manufacturer",
                     "model",
                     "serial",
@@ -113,7 +113,7 @@ export const GEMINI_SEMANTIC_SCHEMA = {
                 field: {
                   type: "STRING",
                   enum: [
-                    "machineType",
+                    "equipmentClass",
                     "manufacturer",
                     "model",
                     "serial",

@@ -16,7 +16,7 @@ describe("server environment", () => {
     expect(config.nodeEnv).toBe("test");
     expect(config.intakeRecognitionSemanticModel).toBe("gpt-6-luna");
     expect(config.intakeRecognitionPolicyVersion).toBe(
-      "intake-nameplate-policy-v4",
+      "intake-nameplate-policy-v5",
     );
   });
 

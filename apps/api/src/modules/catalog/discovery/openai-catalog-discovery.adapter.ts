@@ -40,7 +40,14 @@ const JSON_SCHEMA = {
     model: { type: "string" },
     equipmentClass: {
       type: "string",
-      enum: ["washer", "dryer", "stack_dryer", "stacked_washer_dryer", "other"],
+      enum: [
+        "washer",
+        "dryer",
+        "stack_dryer",
+        "stacked_washer_dryer",
+        "washer_dryer_combo",
+        "other",
+      ],
     },
     modelEvidence: { $ref: "#/$defs/evidence" },
     equipmentClassEvidence: { $ref: "#/$defs/evidence" },

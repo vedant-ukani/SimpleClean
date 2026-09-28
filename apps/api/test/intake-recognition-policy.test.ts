@@ -98,6 +98,54 @@ function ocrLines(
 }
 
 describe("deterministic intake recognition policy", () => {
+  it("accepts a stack class only when its cited same-photo OCR explicitly names it", () => {
+    const fields = (
+      [
+        ["manufacturer", "ACME", "maker"],
+        ["model", "M1", "model"],
+        ["serial", "SN-1", "serial"],
+        ["equipmentClass", "stacked_washer_dryer", "class"],
+      ] as const
+    ).map(([field, value, line]) => ({
+      field,
+      value,
+      confidence: 0.99,
+      photoId: photo,
+      box,
+      ocrLineIds: [line],
+    }));
+    const lines = ocrLines([
+      ["maker", "ACME"],
+      ["model", "M1"],
+      ["serial", "SN-1"],
+      ["class", "STACKED WASHER/DRYER"],
+    ]);
+    const policy = new DeterministicIntakeConfidencePolicy();
+    const accepted = policy.evaluate({
+      images: [image],
+      semantic: nameplateSemantic(fields),
+      ocr: { provider: "fake", model: "fake", lines },
+      config,
+    });
+    expect(
+      accepted[0]?.fields.find((field) => field.field === "equipmentClass"),
+    ).toMatchObject({ accepted: true, value: "stacked_washer_dryer" });
+    const wrongCitation = fields.map((field) =>
+      field.field === "equipmentClass"
+        ? { ...field, ocrLineIds: ["model"] }
+        : field,
+    );
+    const rejected = policy.evaluate({
+      images: [image],
+      semantic: nameplateSemantic(wrongCitation),
+      ocr: { provider: "fake", model: "fake", lines },
+      config,
+    });
+    expect(
+      rejected[0]?.fields.find((field) => field.field === "equipmentClass"),
+    ).toMatchObject({ accepted: false, value: null });
+    expect(rejected[0]?.accepted).toBe(true);
+  });
   it("accepts only explicitly unit-qualified capacity and normalizes kilograms", () => {
     expect(parseExplicitCapacityLb("40 lb")).toBe(40);
     expect(parseExplicitCapacityLb("18 kg")).toBe(40);

@@ -9,7 +9,7 @@
           "path": "../../../source-materials/inventory/laundrorama-inventory-photos/IMG_6193.HEIC",
           "groupKey": "machine-001",
           "fields": {
-            "machineType": "washer",
+            "equipmentClass": "washer",
             "manufacturer": "Maytag",
             "model": null,
             "serial": null,

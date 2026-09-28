@@ -185,6 +185,7 @@ export const inventoryMachine = pgTable(
   {
     id: text("id").primaryKey(),
     machineType: text("machine_type").notNull(),
+    equipmentClass: text("equipment_class"),
     manufacturer: text("manufacturer"),
     normalizedManufacturer: text("normalized_manufacturer"),
     model: text("model"),
@@ -218,6 +219,10 @@ export const inventoryMachine = pgTable(
     check(
       "inventory_machine_type_check",
       sql`${table.machineType} in ('washer', 'dryer', 'other')`,
+    ),
+    check(
+      "inventory_machine_equipment_class_check",
+      sql`${table.equipmentClass} is null or ${table.equipmentClass} in ('washer', 'dryer', 'stack_dryer', 'stacked_washer_dryer', 'washer_dryer_combo', 'other')`,
     ),
     check(
       "inventory_machine_phase_check",
@@ -261,6 +266,7 @@ export const machineIdentityEvidence = pgTable(
       .references(() => inventoryMachine.id, { onDelete: "restrict" }),
     sourceKind: text("source_kind").notNull(),
     machineType: text("machine_type").notNull(),
+    equipmentClass: text("equipment_class"),
     manufacturer: text("manufacturer"),
     model: text("model"),
     serial: text("serial"),
@@ -284,6 +290,10 @@ export const machineIdentityEvidence = pgTable(
     check(
       "machine_identity_evidence_type_check",
       sql`${table.machineType} in ('washer', 'dryer', 'other')`,
+    ),
+    check(
+      "machine_identity_evidence_equipment_class_check",
+      sql`${table.equipmentClass} is null or ${table.equipmentClass} in ('washer', 'dryer', 'stack_dryer', 'stacked_washer_dryer', 'washer_dryer_combo', 'other')`,
     ),
     check(
       "machine_identity_evidence_phase_check",
@@ -1148,6 +1158,7 @@ export const inventoryIntakeCandidate = pgTable(
       .references(() => inventoryIntakeBatch.id, { onDelete: "restrict" }),
     state: text("state").notNull().default("draft"),
     machineType: text("machine_type"),
+    equipmentClass: text("equipment_class"),
     manufacturer: text("manufacturer"),
     model: text("model"),
     serial: text("serial"),
@@ -1161,6 +1172,12 @@ export const inventoryIntakeCandidate = pgTable(
       "machine_type_selected_by_user_id",
     ).references(() => authUser.id, { onDelete: "restrict" }),
     machineTypeSelectedAt: timestamp("machine_type_selected_at", {
+      withTimezone: true,
+    }),
+    equipmentClassSelectedByUserId: text(
+      "equipment_class_selected_by_user_id",
+    ).references(() => authUser.id, { onDelete: "restrict" }),
+    equipmentClassSelectedAt: timestamp("equipment_class_selected_at", {
       withTimezone: true,
     }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -1186,6 +1203,10 @@ export const inventoryIntakeCandidate = pgTable(
     check(
       "inventory_intake_candidate_machine_type_check",
       sql`${table.machineType} is null or ${table.machineType} in ('washer', 'dryer', 'other')`,
+    ),
+    check(
+      "inventory_intake_candidate_equipment_class_check",
+      sql`${table.equipmentClass} is null or ${table.equipmentClass} in ('washer', 'dryer', 'stack_dryer', 'stacked_washer_dryer', 'washer_dryer_combo', 'other')`,
     ),
     check(
       "inventory_intake_candidate_capacity_check",
@@ -1640,7 +1661,7 @@ export const catalogModelVariant = pgTable(
   (table) => [
     check(
       "catalog_model_variant_class_check",
-      sql`${table.equipmentClass} in ('washer', 'dryer', 'stack_dryer', 'stacked_washer_dryer', 'other')`,
+      sql`${table.equipmentClass} in ('washer', 'dryer', 'stack_dryer', 'stacked_washer_dryer', 'washer_dryer_combo', 'other')`,
     ),
     index("catalog_model_variant_lookup_index").on(table.normalizedModel),
     index("catalog_model_variant_family_index").on(table.familyId),

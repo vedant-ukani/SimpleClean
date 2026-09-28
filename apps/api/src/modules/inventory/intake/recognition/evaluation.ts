@@ -32,7 +32,7 @@ import {
 import { RecognitionProviderError } from "./providers/provider.errors.js";
 
 const fieldNames = [
-  "machineType",
+  "equipmentClass",
   "manufacturer",
   "model",
   "serial",

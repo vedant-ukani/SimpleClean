@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CapacityLbSchema } from "./inventory.js";
+import { CapacityLbSchema, EquipmentClassSchema } from "./inventory.js";
 import {
   CandidateCatalogEnrichmentSchema,
   CatalogTypeSuggestionSchema,
@@ -37,6 +37,7 @@ export const INTAKE_FINDING_CODES = [
   "version_conflict",
   "photo_required",
   "machine_type_required",
+  "equipment_class_required",
   "file_invalid",
   "photo_limit",
   "machine_create_failed",
@@ -85,6 +86,7 @@ export const IntakeCandidateSchema = z.object({
   batchId: IdSchema,
   state: IntakeCandidateStateSchema,
   machineType: z.enum(["washer", "dryer", "other"]).nullable(),
+  equipmentClass: EquipmentClassSchema.nullable().optional(),
   manufacturer: NullableFactSchema,
   model: NullableFactSchema,
   serial: NullableFactSchema,
@@ -98,6 +100,15 @@ export const IntakeCandidateSchema = z.object({
   revision: z.number().int().positive().optional(),
   machineTypeSelectedByUserId: z.string().nullable().optional(),
   machineTypeSelectedAt: TimestampSchema.nullable().optional(),
+  equipmentClassSelectedByUserId: z.string().nullable().optional(),
+  equipmentClassSelectedAt: TimestampSchema.nullable().optional(),
+  recognitionEquipmentClassSuggestion: z
+    .object({
+      equipmentClass: EquipmentClassSchema,
+      evidence: z.string().max(240).nullable(),
+    })
+    .nullable()
+    .optional(),
   catalogTypeSuggestion: CatalogTypeSuggestionSchema.nullable().optional(),
   catalogEnrichment: CandidateCatalogEnrichmentSchema.nullable().optional(),
   warnings: z.array(
@@ -134,6 +145,7 @@ export const IntakeBatchDetailSchema = z.object({
         photoId: IdSchema,
         fileId: IdSchema,
         machineType: z.enum(["washer", "dryer", "other"]).nullable(),
+        equipmentClass: EquipmentClassSchema.nullable().optional(),
         candidateState: IntakeCandidateStateSchema,
         candidateRevision: z.number().int().positive(),
         latestRunId: IdSchema.nullable(),
@@ -170,6 +182,7 @@ export const CreateIntakeCandidateRequestSchema = z.object({
 
 export const UpdateIntakeCandidateRequestSchema = z.object({
   machineType: z.enum(["washer", "dryer", "other"]).nullable().optional(),
+  equipmentClass: EquipmentClassSchema.nullable().optional(),
   manufacturer: z.string().trim().max(240).nullable().optional(),
   model: z.string().trim().max(240).nullable().optional(),
   serial: z.string().trim().max(240).nullable().optional(),
@@ -209,10 +222,17 @@ export const PrepareIntakeItemRequestSchema = z.object({
   fileId: IdSchema,
   expectedVersion: VersionSchema,
 });
-export const ChangeIntakeCandidateTypeRequestSchema = z.object({
-  machineType: z.enum(["washer", "dryer", "other"]),
-  expectedVersion: VersionSchema,
-});
+export const ChangeIntakeCandidateTypeRequestSchema = z.union([
+  z.object({
+    equipmentClass: EquipmentClassSchema,
+    expectedVersion: VersionSchema,
+  }),
+  // Existing tablet clients may still submit a basic class during rollout.
+  z.object({
+    machineType: z.enum(["washer", "dryer", "other"]),
+    expectedVersion: VersionSchema,
+  }),
+]);
 export const ChangeIntakeCandidateCapacityRequestSchema = z.object({
   capacityLb: CapacityLbSchema,
   expectedVersion: VersionSchema,

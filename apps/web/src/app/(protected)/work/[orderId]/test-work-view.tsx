@@ -5,6 +5,7 @@ import type {
   TestStepResult,
   TestSession,
 } from "@laundrorama/contracts";
+import { equipmentClassLabel } from "@laundrorama/contracts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -235,8 +236,12 @@ export function TestWorkView({
             <dd>{machine.serial ?? "Not recorded"}</dd>
           </div>
           <div>
-            <dt>Machine type</dt>
-            <dd>{machine.machineType}</dd>
+            <dt>Equipment type</dt>
+            <dd>
+              {machine.equipmentClass
+                ? equipmentClassLabel(machine.equipmentClass)
+                : machine.machineType}
+            </dd>
           </div>
           <div>
             <dt>Inventory</dt>

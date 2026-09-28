@@ -124,7 +124,7 @@ describe("Intake review UI", () => {
     expect(
       screen.queryByRole("button", { name: "Capture next nameplate" }),
     ).toBeNull();
-    expect(screen.getByText(/choose each Machine type/)).toBeTruthy();
+    expect(screen.getByText(/confirm each Equipment type/)).toBeTruthy();
   });
 
   it("does not render duplicate warnings and keeps candidate approval available", () => {
@@ -436,6 +436,7 @@ describe("Intake review UI", () => {
           batchId: id,
           state: "confirmed",
           machineType: "washer",
+          equipmentClass: "washer",
           manufacturer: "Dexter",
           model: "T-400",
           serial: "SERIAL-READY",
@@ -447,6 +448,8 @@ describe("Intake review UI", () => {
           revision: 1,
           machineTypeSelectedByUserId: "warehouse-1",
           machineTypeSelectedAt: timestamp,
+          equipmentClassSelectedByUserId: "warehouse-1",
+          equipmentClassSelectedAt: timestamp,
           warnings: [],
           createdAt: timestamp,
           updatedAt: timestamp,
@@ -740,7 +743,7 @@ describe("Intake review UI", () => {
       picker,
       new File(["good"], "success.jpg", { type: "image/jpeg" }),
     );
-    await user.selectOptions(screen.getByLabelText("Machine type"), "washer");
+    await user.selectOptions(screen.getByLabelText("Equipment type"), "washer");
     const newerError = "The type could not be changed. Refresh and try again.";
     expect(await screen.findByText(newerError)).toBeTruthy();
     finishUpload?.(new Response("", { status: 201 }));
@@ -840,7 +843,7 @@ describe("Intake review UI", () => {
       new File(["failed"], "failed.jpg", { type: "image/jpeg" }),
       new File(["good"], "success.jpg", { type: "image/jpeg" }),
     ]);
-    await user.selectOptions(screen.getByLabelText("Machine type"), "washer");
+    await user.selectOptions(screen.getByLabelText("Equipment type"), "washer");
     const newerError = "The type could not be changed. Refresh and try again.";
     expect(await screen.findByText(newerError)).toBeTruthy();
     finishUpload?.(new Response("", { status: 201 }));
@@ -921,7 +924,9 @@ describe("Intake review UI", () => {
     intakeMocks.changeIntakeCandidateType.mockImplementation(() => firstChange);
     intakeMocks.getBrowserIntakeBatch.mockResolvedValue(detail);
     render(<IntakeReviewView loadId={id} canManage initialDetail={detail} />);
-    const selectors = screen.getAllByRole("combobox", { name: "Machine type" });
+    const selectors = screen.getAllByRole("combobox", {
+      name: "Equipment type",
+    });
 
     act(() => {
       fireEvent.change(selectors[0]!, { target: { value: "washer" } });
@@ -1269,6 +1274,7 @@ describe("Intake review UI", () => {
       state: "confirmed" as const,
       machineType: null,
       catalogTypeSuggestion: {
+        equipmentClass: "dryer" as const,
         machineType: "dryer" as const,
         revisionId: "dexter-revision-1",
         manufacturer: "Dexter",
@@ -1343,12 +1349,19 @@ describe("Intake review UI", () => {
         {
           ...candidate,
           machineType: "washer",
+          equipmentClass: "washer",
           revision: 2,
           machineTypeSelectedByUserId: "warehouse-1",
           machineTypeSelectedAt: timestamp,
+          equipmentClassSelectedByUserId: "warehouse-1",
+          equipmentClassSelectedAt: timestamp,
         },
       ],
-      items: detail.items?.map((item) => ({ ...item, machineType: "washer" })),
+      items: detail.items?.map((item) => ({
+        ...item,
+        machineType: "washer",
+        equipmentClass: "washer",
+      })),
     };
     intakeMocks.changeIntakeCandidateType.mockResolvedValue(typed);
     intakeMocks.commitIntakeBatch.mockResolvedValue({
@@ -1464,7 +1477,7 @@ describe("Intake review UI", () => {
       expect(screen.getByText("Official T-400 specifications")).toBeTruthy();
       expect(screen.getAllByText("Unknown").length).toBeGreaterThan(0);
       expect(
-        screen.getByRole("combobox", { name: "Machine type" }),
+        screen.getByRole("combobox", { name: "Equipment type" }),
       ).toHaveProperty("value", "");
       expect(intakeMocks.changeIntakeCandidateType).not.toHaveBeenCalled();
       expect(screen.queryByText("Ready for review")).toBeNull();
@@ -1474,7 +1487,7 @@ describe("Intake review UI", () => {
       ).toBeNull();
 
       await user.selectOptions(
-        screen.getByRole("combobox", { name: "Machine type" }),
+        screen.getByRole("combobox", { name: "Equipment type" }),
         "washer",
       );
       expect(intakeMocks.changeIntakeCandidateType).toHaveBeenCalledWith(

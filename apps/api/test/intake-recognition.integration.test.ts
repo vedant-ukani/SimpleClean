@@ -57,9 +57,7 @@ async function createApplication(overrides?: {
   ocr?: IntakeOcrVerifier;
   environment?: Record<string, string>;
 }): Promise<INestApplication> {
-  const root = await mkdtemp(
-    join(tmpdir(), "laundrorama-intake-recognition-"),
-  );
+  const root = await mkdtemp(join(tmpdir(), "laundrorama-intake-recognition-"));
   roots.push(root);
   const config = parseServerEnvironment(
     createTestEnvironment({
@@ -838,7 +836,7 @@ describe("Intake recognition API and worker journey", () => {
       },
     };
     const app = await createApplication({ semantic, ocr });
-    const { cookies } = await signIn(app);
+    const { cookies, userId } = await signIn(app);
     const load = await request(app.getHttpServer())
       .post("/inventory/loads")
       .set("Cookie", cookies)
@@ -937,10 +935,19 @@ describe("Intake recognition API and worker journey", () => {
       .set("Cookie", cookies)
       .set("Idempotency-Key", randomUUID())
       .send({
-        machineType: "dryer",
+        equipmentClass: "stack_dryer",
         expectedVersion: afterRetryDetail.body.batch.version,
       })
       .expect(200);
+    expect(
+      typed.body.candidates.find(
+        (entry: { id: string }) => entry.id === candidate.id,
+      ),
+    ).toMatchObject({
+      equipmentClass: "stack_dryer",
+      machineType: "dryer",
+      equipmentClassSelectedByUserId: userId,
+    });
     const committed = await request(app.getHttpServer())
       .post(`/inventory/intake/${batchId}/candidates/${candidate.id}/commit`)
       .set("Cookie", cookies)
@@ -950,6 +957,20 @@ describe("Intake recognition API and worker journey", () => {
     const committedMachineId = committed.body.machineId as string;
     expect(committedMachineId).toBeTruthy();
     expect(committedMachineId).not.toBe(existingMachineId);
+    await request(app.getHttpServer())
+      .get(`/inventory/machines/${committedMachineId}`)
+      .set("Cookie", cookies)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.machine).toMatchObject({
+          equipmentClass: "stack_dryer",
+          machineType: "dryer",
+        });
+        expect(body.identityEvidence[0]).toMatchObject({
+          equipmentClass: "stack_dryer",
+          machineType: "dryer",
+        });
+      });
 
     const mappings = rows<{ candidate_id: string; machine_id: string }>(
       await database.execute(
