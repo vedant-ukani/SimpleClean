@@ -134,5 +134,14 @@ test("Mobile header keeps account actions on the right and Menu aligned with the
     if (changePassword) {
       expect(changePassword.left).toBeGreaterThanOrEqual(menu!.right - 1);
     }
+
+    await page.getByRole("button", { name: "Menu" }).click();
+    const dropdown = await page
+      .locator(".navigation-region--mobile .primary-navigation--open")
+      .boundingBox();
+    expect(dropdown, `Missing open Menu dropdown at ${width}px`).not.toBeNull();
+    expect(dropdown!.x).toBeGreaterThanOrEqual(0);
+    expect(dropdown!.x + dropdown!.width).toBeLessThanOrEqual(width);
+    await page.getByRole("button", { name: "Close menu" }).click();
   }
 });

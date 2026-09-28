@@ -1799,7 +1799,7 @@ input[type="file"]::file-selector-button {
   .navigation-region--mobile .primary-navigation {
     position: absolute;
     top: calc(100% + 0.65rem);
-    right: 0;
+    left: 0;
     z-index: 25;
     display: none;
     width: min(18rem, calc(100vw - 2rem));
