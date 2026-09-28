@@ -148,6 +148,7 @@ describe("QR label renderer", () => {
         url: `https://platform.example.test/scan#label-${index}`,
         fallbackCode: `01ARZ3NDEKTSV4R${index}`,
         manufacturer: "Dexter",
+        model: index === 9 ? null : "T-400",
         capacityLb: index === 9 ? null : 40,
         machineType: "washer" as const,
         serial: `SERIAL-${index}`,
@@ -158,6 +159,9 @@ describe("QR label renderer", () => {
     expect(rendered.pdf.toString()).toContain("Dexter");
     expect(rendered.pdf.toString()).toContain("40 LB - Washer");
     expect(rendered.pdf.toString()).toContain("Capacity unknown - Washer");
+    expect(rendered.pdf.toString()).toContain("Model: T-400");
+    expect(rendered.pdf.toString()).toContain("Model: Not recorded");
+    expect(rendered.pdf.toString()).toContain("Serial: SERIAL-9");
     expect(rendered.pdf.toString()).toContain("SERIAL-9");
     const pdfText = rendered.pdf.toString();
     const firstLabelText = pdfText.indexOf("(LAUNDRORAMA)");
@@ -168,5 +172,80 @@ describe("QR label renderer", () => {
     expect(
       (rendered.pdf.toString().match(/\/Type \/Page /g) ?? []).length,
     ).toBe(2);
+    const firstSerial =
+      /BT \/F1 8 Tf [\d.]+ ([\d.]+) Td \(Serial: SERIAL-0\) Tj ET/.exec(
+        pdfText,
+      );
+    const firstQr = pdfText.slice(
+      pdfText.indexOf("(Serial: SERIAL-0)"),
+      pdfText.indexOf("(Fallback:"),
+    );
+    const qrTop = Math.max(
+      ...Array.from(
+        firstQr.matchAll(/[\d.]+ ([\d.]+) [\d.]+ ([\d.]+) re f/g),
+        ([, y, height]) => Number(y) + Number(height),
+      ),
+    );
+    expect(firstSerial).not.toBeNull();
+    expect(Number(firstSerial![1]) - qrTop).toBeGreaterThanOrEqual(12);
+    expect(pdfText).not.toContain("https://platform.example.test/scan#label-");
+  });
+
+  it("keeps long visible identity values within a label without truncating them", async () => {
+    const manufacturer = `MAKER-${"A".repeat(74)}`;
+    const model = `MODEL-${"B".repeat(94)}`;
+    const serial = `SERIAL-${"C".repeat(94)}`;
+    const rendered = await new QrLabelRenderer().renderSheet({
+      labels: [
+        {
+          url: "https://platform.example.test/scan#v1.long-test-token",
+          fallbackCode: "01ARZ3NDEKTSV4RR",
+          manufacturer,
+          model,
+          serial,
+          capacityLb: null,
+          machineType: "washer",
+        },
+      ],
+    });
+    const pdf = rendered.pdf.toString();
+    const identity = pdf.slice(
+      pdf.indexOf("(LAUNDRORAMA)"),
+      pdf.indexOf("(Fallback:"),
+    );
+    const identityText = identity.slice(0, identity.indexOf("0 0 0 rg"));
+    const printed = Array.from(
+      identity.matchAll(/\(([^)]*)\) Tj ET/g),
+      ([, line]) => line,
+    ).join("");
+    expect(printed).toContain(manufacturer);
+    expect(printed.replaceAll(" ", "")).toContain(`Model:${model}`);
+    expect(printed.replaceAll(" ", "")).toContain(`Serial:${serial}`);
+    const textBaselines = Array.from(
+      identityText.matchAll(/BT \/F[12] [\d.]+ Tf [\d.]+ ([\d.]+) Td/g),
+      ([, y]) => Number(y),
+    );
+    const qrRects = Array.from(
+      identity.matchAll(/([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) re f/g),
+      ([, x, y, width, height]) => ({
+        x: Number(x),
+        y: Number(y),
+        width: Number(width),
+        height: Number(height),
+      }),
+    );
+    expect(
+      textBaselines.every((baseline) => baseline > 525.33 && baseline < 768),
+    ).toBe(true);
+    expect(
+      qrRects.every(
+        ({ x, y, width, height }) =>
+          x > 24 && x + width < 212 && y > 525.33 && y + height < 768,
+      ),
+    ).toBe(true);
+    expect(
+      Math.min(...textBaselines) -
+        Math.max(...qrRects.map(({ y, height }) => y + height)),
+    ).toBeGreaterThan(0);
   });
 });

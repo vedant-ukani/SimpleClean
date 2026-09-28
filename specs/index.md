@@ -49,3 +49,4 @@ technician-triage-and-machine-video — Specialty-filtered tap-only initial chec
 production-active-machine-sessions — Dedicated Washer/Dryer testing assignments, bearing-free v2 checklists, multi-Machine active sessions, and attributable server timing (completed)
 warehouse-expected-loads-reset — Date-grouped Warehouse Expected Loads plus recoverable removal of current local Load-rooted data (completed)
 intake-history-qr-reprint — Search received Loads, reopen prior Intake Batches, and safely reprint whole-Intake QR sheets (implemented; final production verification pending)
+intake-qr-label-model-spacing — Add Model Number and readable spacing above QR codes on nine-up Intake sheets (implemented; production verification pending)

@@ -28,6 +28,7 @@ export interface QrSheetMachine {
   url: string;
   fallbackCode: string;
   manufacturer: string | null;
+  model: string | null;
   capacityLb: number | null;
   machineType: "washer" | "dryer" | "other";
   equipmentClass?: EquipmentClass | null;
@@ -96,27 +97,40 @@ function drawAdaptiveText(
   baseSize: number,
   baseChars: number,
   bold = false,
-): string {
+  scale = 1,
+): { content: string; lastBaseline: number } {
   // Shrink first so normal labels stay compact. If a value is unusually long,
   // retain every character by wrapping into as many bounded-width lines as it
   // needs rather than silently truncating the printed identity.
-  for (let size = baseSize; size >= 5; size -= 1) {
+  const minimumSize = scale === 1 ? 5 : 3.5;
+  for (let size = baseSize * scale; size >= minimumSize; size -= 0.5) {
     const lines = wrapText(
       value,
       Math.max(8, Math.floor((baseChars * baseSize) / size)),
     );
     if (lines.length <= 2) {
-      return lines
-        .map((line, index) =>
-          drawText(line, x, y - index * (size + 2), size, bold),
-        )
-        .join("");
+      const step = size + 2 * scale;
+      return {
+        content: lines
+          .map((line, index) => drawText(line, x, y - index * step, size, bold))
+          .join(""),
+        lastBaseline: y - (lines.length - 1) * step,
+      };
     }
   }
-  const lines = wrapText(value, baseChars * 2);
-  return lines
-    .map((line, index) => drawText(line, x, y - index * 7, 5, bold))
-    .join("");
+  const lines = wrapText(
+    value,
+    Math.max(8, Math.floor((baseChars * baseSize) / minimumSize)),
+  );
+  const step = minimumSize + 2 * scale;
+  return {
+    content: lines
+      .map((line, index) =>
+        drawText(line, x, y - index * step, minimumSize, bold),
+      )
+      .join(""),
+    lastBaseline: y - (lines.length - 1) * step,
+  };
 }
 
 function drawQr(url: string, x: number, y: number, size: number): string {
@@ -231,38 +245,82 @@ export class QrLabelRenderer {
         const type = label.equipmentClass
           ? equipmentClassLabel(label.equipmentClass)
           : label.machineType[0]!.toUpperCase() + label.machineType.slice(1);
-        content += drawText(
-          "LAUNDRORAMA",
-          x + 10,
-          y + cellHeight - 20,
-          8,
-          true,
-        );
-        content += drawAdaptiveText(
-          manufacturer,
-          x + 10,
-          y + cellHeight - 36,
-          11,
-          22,
-          true,
-        );
         const capacity =
           label.capacityLb == null
             ? `Capacity unknown - ${type}`
             : `${label.capacityLb} LB - ${type}`;
-        content += drawText(capacity, x + 10, y + cellHeight - 61, 9);
-        content += drawAdaptiveText(
-          `Serial: ${label.serial ?? "Not recorded"}`,
-          x + 10,
-          y + cellHeight - 76,
-          8,
-          25,
+        const top = y + cellHeight;
+        const identity = (scale: number) => {
+          const title = drawText(
+            "LAUNDRORAMA",
+            x + 10,
+            top - 20 * scale,
+            8 * scale,
+            true,
+          );
+          const maker = drawAdaptiveText(
+            manufacturer,
+            x + 10,
+            top - 36 * scale,
+            11,
+            22,
+            true,
+            scale,
+          );
+          const capacityLine = drawAdaptiveText(
+            capacity,
+            x + 10,
+            Math.min(top - 61 * scale, maker.lastBaseline - 12 * scale),
+            9,
+            32,
+            false,
+            scale,
+          );
+          const model = drawAdaptiveText(
+            `Model: ${label.model ?? "Not recorded"}`,
+            x + 10,
+            capacityLine.lastBaseline - 16 * scale,
+            8,
+            25,
+            false,
+            scale,
+          );
+          const serial = drawAdaptiveText(
+            `Serial: ${label.serial ?? "Not recorded"}`,
+            x + 10,
+            model.lastBaseline - 17 * scale,
+            8,
+            25,
+            false,
+            scale,
+          );
+          const qrTop = Math.min(y + 134, serial.lastBaseline - 6 * scale);
+          const qrSize = Math.min(96, qrTop - (y + 38));
+          return {
+            content:
+              title +
+              maker.content +
+              capacityLine.content +
+              model.content +
+              serial.content,
+            qrSize,
+            qrTop,
+          };
+        };
+        let layout = identity(1);
+        if (layout.qrSize < 88) layout = identity(0.7);
+        if (layout.qrSize < 88) layout = identity(0.6);
+        content += layout.content;
+        content += drawQr(
+          label.url,
+          x + (cellWidth - layout.qrSize) / 2,
+          layout.qrTop - layout.qrSize,
+          layout.qrSize,
         );
-        content += drawQr(label.url, x + (cellWidth - 112) / 2, y + 54, 112);
         content += drawText(
           `Fallback: ${label.fallbackCode}`,
           x + 10,
-          y + 30,
+          y + 17,
           7,
           false,
         );

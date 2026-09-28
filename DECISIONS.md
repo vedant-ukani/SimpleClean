@@ -2,6 +2,12 @@
 
 # Decisions
 
+## 2026-09-28 — Print model identity with readable QR separation
+
+Include the Machine's recorded model number in the private whole-Intake nine-up QR sheet, or show **Model: Not recorded** when it is unknown. Keep manufacturer, capacity/type, model, and full serial as a readable identity block with visible whitespace before the QR; adapt unusually long identity values inside the fixed label cell without truncating them. The opaque signed QR payload, fallback code, active-label reuse, authorization, private no-store response, and print audit remain unchanged.
+
+Consequences: warehouse staff can match a printed label using both model and serial, including when reprinting a historical Intake. This deliberately expands ADR 0011's visible matching facts to include model while retaining its exclusion of price, customer, location, cost, source details, and internal Machine ID. Nine labels still fit on each US Letter page, and the QR remains large enough to scan after the spacing adjustment.
+
 ## 2026-09-25 — Time Washer and Dryer work through active multi-Machine sessions
 
 Treat Washer Technician, Dryer Technician, and Cleaner as Production assignments within the existing Technician/Cleaner security role. A worker has at most one specialty and one open Test session; Cleaners receive no Initial Check or Test work. Owner Admin retains Machine-detail Initial Check and Owner Review access but has no Initial Checks queue.

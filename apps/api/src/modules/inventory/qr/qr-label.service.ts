@@ -203,6 +203,7 @@ export class QrLabelService {
         url: this.scanUrl(this.signer.sign(label.id)),
         fallbackCode: label.fallbackCode,
         manufacturer: machine.manufacturer,
+        model: machine.model,
         capacityLb: machine.capacityLb ?? null,
         machineType: machine.machineType,
         equipmentClass: machine.equipmentClass ?? null,

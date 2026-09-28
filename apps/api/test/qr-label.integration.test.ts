@@ -437,6 +437,7 @@ describe("Inventory QR labels", () => {
     expect(firstPdf.startsWith("%PDF-1.4")).toBe(true);
     expect(firstPdf).toContain("Dexter");
     expect(firstPdf).toContain("40 LB - Washer");
+    expect(firstPdf).toContain("Model: T-400");
     expect(firstPdf).toContain("QR-SERIAL-1");
 
     const second = await request(app.getHttpServer())
